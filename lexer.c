@@ -5,101 +5,99 @@
 // an arithmetic lexer
 
 typedef enum {
-  NUMBER,
-  PLUS,
-  MINUS,
-  ASTERISK,
-  SLASH,
-  END,
-  UNKNOWN,
+    NUMBER,
+    PLUS,
+    MINUS,
+    ASTERISK,
+    SLASH,
+    END,
+    UNKNOWN,
 } TokenKind;
 
 typedef struct {
-  double num;
-  TokenKind kind;
+    double num;
+    TokenKind kind;
 } Token;
 
 typedef struct {
-  char *string;
-  size_t cursor;
+    char *string;
+    size_t cursor;
 } Lexer;
 
 Token tokenise(Lexer *lexer);
 
 int main() {
+    char testString[] = "123.4567-2*4";
 
-  printf("hi\n");
-  int test = 1;
-  char testString[] = "123.4567-2*4";
+    Lexer lexer = {
+        .string = testString,
+        .cursor = 0,
+    };
 
-  Lexer lexer = {
-      .string = testString,
-      .cursor = 0,
-  };
+    tokenise(&lexer);
 
-  tokenise(&lexer);
-
-  return 0;
+    return 0;
 }
 
 Token tokenise(Lexer *lexer) {
-  Token token;
+    Token token;
 
-  switch (lexer->string[lexer->cursor]) {
-  case '\n': {
-    token.kind = END;
-    break;
-  }
+    switch (lexer->string[lexer->cursor]) {
+        case '\n': {
+            token.kind = END;
+            break;
+        }
 
-  case '0' ... '9':
-  case '.': {
-    token.num = 0;
-    token.kind = NUMBER;
+        case '0' ... '9':
+        case '.': {
+            token.num = 0;
+            token.kind = NUMBER;
 
-    int i;
-    for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
-      token.num *= 10;
-      token.num += (lexer->string[i] - '0');
+            int i;
+            for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
+                token.num *= 10;
+                token.num += (lexer->string[i] - '0');
+            }
+
+            lexer->cursor = i;
+
+            if (lexer->string[lexer->cursor] == '.') {
+                int initial_cursor = lexer->cursor;
+                lexer->cursor++;
+
+                for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
+                    token.num += (lexer->string[i] - '0') *
+                                 pow(10, -(i - initial_cursor));
+                }
+            }
+            break;
+        }
+
+        case '+': {
+            token.kind = PLUS;
+            lexer->cursor++;
+            break;
+        }
+
+        case '-': {
+            token.kind = MINUS;
+            lexer->cursor++;
+
+            break;
+        }
+
+        case '*': {
+            token.kind = SLASH;
+            lexer->cursor++;
+            break;
+        }
+
+        case '/': {
+            token.kind = SLASH;
+            lexer->cursor++;
+            break;
+        }
     }
 
-    lexer->cursor = i;
-
-    if (lexer->string[lexer->cursor] == '.') {
-      int initial_cursor = lexer->cursor;
-      lexer->cursor++;
-
-      for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
-        token.num += (lexer->string[i] - '0') * pow(10, -(i - initial_cursor));
-      }
-    }
-    break;
-  }
-
-  case '+': {
-    token.kind = PLUS;
-    lexer->cursor++;
-    break;
-  }
-
-  case '-': {
-    token.kind = MINUS;
-    lexer->cursor++;
-
-    break;
-  }
-
-  case '*': {
-    token.kind = SLASH;
-    lexer->cursor++;
-    break;
-  }
-
-  case '/': {
-    token.kind = SLASH;
-    lexer->cursor++;
-    break;
-  }
-  }
-
-  return token;
+    return token;
 }
