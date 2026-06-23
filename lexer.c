@@ -30,7 +30,7 @@ int main() {
 
   printf("hi\n");
   int test = 1;
-  char testString[] = "123-2*4";
+  char testString[] = "123.4567-2*4";
 
   Lexer lexer = {
       .string = testString,
@@ -51,7 +51,8 @@ Token tokenise(Lexer *lexer) {
     break;
   }
 
-  case '0' ... '9': {
+  case '0' ... '9':
+  case '.': {
     token.num = 0;
     token.kind = NUMBER;
 
@@ -62,6 +63,15 @@ Token tokenise(Lexer *lexer) {
     }
 
     lexer->cursor = i;
+
+    if (lexer->string[lexer->cursor] == '.') {
+      int initial_cursor = lexer->cursor;
+      lexer->cursor++;
+
+      for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
+        token.num += (lexer->string[i] - '0') * pow(10, -(i - initial_cursor));
+      }
+    }
     break;
   }
 
