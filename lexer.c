@@ -1,33 +1,13 @@
+#include "lexer.h"
+
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 
 // an arithmetic lexer
 
-typedef enum {
-    NUMBER,
-    PLUS,
-    MINUS,
-    ASTERISK,
-    SLASH,
-    END,
-    UNKNOWN,
-} TokenKind;
-
-typedef struct {
-    double num;
-    TokenKind kind;
-} Token;
-
-typedef struct {
-    char *string;
-    size_t cursor;
-} Lexer;
-
-Token tokenise(Lexer *lexer);
-
 int main() {
-    char testString[] = "123.4567-2*4";
+    char testString[] = "123.4567-2.*4";
 
     Lexer lexer = {
         .string = testString,
