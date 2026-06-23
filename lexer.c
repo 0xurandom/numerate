@@ -34,7 +34,9 @@ int main() {
         .cursor = 0,
     };
 
-    tokenise(&lexer);
+    while (tokenise(&lexer).kind != END) {
+        tokenise(&lexer);
+    }
 
     return 0;
 }
@@ -43,7 +45,7 @@ Token tokenise(Lexer *lexer) {
     Token token;
 
     switch (lexer->string[lexer->cursor]) {
-        case '\n': {
+        case '\0': {
             token.kind = END;
             break;
         }
@@ -69,32 +71,46 @@ Token tokenise(Lexer *lexer) {
                     token.num += (lexer->string[i] - '0') *
                                  pow(10, -(i - initial_cursor));
                 }
+
+                lexer->cursor = i;
             }
+
+            printf("%f\n", token.num);
             break;
         }
 
         case '+': {
             token.kind = PLUS;
             lexer->cursor++;
+            printf("+\n");
             break;
         }
 
         case '-': {
             token.kind = MINUS;
             lexer->cursor++;
-
+            printf("-\n");
             break;
         }
 
         case '*': {
-            token.kind = SLASH;
+            token.kind = ASTERISK;
             lexer->cursor++;
+            printf("*\n");
             break;
         }
 
         case '/': {
             token.kind = SLASH;
             lexer->cursor++;
+            printf("/\n");
+            break;
+        }
+
+        default: {
+            token.kind = UNKNOWN;
+            lexer->cursor++;
+            printf("unknown\n");
             break;
         }
     }
