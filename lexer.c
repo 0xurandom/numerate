@@ -7,7 +7,7 @@
 // an arithmetic lexer
 
 int main() {
-    char testString[] = "123.4567-2.*4";
+    char testString[] = "5-2*4";
 
     Lexer lexer = {
         .string = testString,

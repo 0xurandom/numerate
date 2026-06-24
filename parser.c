@@ -30,27 +30,49 @@ double parse(Parser *parser) {
             if (tokenPrecedence > stackPrecedence) {
                 appendToStack(&parser->operatorStack, parser->token);
             } else {
+                Token y = popStack(&parser->outputStack);
+                Token x = popStack(&parser->operatorStack);
+
+                Token op = popStack(&parser->operatorStack);
+
+                Token result = evaluate(x, y, op);
+
+                appendToStack(&parser->outputStack, result);
             }
         }
     }
 }
 
-double evaluate(double x, double y, TokenKind operator) {
-    switch (operator) {
-        case PLUS:
-            return x + y;
-        case MINUS:
-            return x - y;
-        case ASTERISK:
-            return x * y;
-        case SLASH:
-            return x / y;
+Token evaluate(Token x, Token y, Token op) {
+    Token result = {
+        .kind = NUMBER,
+    };
+
+    switch (op.kind) {
+        case PLUS: {
+            result.num = x.num + y.num;
+            break;
+        }
+        case MINUS: {
+            result.num = x.num - y.num;
+            break;
+        }
+        case ASTERISK: {
+            result.num = x.num * y.num;
+            break;
+        }
+        case SLASH: {
+            result.num = x.num / y.num;
+            break;
+        }
 
         default: {
             printf("unknown operator\n");
             exit(1);
         }
     }
+
+    return result;
 }
 
 TokenKind getStackTop(Stack *stack) {
@@ -75,7 +97,12 @@ int getPrecedence(TokenKind kind) {
     }
 }
 
-void popStack(Stack *stack) { stack->count--; }
+Token popStack(Stack *stack) {
+    if (stack->count == 0) exit(0);
+
+    stack->count--;
+    return stack->arr[stack->count];
+}
 
 void appendToStack(Stack *stack, Token token) {
     // TODO: check if token exceeds capacity
