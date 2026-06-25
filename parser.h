@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define  PARSER_H
 
-#import "lexer.h"
+#include "lexer.h"
 
 typedef struct {
     Token *arr;
@@ -15,8 +15,8 @@ typedef struct {
     Token token;
 } Parser;
 
-
-Token evaluate(Token x, Token y, Token op);
+void evaluateStacks(Parser *parser);
+void parse(Parser *parser);
 void appendToStack(Stack *stack, Token token);
 int getPrecedence(TokenKind kind);
 TokenKind getStackTop(Stack *stack);

@@ -23,6 +23,7 @@ typedef struct {
 typedef struct {
     char *string;
     size_t cursor;
+    size_t length;
 } Lexer;
 
 Token tokenise(Lexer *lexer);

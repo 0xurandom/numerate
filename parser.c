@@ -5,16 +5,11 @@
 
 #include "lexer.h"
 
-int main() {
-    Parser parser;
-
-    return 0;
-}
-
-double parse(Parser *parser) {
+void parse(Parser *parser) {
     switch (parser->token.kind) {
         case NUMBER: {
             appendToStack(&parser->outputStack, parser->token);
+            break;
         }
         case PLUS:
         case MINUS:
@@ -30,20 +25,18 @@ double parse(Parser *parser) {
             if (tokenPrecedence > stackPrecedence) {
                 appendToStack(&parser->operatorStack, parser->token);
             } else {
-                Token y = popStack(&parser->outputStack);
-                Token x = popStack(&parser->operatorStack);
-
-                Token op = popStack(&parser->operatorStack);
-
-                Token result = evaluate(x, y, op);
-
-                appendToStack(&parser->outputStack, result);
+                evaluateStacks(parser);
             }
         }
     }
 }
 
-Token evaluate(Token x, Token y, Token op) {
+void evaluateStacks(Parser *parser) {
+    Token y = popStack(&parser->outputStack);
+    Token x = popStack(&parser->operatorStack);
+
+    Token op = popStack(&parser->operatorStack);
+
     Token result = {
         .kind = NUMBER,
     };
@@ -70,9 +63,10 @@ Token evaluate(Token x, Token y, Token op) {
             printf("unknown operator\n");
             exit(1);
         }
-    }
+    };
 
-    return result;
+    appendToStack(&parser->outputStack, result);
+    return;
 }
 
 TokenKind getStackTop(Stack *stack) {
@@ -98,7 +92,10 @@ int getPrecedence(TokenKind kind) {
 }
 
 Token popStack(Stack *stack) {
-    if (stack->count == 0) exit(0);
+    if (stack->count == 0) {
+        printf("failed to pop token from stack\n");
+        exit(1);
+    }
 
     stack->count--;
     return stack->arr[stack->count];

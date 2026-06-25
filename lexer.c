@@ -6,20 +6,20 @@
 
 // an arithmetic lexer
 
-int main() {
-    char testString[] = "5-2*4";
-
-    Lexer lexer = {
-        .string = testString,
-        .cursor = 0,
-    };
-
-    while (tokenise(&lexer).kind != END) {
-        tokenise(&lexer);
-    }
-
-    return 0;
-}
+// int main() {
+//     char testString[] = "5-2*4";
+//
+//     Lexer lexer = {
+//         .string = testString,
+//         .cursor = 0,
+//     };
+//
+//     while (tokenise(&lexer).kind != END) {
+//         tokenise(&lexer);
+//     }
+//
+//     return 0;
+// }
 
 Token tokenise(Lexer *lexer) {
     Token token;
@@ -55,42 +55,42 @@ Token tokenise(Lexer *lexer) {
                 lexer->cursor = i;
             }
 
-            printf("%f\n", token.num);
+            // printf("%f\n", token.num);
             break;
         }
 
         case '+': {
             token.kind = PLUS;
             lexer->cursor++;
-            printf("+\n");
+            // printf("+\n");
             break;
         }
 
         case '-': {
             token.kind = MINUS;
             lexer->cursor++;
-            printf("-\n");
+            // printf("-\n");
             break;
         }
 
         case '*': {
             token.kind = ASTERISK;
             lexer->cursor++;
-            printf("*\n");
+            // printf("*\n");
             break;
         }
 
         case '/': {
             token.kind = SLASH;
             lexer->cursor++;
-            printf("/\n");
+            // printf("/\n");
             break;
         }
 
         default: {
             token.kind = UNKNOWN;
             lexer->cursor++;
-            printf("unknown\n");
+            // printf("unknown\n");
             break;
         }
     }
