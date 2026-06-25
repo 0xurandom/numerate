@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/ucontext.h>
 
 #include "lexer.h"
 
@@ -26,6 +27,7 @@ void parse(Parser *parser) {
                 appendToStack(&parser->operatorStack, parser->token);
             } else {
                 evaluateStacks(parser);
+                appendToStack(&parser->operatorStack, parser->token);
             }
         }
     }
@@ -33,7 +35,7 @@ void parse(Parser *parser) {
 
 void evaluateStacks(Parser *parser) {
     Token y = popStack(&parser->outputStack);
-    Token x = popStack(&parser->operatorStack);
+    Token x = popStack(&parser->outputStack);
 
     Token op = popStack(&parser->operatorStack);
 
@@ -60,7 +62,7 @@ void evaluateStacks(Parser *parser) {
         }
 
         default: {
-            printf("unknown operator\n");
+            fprintf(stderr, "unknown operator\n");
             exit(1);
         }
     };
@@ -93,7 +95,7 @@ int getPrecedence(TokenKind kind) {
 
 Token popStack(Stack *stack) {
     if (stack->count == 0) {
-        printf("failed to pop token from stack\n");
+        fprintf(stderr, "failed to pop token from stack\n");
         exit(1);
     }
 
@@ -102,7 +104,26 @@ Token popStack(Stack *stack) {
 }
 
 void appendToStack(Stack *stack, Token token) {
-    // TODO: check if token exceeds capacity
+    if (stack->count + 1 == stack->capacity) {
+        fprintf(stderr, "stack overflow\n");
+        exit(1);
+    }
+
     stack->arr[stack->count] = token;
     stack->count++;
+}
+
+char *lookupTokenKind(TokenKind kind) {
+    switch (kind) {
+        case NUMBER:
+            return "number";
+        case PLUS:
+            return "+";
+        case MINUS:
+            return "-";
+        case ASTERISK:
+            return "*";
+        case SLASH:
+            return "/";
+    }
 }

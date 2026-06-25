@@ -21,5 +21,6 @@ void appendToStack(Stack *stack, Token token);
 int getPrecedence(TokenKind kind);
 TokenKind getStackTop(Stack *stack);
 Token popStack(Stack *stack);
+char *lookupTokenKind(TokenKind kind);
 
 #endif

@@ -1,12 +1,6 @@
 CC = gcc
 
-CFLAGS = -g -lm
+CFLAGS = -g -lm -gz=none
 
 main: main.c
-		$(CC) $(CFLAGS)  -o main.out -g main.c -g lexer.c -g parser.c
-
-# lexer: lexer.c
-# 	    $(CC) $(CFLAGS) lexer.c  -lm
-#
-# parser: parser.c
-#  	    $(CC) $(CFLAGS) parser.c  -lm
+		$(CC) $(CFLAGS)   main.c lexer.c parser.c -o main.out
