@@ -52,7 +52,7 @@ int main() {
     while (parser.outputStack.count != 1) {
         evaluateStacks(&parser);
     }
-    printf("\n\nresult: %f\n", parser.outputStack.arr[0].num);
+    printf("\n\nresult: %f\n\n", parser.outputStack.arr[0].num);
 
     return 0;
 }

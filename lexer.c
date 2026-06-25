@@ -65,25 +65,26 @@ Token tokenise(Lexer *lexer) {
             // printf("+\n");
             break;
         }
-
         case '-': {
             token.kind = MINUS;
             lexer->cursor++;
             // printf("-\n");
             break;
         }
-
         case '*': {
             token.kind = ASTERISK;
             lexer->cursor++;
             // printf("*\n");
             break;
         }
-
         case '/': {
             token.kind = SLASH;
             lexer->cursor++;
             // printf("/\n");
+            break;
+        }
+
+        case ' ': {
             break;
         }
 

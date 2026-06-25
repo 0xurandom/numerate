@@ -62,7 +62,7 @@ void evaluateStacks(Parser *parser) {
         }
 
         default: {
-            fprintf(stderr, "unknown operator\n");
+            fprintf(stderr, "Unknown TokenKind used as operator\n");
             exit(1);
         }
     };
@@ -95,7 +95,7 @@ int getPrecedence(TokenKind kind) {
 
 Token popStack(Stack *stack) {
     if (stack->count == 0) {
-        fprintf(stderr, "failed to pop token from stack\n");
+        fprintf(stderr, "No tokens left in stack to pop\n");
         exit(1);
     }
 
@@ -105,7 +105,7 @@ Token popStack(Stack *stack) {
 
 void appendToStack(Stack *stack, Token token) {
     if (stack->count + 1 == stack->capacity) {
-        fprintf(stderr, "stack overflow\n");
+        fprintf(stderr, "Too many tokens in stack to append\n");
         exit(1);
     }
 

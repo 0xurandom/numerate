@@ -15,12 +15,12 @@ typedef struct {
     Token token;
 } Parser;
 
-void evaluateStacks(Parser *parser);
 void parse(Parser *parser);
-void appendToStack(Stack *stack, Token token);
-int getPrecedence(TokenKind kind);
+void evaluateStacks(Parser *parser);
 TokenKind getStackTop(Stack *stack);
+int getPrecedence(TokenKind kind);
 Token popStack(Stack *stack);
+void appendToStack(Stack *stack, Token token);
 char *lookupTokenKind(TokenKind kind);
 
 #endif
