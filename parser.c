@@ -6,7 +6,7 @@
 
 #include "lexer.h"
 
-void parse(Parser *parser) {
+void parse(Parser* parser) {
     switch (parser->token.kind) {
         case NUMBER: {
             appendToStack(&parser->outputStack, parser->token);
@@ -33,7 +33,7 @@ void parse(Parser *parser) {
     }
 }
 
-void evaluateStacks(Parser *parser) {
+void evaluateStacks(Parser* parser) {
     Token y = popStack(&parser->outputStack);
     Token x = popStack(&parser->outputStack);
 
@@ -71,7 +71,7 @@ void evaluateStacks(Parser *parser) {
     return;
 }
 
-TokenKind getStackTop(Stack *stack) {
+TokenKind getStackTop(Stack* stack) {
     if (stack->count == 0)
         return -1;
     else
@@ -93,7 +93,7 @@ int getPrecedence(TokenKind kind) {
     }
 }
 
-Token popStack(Stack *stack) {
+Token popStack(Stack* stack) {
     if (stack->count == 0) {
         fprintf(stderr, "No tokens left in stack to pop\n");
         exit(1);
@@ -103,7 +103,7 @@ Token popStack(Stack *stack) {
     return stack->arr[stack->count];
 }
 
-void appendToStack(Stack *stack, Token token) {
+void appendToStack(Stack* stack, Token token) {
     if (stack->count + 1 == stack->capacity) {
         fprintf(stderr, "Too many tokens in stack to append\n");
         exit(1);
@@ -113,7 +113,7 @@ void appendToStack(Stack *stack, Token token) {
     stack->count++;
 }
 
-char *lookupTokenKind(TokenKind kind) {
+char* lookupTokenKind(TokenKind kind) {
     switch (kind) {
         case NUMBER:
             return "number";
@@ -125,5 +125,13 @@ char *lookupTokenKind(TokenKind kind) {
             return "*";
         case SLASH:
             return "/";
+        case CARET:
+            return "^";
+        case PERCENT:
+            return "%";
+        case LPAREN:
+            return "(";
+        case RPAREN:
+            return ")";
     }
 }

@@ -9,6 +9,8 @@ typedef enum {
     MINUS,
     ASTERISK,
     SLASH,
+    CARET,
+    PERCENT,
     LPAREN,
     RPAREN,
     END,
