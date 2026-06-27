@@ -26,14 +26,14 @@ Token tokenise(Lexer *lexer) {
 
     switch (lexer->string[lexer->cursor]) {
         case '\0': {
-            token.kind = END;
+            token.kind = TOK_END;
             break;
         }
 
         case '0' ... '9':
         case '.': {
             token.num = 0;
-            token.kind = NUMBER;
+            token.kind = TOK_NUMBER;
 
             int i;
             for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
@@ -60,25 +60,25 @@ Token tokenise(Lexer *lexer) {
         }
 
         case '+': {
-            token.kind = PLUS;
+            token.kind = TOK_PLUS;
             lexer->cursor++;
             // printf("+\n");
             break;
         }
         case '-': {
-            token.kind = MINUS;
+            token.kind = TOK_MINUS;
             lexer->cursor++;
             // printf("-\n");
             break;
         }
         case '*': {
-            token.kind = ASTERISK;
+            token.kind = TOK_ASTERISK;
             lexer->cursor++;
             // printf("*\n");
             break;
         }
         case '/': {
-            token.kind = SLASH;
+            token.kind = TOK_SLASH;
             lexer->cursor++;
             // printf("/\n");
             break;
@@ -89,7 +89,7 @@ Token tokenise(Lexer *lexer) {
         }
 
         default: {
-            token.kind = UNKNOWN;
+            token.kind = TOK_UNKNOWN;
             lexer->cursor++;
             // printf("unknown\n");
             break;

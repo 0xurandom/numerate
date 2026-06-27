@@ -4,17 +4,17 @@
 #include <stddef.h>
 
 typedef enum {
-    NUMBER,
-    PLUS,
-    MINUS,
-    ASTERISK,
-    SLASH,
-    CARET,
-    PERCENT,
-    LPAREN,
-    RPAREN,
-    END,
-    UNKNOWN,
+    TOK_NUMBER,
+    TOK_PLUS,
+    TOK_MINUS,
+    TOK_ASTERISK,
+    TOK_SLASH,
+    TOK_CARET,
+    TOK_PERCENT,
+    TOK_LPAREN,
+    TOK_RPAREN,
+    TOK_END,
+    TOK_UNKNOWN,
 } TokenKind;
 
 typedef struct {
