@@ -4,12 +4,10 @@
 #include <stdlib.h>
 #include <sys/ucontext.h>
 
-#include <execution>
-
 #include "lexer.h"
 
 Node* parse(Parser* parser, Precedence precedence) {
-    // go to next token
+    nextToken(parser);
 
     Node* left = NULL;
 
@@ -33,21 +31,32 @@ Node* parse(Parser* parser, Precedence precedence) {
         }
 
         case TOK_LPAREN: {
+            // parse tokens till the rparen
             left = parse(parser, PREC_ASSIGNMENT);
 
-            // consume token func
+            // expect rparen
+            if (parser->cur.kind == TOK_RPAREN) {
+                nextToken(parser);
+            } else {
+                fprintf(stderr, "Expected ')', got: %s\n",
+                        lookupTokenKind(parser->cur.kind));
+                return NULL;
+            }
+
             break;
         }
 
         default: {
             fprintf(stderr, "Unexpected prefix token: %s\n",
                     lookupTokenKind(parser->prev.kind));
+
+            return NULL;
         }
     }
 
     // handle infixes
 
-    // if the next token has a higher precedence
+    // while the next token has a higher precedence
     while (precedence <= getPrecedence(parser->cur.kind)) {
         // go to next token so the infix operator is prev
         nextToken(parser);
@@ -83,6 +92,8 @@ Node* parse(Parser* parser, Precedence precedence) {
             }
         }
     }
+
+    return left;
 }
 
 Precedence getPrecedence(TokenKind kind) {
