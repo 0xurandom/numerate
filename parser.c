@@ -51,6 +51,12 @@ Node* parse(Parser* parser, Precedence precedence) {
     }
 }
 
+void nextToken(Parser* parser) {
+    parser->prev = parser->cur;
+
+    parser->cur = tokenise(parser->lexer);
+}
+
 Node* newLiteralNode(double num) {
     Node* node = malloc(sizeof(Node));
 

@@ -10,6 +10,7 @@ typedef struct {
 } Stack;
 
 typedef struct {
+    Lexer* lexer;
     Token cur;
     Token prev;
 } Parser;
@@ -23,7 +24,6 @@ typedef enum {
     PREC_CALL,
     PREC_PRIMARY
 } Precedence;
-
 
 typedef enum {
     NODE_LITERAL,
@@ -56,13 +56,7 @@ struct Node {
 typedef struct Node Node;
 
 Node* parse(Parser *parser, Precedence precedence);
-void evaluateStacks(Parser *parser);
-TokenKind getStackTop(Stack *stack);
-int getPrecedence(TokenKind kind);
-Token popStack(Stack *stack);
-void appendToStack(Stack *stack, Token token);
-char *lookupTokenKind(TokenKind kind);
-
+void nextToken(Parser* parser);
 Node* newLiteralNode(double num);
 Node* newUnaryNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);
