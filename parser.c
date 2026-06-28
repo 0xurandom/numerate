@@ -13,6 +13,8 @@ Node* parse(Parser* parser, Precedence precedence) {
 
     Node* left = NULL;
 
+    // handle prefixes
+
     switch (prefixKind) {
         case TOK_NUMBER: {
             double value = parser->prev.num;
@@ -24,7 +26,7 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_MINUS: {
             // unary minus
             Token op = parser->prev;
-            Node *operand = parse(parser, PREC_UNARY);
+            Node* operand = parse(parser, PREC_UNARY);
             left = newUnaryNode(op, operand);
 
             break;
@@ -40,6 +42,12 @@ Node* parse(Parser* parser, Precedence precedence) {
         default: {
             fprintf(stderr, "Unexpected prefix token\n");
         }
+    }
+
+    // handle infixes
+
+    // if the next token has a higher precedence
+    while (precedence <= getPrecedence(parser->cur.kind)) {
     }
 }
 
@@ -73,108 +81,3 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
 
     return node;
 }
-
-// void evaluateStacks(Parser* parser) {
-//     Token y = popStack(&parser->outputStack);
-//     Token x = popStack(&parser->outputStack);
-//
-//     Token op = popStack(&parser->operatorStack);
-//
-//     Token result = {
-//         .kind = NUMBER,
-//     };
-//
-//     switch (op.kind) {
-//         case PLUS: {
-//             result.num = x.num + y.num;
-//             break;
-//         }
-//         case MINUS: {
-//             result.num = x.num - y.num;
-//             break;
-//         }
-//         case ASTERISK: {
-//             result.num = x.num * y.num;
-//             break;
-//         }
-//         case SLASH: {
-//             result.num = x.num / y.num;
-//             break;
-//         }
-//
-//         default: {
-//             fprintf(stderr, "Unknown TokenKind used as operator\n");
-//             exit(1);
-//         }
-//     };
-//
-//     appendToStack(&parser->outputStack, result);
-//     return;
-// }
-//
-// TokenKind getStackTop(Stack* stack) {
-//     if (stack->count == 0)
-//         return -1;
-//     else
-//         return stack->arr[stack->count - 1].kind;
-// }
-//
-// int getPrecedence(TokenKind kind) {
-//     switch (kind) {
-//         case ASTERISK:
-//         case SLASH:
-//             return 20;
-//
-//         case PLUS:
-//         case MINUS:
-//             return 10;
-//
-//         case LPAREN:
-//             return 30;
-//         default:
-//             return 0;
-//     }
-// }
-//
-// Token popStack(Stack* stack) {
-//     if (stack->count == 0) {
-//         fprintf(stderr, "No tokens left in stack to pop\n");
-//         exit(1);
-//     }
-//
-//     stack->count--;
-//     return stack->arr[stack->count];
-// }
-//
-// void appendToStack(Stack* stack, Token token) {
-//     if (stack->count + 1 == stack->capacity) {
-//         fprintf(stderr, "Too many tokens in stack to append\n");
-//         exit(1);
-//     }
-//
-//     stack->arr[stack->count] = token;
-//     stack->count++;
-// }
-//
-// char* lookupTokenKind(TokenKind kind) {
-//     switch (kind) {
-//         case NUMBER:
-//             return "number";
-//         case PLUS:
-//             return "+";
-//         case MINUS:
-//             return "-";
-//         case ASTERISK:
-//             return "*";
-//         case SLASH:
-//             return "/";
-//         case CARET:
-//             return "^";
-//         case PERCENT:
-//             return "%";
-//         case LPAREN:
-//             return "(";
-//         case RPAREN:
-//             return ")";
-//     }
-// }
