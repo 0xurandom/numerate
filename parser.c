@@ -4,18 +4,18 @@
 #include <stdlib.h>
 #include <sys/ucontext.h>
 
+#include <execution>
+
 #include "lexer.h"
 
 Node* parse(Parser* parser, Precedence precedence) {
     // go to next token
 
-    TokenKind prefixKind = parser->prev.kind;
-
     Node* left = NULL;
 
     // handle prefixes
 
-    switch (prefixKind) {
+    switch (parser->prev.kind) {
         case TOK_NUMBER: {
             double value = parser->prev.num;
             left = newLiteralNode(value);
@@ -40,7 +40,8 @@ Node* parse(Parser* parser, Precedence precedence) {
         }
 
         default: {
-            fprintf(stderr, "Unexpected prefix token\n");
+            fprintf(stderr, "Unexpected prefix token: %s\n",
+                    lookupTokenKind(parser->prev.kind));
         }
     }
 
@@ -48,6 +49,55 @@ Node* parse(Parser* parser, Precedence precedence) {
 
     // if the next token has a higher precedence
     while (precedence <= getPrecedence(parser->cur.kind)) {
+        // go to next token so the infix operator is prev
+        nextToken(parser);
+        Token op = parser->prev;
+
+        switch (op.kind) {
+            // left associative tokens:
+            // add 1 to recursively parse
+            // with left associativity
+            case TOK_PLUS:
+            case TOK_MINUS:
+            case TOK_ASTERISK:
+            case TOK_SLASH: {
+                Node* right = parse(parser, getPrecedence(op.kind) + 1);
+
+                left = newBinaryNode(op, left, right);
+
+                break;
+            }
+
+            // right associative tokens
+            case TOK_CARET: {
+                Node* right = parse(parser, getPrecedence(op.kind));
+
+                left = newBinaryNode(op, left, right);
+
+                break;
+            }
+
+            default: {
+                fprintf(stderr, "Unexpected infix token: %s\n",
+                        lookupTokenKind(op.kind));
+            }
+        }
+    }
+}
+
+Precedence getPrecedence(TokenKind kind) {
+    switch (kind) {
+        case TOK_ASTERISK:
+        case TOK_SLASH:
+            return PREC_FACTOR;
+
+        case TOK_PLUS:
+        case TOK_MINUS:
+            return PREC_TERM;
+
+        // TODO: add more for comparison operators
+        default:
+            return PREC_NONE;
     }
 }
 
@@ -86,4 +136,31 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
     node->data.binary.right = right;
 
     return node;
+}
+
+char* lookupTokenKind(TokenKind kind) {
+    switch (kind) {
+        case TOK_NUMBER:
+            return "Number";
+        case TOK_PLUS:
+            return "Plus";
+        case TOK_MINUS:
+            return "Minus";
+        case TOK_ASTERISK:
+            return "Asterisk";
+        case TOK_SLASH:
+            return "Slash";
+        case TOK_CARET:
+            return "Caret";
+        case TOK_PERCENT:
+            return "Percent";
+        case TOK_LPAREN:
+            return "Lparen";
+        case TOK_RPAREN:
+            return "Rparen";
+        case TOK_END:
+            return "End";
+        case TOK_UNKNOWN:
+            return "Unknown";
+    }
 }

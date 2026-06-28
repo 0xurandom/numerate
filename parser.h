@@ -56,10 +56,11 @@ struct Node {
 typedef struct Node Node;
 
 Node* parse(Parser *parser, Precedence precedence);
+Precedence getPrecedence(TokenKind kind);
 void nextToken(Parser* parser);
 Node* newLiteralNode(double num);
 Node* newUnaryNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);
-
+char* lookupTokenKind(TokenKind kind);
 
 #endif
