@@ -4,12 +4,6 @@
 #include "lexer.h"
 #include "parser.h"
 
-typedef struct {
-    char *string;
-    size_t len;
-    size_t cap;
-} StringView;
-
-void evaluateExpression(Lexer *lexer, Parser *parser, StringView stringView);
+void evaluateExpression(Lexer *lexer, Parser *parser, Stack stringView);
 
 #endif

@@ -4,7 +4,7 @@
 #include "lexer.h"
 
 typedef struct {
-    Token *arr;
+    char *arr;
     size_t count;
     size_t capacity;
 } Stack;

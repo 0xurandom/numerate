@@ -13,12 +13,12 @@
 #define INPUT_STRING_CAP 10
 
 int main() {
-    StringView stringView = {
-        .string = malloc(INPUT_STRING_CAP * sizeof(char)),
-        .cap = INPUT_STRING_CAP,
+    Stack stringView = {
+        .arr = malloc(INPUT_STRING_CAP * sizeof(char)),
+        .capacity = INPUT_STRING_CAP,
     };
 
-    if (stringView.string == NULL) {
+    if (stringView.arr == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit(1);
     }
@@ -33,15 +33,15 @@ int main() {
     return 0;
 }
 
-void evaluateExpression(Lexer *lexer, Parser *parser, StringView stringView) {
+void evaluateExpression(Lexer *lexer, Parser *parser, Stack stringView) {
     printf("> ");
-    scanf("%s", stringView.string);
+    scanf("%s", stringView.arr);
 
-    stringView.len = strlen(stringView.string);
+    stringView.count = strlen(stringView.arr);
 
-    lexer->string = stringView.string;
+    lexer->string = stringView.arr;
     lexer->cursor = 0;
-    lexer->length = stringView.len;
+    lexer->length = stringView.count;
 
     parser->lexer = lexer;
     parser->cur = tokenise(lexer);

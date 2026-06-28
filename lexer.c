@@ -4,23 +4,6 @@
 #include <math.h>
 #include <stdio.h>
 
-// an arithmetic lexer
-
-// int main() {
-//     char testString[] = "5-2*4";
-//
-//     Lexer lexer = {
-//         .string = testString,
-//         .cursor = 0,
-//     };
-//
-//     while (tokenise(&lexer).kind != END) {
-//         tokenise(&lexer);
-//     }
-//
-//     return 0;
-// }
-
 Token tokenise(Lexer *lexer) {
     Token token;
 
