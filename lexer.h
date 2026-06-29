@@ -29,5 +29,6 @@ typedef struct {
 } Lexer;
 
 Token tokenise(Lexer *lexer);
+void checkAllocation(void* ptr);
 
 #endif

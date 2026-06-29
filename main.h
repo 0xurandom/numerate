@@ -4,6 +4,6 @@
 #include "lexer.h"
 #include "parser.h"
 
-void evaluateExpression(Lexer *lexer, Parser *parser, Stack stringView);
+void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView);
 
 #endif

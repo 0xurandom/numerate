@@ -29,7 +29,7 @@ typedef enum {
     NODE_LITERAL,
     NODE_UNARY,
     NODE_BINARY,
-} NodeType;
+} NodeKind;
 
 struct Node {
     union{
@@ -39,6 +39,7 @@ struct Node {
         } literal;
 
         struct{
+            // TODO: change token op to tokenkind op
             Token op;
             struct Node* operand;
         } unary;
@@ -50,14 +51,16 @@ struct Node {
         } binary;
     } data;
 
-    NodeType type;
+    NodeKind kind;
 };
 
 typedef struct Node Node;
 
 Node* parse(Parser *parser, Precedence precedence);
+Node* simplifyTree(Node* node);
 Precedence getPrecedence(TokenKind kind);
 void nextToken(Parser* parser);
+void freeNode(Node* node);
 Node* newLiteralNode(double num);
 Node* newUnaryNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);

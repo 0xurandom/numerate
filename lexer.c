@@ -3,8 +3,9 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-Token tokenise(Lexer *lexer) {
+Token tokenise(Lexer* lexer) {
     Token token;
 
     switch (lexer->string[lexer->cursor]) {
@@ -80,4 +81,11 @@ Token tokenise(Lexer *lexer) {
     }
 
     return token;
+}
+
+void checkAllocation(void* ptr) {
+    if (ptr == NULL) {
+        fprintf(stderr, "Unable to allocate memory\n");
+        exit(1);
+    }
 }

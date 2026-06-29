@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ucontext.h>
@@ -96,6 +97,87 @@ Node* parse(Parser* parser, Precedence precedence) {
     return left;
 }
 
+Node* simplifyTree(Node* node) {
+    if (node == NULL) return NULL;
+
+    switch (node->kind) {
+        case NODE_LITERAL: {
+            return node;
+        }
+
+        case NODE_UNARY: {
+            node->data.unary.operand = simplifyTree(node->data.unary.operand);
+
+            // handle unary minus
+            if (node->data.unary.operand->kind == NODE_LITERAL &&
+                node->data.unary.op.kind == TOK_MINUS) {
+                Node* newNode = newLiteralNode(
+                    -node->data.unary.operand->data.literal.value);
+                freeNode(node);
+                return newNode;
+            }
+            fprintf(stderr,
+                    "Warning: Got node with unary type without unary minus\n");
+            break;
+        }
+
+        case NODE_BINARY: {
+            node->data.binary.left = simplifyTree(node->data.binary.left);
+            node->data.binary.right = simplifyTree(node->data.binary.right);
+
+            if (node->data.binary.left->kind == NODE_LITERAL &&
+                node->data.binary.right->kind == NODE_LITERAL) {
+                double left = node->data.binary.left->data.literal.value;
+                double right = node->data.binary.right->data.literal.value;
+
+                double result;
+
+                switch (node->data.binary.op.kind) {
+                    case TOK_PLUS: {
+                        result = left + right;
+                        break;
+                    }
+
+                    case TOK_MINUS: {
+                        result = left - right;
+                        break;
+                    }
+
+                    case TOK_ASTERISK: {
+                        result = left * right;
+                        break;
+                    }
+
+                    case TOK_SLASH: {
+                        if (right == 0) {
+                            fprintf(stderr, "Warning: cannot divide by zero\n");
+                            // TODO: handle divisions by zero gracefully
+                            exit(1);
+                        }
+                        result = left / right;
+                        break;
+                    }
+
+                    case TOK_CARET: {
+                        result = pow(left, right);
+                        break;
+                    }
+
+                    default: {
+                        fprintf(stderr, "Unable to simplify token: %s\n",
+                                lookupTokenKind(node->data.binary.op.kind));
+                        exit(1);
+                    }
+                }
+
+                Node* newNode = newLiteralNode(result);
+                freeNode(node);
+                return newNode;
+            }
+        }
+    }
+}
+
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
         case TOK_ASTERISK:
@@ -118,10 +200,33 @@ void nextToken(Parser* parser) {
     parser->cur = tokenise(parser->lexer);
 }
 
+void freeNode(Node* node) {
+    if (node == NULL) return;
+
+    switch (node->kind) {
+        case NODE_UNARY: {
+            freeNode(node->data.unary.operand);
+            break;
+        }
+
+        case NODE_BINARY: {
+            freeNode(node->data.binary.left);
+            freeNode(node->data.binary.right);
+            break;
+        }
+
+        default: {
+            break;
+        }
+    }
+
+    free(node);
+}
+
 Node* newLiteralNode(double num) {
     Node* node = malloc(sizeof(Node));
 
-    node->type = NODE_LITERAL;
+    node->kind = NODE_LITERAL;
     node->data.literal.value = num;
 
     return node;
@@ -130,7 +235,7 @@ Node* newLiteralNode(double num) {
 Node* newUnaryNode(Token op, Node* operand) {
     Node* node = malloc(sizeof(Node));
 
-    node->type = NODE_UNARY;
+    node->kind = NODE_UNARY;
     node->data.unary.op = op;
     node->data.unary.operand = operand;
 
@@ -140,7 +245,7 @@ Node* newUnaryNode(Token op, Node* operand) {
 Node* newBinaryNode(Token op, Node* left, Node* right) {
     Node* node = malloc(sizeof(Node));
 
-    node->type = NODE_BINARY;
+    node->kind = NODE_BINARY;
 
     node->data.binary.op = op;
     node->data.binary.left = left;
