@@ -68,6 +68,24 @@ Token tokenise(Lexer* lexer) {
             break;
         }
 
+        case '^': {
+            token.kind = TOK_CARET;
+            lexer->cursor++;
+            break;
+        }
+
+        case '(': {
+            token.kind = TOK_LPAREN;
+            lexer->cursor++;
+            break;
+        }
+
+        case ')': {
+            token.kind = TOK_RPAREN;
+            lexer->cursor++;
+            break;
+        }
+
         case ' ': {
             break;
         }

@@ -159,7 +159,10 @@ Node* simplifyTree(Node* node) {
                     }
 
                     case TOK_CARET: {
+                        // TODO: caret simplification does not reach
+                        // this case
                         result = pow(left, right);
+                        printf("test");
                         break;
                     }
 
