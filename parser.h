@@ -1,10 +1,10 @@
 #ifndef PARSER_H
-#define  PARSER_H
+#define PARSER_H
 
 #include "lexer.h"
 
 typedef struct {
-    char *arr;
+    char* arr;
     size_t count;
     size_t capacity;
 } Stack;
@@ -20,6 +20,7 @@ typedef enum {
     PREC_ASSIGNMENT,
     PREC_TERM,
     PREC_FACTOR,
+    PREC_EXPONENT,
     PREC_UNARY,
     PREC_CALL,
     PREC_PRIMARY
@@ -32,19 +33,18 @@ typedef enum {
 } NodeKind;
 
 struct Node {
-    union{
-
-        struct{
+    union {
+        struct {
             double value;
         } literal;
 
-        struct{
+        struct {
             // TODO: change token op to tokenkind op
             Token op;
             struct Node* operand;
         } unary;
 
-        struct{
+        struct {
             Token op;
             struct Node* left;
             struct Node* right;
@@ -56,7 +56,7 @@ struct Node {
 
 typedef struct Node Node;
 
-Node* parse(Parser *parser, Precedence precedence);
+Node* parse(Parser* parser, Precedence precedence);
 Node* simplifyTree(Node* node);
 Precedence getPrecedence(TokenKind kind);
 void nextToken(Parser* parser);

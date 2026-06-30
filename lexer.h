@@ -13,6 +13,7 @@ typedef enum {
     TOK_PERCENT,
     TOK_LPAREN,
     TOK_RPAREN,
+    TOK_SPACE,
     TOK_END,
     TOK_UNKNOWN,
 } TokenKind;
@@ -29,6 +30,7 @@ typedef struct {
 } Lexer;
 
 Token tokenise(Lexer *lexer);
-void checkAllocation(void* ptr);
+void checkAllocation(void *ptr);
+void printDebug(char *string);
 
 #endif

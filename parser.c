@@ -10,6 +10,8 @@
 Node* parse(Parser* parser, Precedence precedence) {
     nextToken(parser);
 
+    // TODO: handle spaces
+
     Node* left = NULL;
 
     // handle prefixes
@@ -51,7 +53,7 @@ Node* parse(Parser* parser, Precedence precedence) {
             fprintf(stderr, "Unexpected prefix token: %s\n",
                     lookupTokenKind(parser->prev.kind));
 
-            return NULL;
+            exit(1);
         }
     }
 
@@ -81,7 +83,6 @@ Node* parse(Parser* parser, Precedence precedence) {
             // right associative tokens
             case TOK_CARET: {
                 Node* right = parse(parser, getPrecedence(op.kind));
-
                 left = newBinaryNode(op, left, right);
 
                 break;
@@ -162,7 +163,6 @@ Node* simplifyTree(Node* node) {
                         // TODO: caret simplification does not reach
                         // this case
                         result = pow(left, right);
-                        printf("test");
                         break;
                     }
 
@@ -183,6 +183,9 @@ Node* simplifyTree(Node* node) {
 
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
+        case TOK_CARET:
+            return PREC_EXPONENT;
+
         case TOK_ASTERISK:
         case TOK_SLASH:
             return PREC_FACTOR;

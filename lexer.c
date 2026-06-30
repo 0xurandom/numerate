@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define LEXER_DEBUG 0
+
 Token tokenise(Lexer* lexer) {
     Token token;
 
@@ -40,60 +42,67 @@ Token tokenise(Lexer* lexer) {
             }
 
             // printf("%f\n", token.num);
+            printDebug("number\n");
             break;
         }
 
         case '+': {
             token.kind = TOK_PLUS;
             lexer->cursor++;
-            // printf("+\n");
+            printDebug("+\n");
             break;
         }
         case '-': {
             token.kind = TOK_MINUS;
             lexer->cursor++;
-            // printf("-\n");
+            printDebug("-\n");
             break;
         }
         case '*': {
             token.kind = TOK_ASTERISK;
             lexer->cursor++;
-            // printf("*\n");
+            printDebug("*\n");
             break;
         }
         case '/': {
             token.kind = TOK_SLASH;
             lexer->cursor++;
-            // printf("/\n");
+            printDebug("/\n");
             break;
         }
 
         case '^': {
             token.kind = TOK_CARET;
             lexer->cursor++;
+            printDebug("^\n");
             break;
         }
 
         case '(': {
             token.kind = TOK_LPAREN;
             lexer->cursor++;
+            printDebug("(\n");
             break;
         }
 
         case ')': {
             token.kind = TOK_RPAREN;
             lexer->cursor++;
+            printDebug(")\n");
             break;
         }
 
         case ' ': {
+            token.kind = TOK_SPACE;
+            lexer->cursor++;
+            printDebug("space\n");
             break;
         }
 
         default: {
             token.kind = TOK_UNKNOWN;
             lexer->cursor++;
-            // printf("unknown\n");
+            printDebug("unknown\n");
             break;
         }
     }
@@ -106,4 +115,10 @@ void checkAllocation(void* ptr) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit(1);
     }
+}
+
+void printDebug(char* string) {
+    if (LEXER_DEBUG == 1) printf("%s", string);
+
+    return;
 }

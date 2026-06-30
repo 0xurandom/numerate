@@ -46,5 +46,5 @@ void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
 
     Node *result = simplifyTree(tree);
 
-    printf("%f\n", result->data.literal.value);
+    printf("%.2f\n", result->data.literal.value);
 }
