@@ -6,6 +6,7 @@
 #include <sys/ucontext.h>
 
 #include "lexer.h"
+#include "math_utils.h"
 
 Node* parse(Parser* parser, Precedence precedence) {
     nextToken(parser);
@@ -59,7 +60,7 @@ Node* parse(Parser* parser, Precedence precedence) {
         }
     }
 
-    // handle infixes
+    // handle infixes and postfixes
 
     // while the next token has a higher precedence
     while (precedence <= getPrecedence(parser->cur.kind)) {
@@ -86,6 +87,12 @@ Node* parse(Parser* parser, Precedence precedence) {
             case TOK_CARET: {
                 Node* right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
+
+                break;
+            }
+
+            case TOK_BANG: {
+                left = newUnaryNode(op, left);
 
                 break;
             }
@@ -119,6 +126,15 @@ Node* simplifyTree(Node* node) {
                 freeNode(node);
                 return newNode;
             }
+
+            if (node->data.unary.operand->kind == NODE_LITERAL &&
+                node->data.unary.op.kind == TOK_BANG) {
+                Node* newNode = newLiteralNode(
+                    factorial(node->data.unary.operand->data.literal.value));
+                freeNode(node);
+                return newNode;
+            }
+
             fprintf(stderr,
                     "Warning: Got node with unary type without unary minus\n");
             break;
@@ -189,6 +205,9 @@ Node* simplifyTree(Node* node) {
 
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
+        case TOK_BANG:
+            return PREC_POSTFIX;
+
         case TOK_CARET:
             return PREC_EXPONENT;
 

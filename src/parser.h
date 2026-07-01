@@ -19,11 +19,12 @@ typedef struct {
 
 typedef enum {
     PREC_NONE,
-    PREC_ASSIGNMENT,
-    PREC_TERM,
-    PREC_FACTOR,
-    PREC_EXPONENT,
-    PREC_UNARY,
+    PREC_ASSIGNMENT,  // =
+    PREC_TERM,        // + -
+    PREC_FACTOR,      // * /
+    PREC_EXPONENT,    // ^
+    PREC_UNARY,       // -x, !x prefixes
+    PREC_POSTFIX,     // x! postfixes
     PREC_CALL,
     PREC_PRIMARY
 } Precedence;
