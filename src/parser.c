@@ -293,8 +293,6 @@ char* lookupTokenKind(TokenKind kind) {
             return "Lparen";
         case TOK_RPAREN:
             return "Rparen";
-        case TOK_SPACE:
-            return "Space";
         case TOK_END:
             return "End";
         case TOK_UNKNOWN:

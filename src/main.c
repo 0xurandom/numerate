@@ -20,7 +20,9 @@ int main() {
     checkAllocation(stringView.arr);
 
     Lexer lexer;
-    Parser parser;
+    Parser parser = {
+        .lexer = &lexer,
+    };
 
     char testString1[] = "2*8";
     char testString2[] = "7 * 9";
@@ -28,9 +30,9 @@ int main() {
     evaluateString(&lexer, &parser, testString1);
     evaluateString(&lexer, &parser, testString2);
 
-    // while (true) {
-    //     evaluateInput(&lexer, &parser, stringView);
-    // }
+    while (true) {
+        evaluateInput(&lexer, &parser, stringView);
+    }
 
     return 0;
 }
@@ -38,24 +40,11 @@ int main() {
 void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
     printf("> ");
     // TODO: change scanf to fgets
-    // TODO: does not calculate strings
-    // with spaces properly
-    scanf("%s", stringView.arr);
 
-    stringView.count = strlen(stringView.arr);
+    scanf("%99[^\n]%*c", stringView.arr);
+    printf("'%s'\n", stringView.arr);
 
-    lexer->string = stringView.arr;
-    lexer->cursor = 0;
-    lexer->length = stringView.count;
-
-    parser->lexer = lexer;
-    parser->cur = tokenise(lexer);
-
-    Node *tree = parse(parser, PREC_ASSIGNMENT);
-
-    Node *result = simplifyTree(tree);
-
-    printf("%.2f\n", result->data.literal.value);
+    evaluateString(lexer, parser, stringView.arr);
 }
 
 void evaluateString(Lexer *lexer, Parser *parser, char *str) {
@@ -64,7 +53,6 @@ void evaluateString(Lexer *lexer, Parser *parser, char *str) {
     lexer->cursor = 0;
     lexer->length = strlen(str);
 
-    parser->lexer = lexer;
     parser->cur = tokenise(lexer);
 
     Node *tree = parse(parser, PREC_ASSIGNMENT);

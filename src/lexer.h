@@ -14,7 +14,6 @@ typedef enum {
     TOK_PERCENT,
     TOK_LPAREN,
     TOK_RPAREN,
-    TOK_SPACE,
     TOK_END,
     TOK_UNKNOWN,
 } TokenKind;
