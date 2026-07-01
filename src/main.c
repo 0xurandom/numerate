@@ -13,6 +13,7 @@
 int main() {
     Stack stringView = {
         .arr = malloc(INPUT_STRING_CAP * sizeof(char)),
+
         .capacity = INPUT_STRING_CAP,
     };
 

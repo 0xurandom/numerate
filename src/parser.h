@@ -15,6 +15,8 @@ typedef struct {
     Token prev;
 } Parser;
 
+// Precedence in ascending order
+
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,

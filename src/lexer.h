@@ -10,6 +10,7 @@ typedef enum {
     TOK_ASTERISK,
     TOK_SLASH,
     TOK_CARET,
+    TOK_BANG,
     TOK_PERCENT,
     TOK_LPAREN,
     TOK_RPAREN,
@@ -31,6 +32,7 @@ typedef struct {
 
 Token tokenise(Lexer *lexer);
 void checkAllocation(void *ptr);
+void lexString(char *string);
 void printDebug(char *string);
 
 #endif

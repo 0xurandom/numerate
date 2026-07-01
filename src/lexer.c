@@ -4,6 +4,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "parser.h"
 
 #define LEXER_DEBUG 0
 
@@ -41,8 +44,8 @@ Token tokenise(Lexer* lexer) {
                 lexer->cursor = i;
             }
 
-            // printf("%f\n", token.num);
-            printDebug("number\n");
+            if (LEXER_DEBUG == 1) printf("%f\n", token.num);
+
             break;
         }
 
@@ -78,6 +81,20 @@ Token tokenise(Lexer* lexer) {
             break;
         }
 
+        case '%': {
+            token.kind = TOK_PERCENT;
+            lexer->cursor++;
+            printDebug("%\n");
+            break;
+        }
+
+        case '!': {
+            token.kind = TOK_BANG;
+            lexer->cursor++;
+            printDebug("!\n");
+            break;
+        }
+
         case '(': {
             token.kind = TOK_LPAREN;
             lexer->cursor++;
@@ -108,6 +125,20 @@ Token tokenise(Lexer* lexer) {
     }
 
     return token;
+}
+
+void lexString(char* string) {
+    int len = strlen(string);
+    Lexer lexer = {
+        .string = string,
+        .length = len,
+        .cursor = 0,
+    };
+
+    while (lexer.cursor != lexer.length) {
+        printf("%s\n", lookupTokenKind(tokenise(&lexer).kind));
+    }
+    return;
 }
 
 void checkAllocation(void* ptr) {

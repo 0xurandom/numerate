@@ -176,6 +176,10 @@ Node* simplifyTree(Node* node) {
                 Node* newNode = newLiteralNode(result);
                 freeNode(node);
                 return newNode;
+            } else {
+                fprintf(stderr, "Could not simplify subnodes for operator: %s",
+                        lookupTokenKind(node->data.binary.op.kind));
+                exit(1);
             }
         }
     }
@@ -194,8 +198,13 @@ Precedence getPrecedence(TokenKind kind) {
         case TOK_MINUS:
             return PREC_TERM;
 
+        case TOK_END:
+            return PREC_NONE;
+
         // TODO: add more for comparison operators
         default:
+            fprintf(stderr, "Warning: using PREC_NONE for token kind: %s\n",
+                    lookupTokenKind(kind));
             return PREC_NONE;
     }
 }
@@ -280,6 +289,8 @@ char* lookupTokenKind(TokenKind kind) {
             return "Lparen";
         case TOK_RPAREN:
             return "Rparen";
+        case TOK_SPACE:
+            return "Space";
         case TOK_END:
             return "End";
         case TOK_UNKNOWN:
