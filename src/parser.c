@@ -11,6 +11,8 @@ Node* parse(Parser* parser, Precedence precedence) {
     nextToken(parser);
 
     // TODO: handle spaces
+    // TODO: handle percent as modulo
+    // and as * 0.01
 
     Node* left = NULL;
 
@@ -285,6 +287,8 @@ char* lookupTokenKind(TokenKind kind) {
             return "Caret";
         case TOK_PERCENT:
             return "Percent";
+        case TOK_BANG:
+            return "Bang";
         case TOK_LPAREN:
             return "Lparen";
         case TOK_RPAREN:
@@ -295,5 +299,12 @@ char* lookupTokenKind(TokenKind kind) {
             return "End";
         case TOK_UNKNOWN:
             return "Unknown";
+
+        default: {
+            fprintf(stderr,
+                    "Warning: lookupTokenKind returning Unknown for unknown "
+                    "TokenKind\n");
+            return "Unknown Tokenkind";
+        }
     }
 }

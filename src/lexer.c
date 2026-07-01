@@ -8,17 +8,18 @@
 
 #include "parser.h"
 
-#define LEXER_DEBUG 0
+#define LEXER_DEBUG 1
 
 Token tokenise(Lexer* lexer) {
     Token token;
 
-    switch (lexer->string[lexer->cursor]) {
-        case '\0': {
-            token.kind = TOK_END;
-            break;
-        }
+    if (lexer->cursor == lexer->length) {
+        token.kind = TOK_END;
+        printDebug("End\n");
+        return token;
+    }
 
+    switch (lexer->string[lexer->cursor]) {
         case '0' ... '9':
         case '.': {
             token.num = 0;
@@ -110,17 +111,16 @@ Token tokenise(Lexer* lexer) {
         }
 
         case ' ': {
-            token.kind = TOK_SPACE;
+            // if space, ignore and re-tokenise
             lexer->cursor++;
-            printDebug("space\n");
-            break;
+            printDebug("Space\n");
+            return tokenise(lexer);
         }
 
         default: {
             token.kind = TOK_UNKNOWN;
             lexer->cursor++;
-            printDebug("unknown\n");
-            break;
+            printDebug("Unknown\n");
         }
     }
 

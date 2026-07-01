@@ -22,9 +22,15 @@ int main() {
     Lexer lexer;
     Parser parser;
 
-    while (true) {
-        evaluateInput(&lexer, &parser, stringView);
-    }
+    char testString1[] = "2*8";
+    char testString2[] = "7 * 9";
+
+    evaluateString(&lexer, &parser, testString1);
+    evaluateString(&lexer, &parser, testString2);
+
+    // while (true) {
+    //     evaluateInput(&lexer, &parser, stringView);
+    // }
 
     return 0;
 }
@@ -32,6 +38,8 @@ int main() {
 void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
     printf("> ");
     // TODO: change scanf to fgets
+    // TODO: does not calculate strings
+    // with spaces properly
     scanf("%s", stringView.arr);
 
     stringView.count = strlen(stringView.arr);
@@ -48,4 +56,20 @@ void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
     Node *result = simplifyTree(tree);
 
     printf("%.2f\n", result->data.literal.value);
+}
+
+void evaluateString(Lexer *lexer, Parser *parser, char *str) {
+    printf("\n\nevaluating: %s\n", str);
+    lexer->string = str;
+    lexer->cursor = 0;
+    lexer->length = strlen(str);
+
+    parser->lexer = lexer;
+    parser->cur = tokenise(lexer);
+
+    Node *tree = parse(parser, PREC_ASSIGNMENT);
+
+    Node *result = simplifyTree(tree);
+
+    printf("= %.2f\n\n", result->data.literal.value);
 }
