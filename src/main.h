@@ -5,6 +5,6 @@
 #include "parser.h"
 
 void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView);
-void evaluateString(Lexer *lexer, Parser *parser, char *str);
+double evaluateString(Lexer *lexer, Parser *parser, char *str);
 
 #endif

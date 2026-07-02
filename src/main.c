@@ -43,10 +43,10 @@ void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
 
     scanf("%99[^\n]%*c", stringView.arr);
 
-    evaluateString(lexer, parser, stringView.arr);
+    printf("= %.2f\n\n", evaluateString(lexer, parser, stringView.arr));
 }
 
-void evaluateString(Lexer *lexer, Parser *parser, char *str) {
+double evaluateString(Lexer *lexer, Parser *parser, char *str) {
     printf("\n\nevaluating: %s\n", str);
     lexer->string = str;
     lexer->cursor = 0;
@@ -55,8 +55,10 @@ void evaluateString(Lexer *lexer, Parser *parser, char *str) {
     parser->cur = tokenise(lexer);
 
     Node *tree = parse(parser, PREC_ASSIGNMENT);
-
     Node *result = simplifyTree(tree);
 
-    printf("= %.2f\n\n", result->literal.value);
+    double result_val = result->literal.value;
+    freeNode(result);
+
+    return result_val;
 }

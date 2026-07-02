@@ -11,7 +11,8 @@
 Node* parse(Parser* parser, Precedence precedence) {
     nextToken(parser);
 
-    // TODO: handle spaces
+    // TODO: handle spaces for keyword funcs
+
     // TODO: handle percent as modulo
     // and as * 0.01
 
