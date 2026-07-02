@@ -128,18 +128,17 @@ Node* simplifyTree(Node* node) {
         }
 
         case NODE_UNARY: {
-            node->data.unary.operand = simplifyTree(node->data.unary.operand);
+            node->unary.operand = simplifyTree(node->unary.operand);
 
             // TODO: handle error gracefully
-            if (node->data.unary.operand->kind != NODE_LITERAL) {
+            if (node->unary.operand->kind != NODE_LITERAL) {
                 fprintf(stderr, "Error: Could not simplify unary operand\n");
                 exit(1);
             }
 
-            // TODO: change to a switch statement
-            double num = node->data.unary.operand->data.literal.value;
+            double num = node->unary.operand->literal.value;
             double result;
-            switch (node->data.unary.op.kind) {
+            switch (node->unary.op.kind) {
                 case TOK_SIN: {
                     result = sin(num);
                     break;
@@ -179,7 +178,7 @@ Node* simplifyTree(Node* node) {
 
                 default: {
                     fprintf(stderr, "Error: Unexpected unary operator: %s\n",
-                            lookupTokenKind(node->data.unary.op.kind));
+                            lookupTokenKind(node->unary.op.kind));
                 }
             }
 
@@ -191,17 +190,17 @@ Node* simplifyTree(Node* node) {
         }
 
         case NODE_BINARY: {
-            node->data.binary.left = simplifyTree(node->data.binary.left);
-            node->data.binary.right = simplifyTree(node->data.binary.right);
+            node->binary.left = simplifyTree(node->binary.left);
+            node->binary.right = simplifyTree(node->binary.right);
 
-            if (node->data.binary.left->kind == NODE_LITERAL &&
-                node->data.binary.right->kind == NODE_LITERAL) {
-                double left = node->data.binary.left->data.literal.value;
-                double right = node->data.binary.right->data.literal.value;
+            if (node->binary.left->kind == NODE_LITERAL &&
+                node->binary.right->kind == NODE_LITERAL) {
+                double left = node->binary.left->literal.value;
+                double right = node->binary.right->literal.value;
 
                 double result;
 
-                switch (node->data.binary.op.kind) {
+                switch (node->binary.op.kind) {
                     case TOK_PLUS: {
                         result = left + right;
                         break;
@@ -236,7 +235,7 @@ Node* simplifyTree(Node* node) {
 
                     default: {
                         fprintf(stderr, "Unable to simplify token: %s\n",
-                                lookupTokenKind(node->data.binary.op.kind));
+                                lookupTokenKind(node->binary.op.kind));
                         exit(1);
                     }
                 }
@@ -246,7 +245,7 @@ Node* simplifyTree(Node* node) {
                 return newNode;
             } else {
                 fprintf(stderr, "Could not simplify subnodes for operator: %s",
-                        lookupTokenKind(node->data.binary.op.kind));
+                        lookupTokenKind(node->binary.op.kind));
                 exit(1);
             }
         }
@@ -291,13 +290,13 @@ void freeNode(Node* node) {
 
     switch (node->kind) {
         case NODE_UNARY: {
-            freeNode(node->data.unary.operand);
+            freeNode(node->unary.operand);
             break;
         }
 
         case NODE_BINARY: {
-            freeNode(node->data.binary.left);
-            freeNode(node->data.binary.right);
+            freeNode(node->binary.left);
+            freeNode(node->binary.right);
             break;
         }
 
@@ -313,7 +312,7 @@ Node* newLiteralNode(double num) {
     Node* node = malloc(sizeof(Node));
 
     node->kind = NODE_LITERAL;
-    node->data.literal.value = num;
+    node->literal.value = num;
 
     return node;
 }
@@ -322,8 +321,8 @@ Node* newUnaryNode(Token op, Node* operand) {
     Node* node = malloc(sizeof(Node));
 
     node->kind = NODE_UNARY;
-    node->data.unary.op = op;
-    node->data.unary.operand = operand;
+    node->unary.op = op;
+    node->unary.operand = operand;
 
     return node;
 }
@@ -333,9 +332,9 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
 
     node->kind = NODE_BINARY;
 
-    node->data.binary.op = op;
-    node->data.binary.left = left;
-    node->data.binary.right = right;
+    node->binary.op = op;
+    node->binary.left = left;
+    node->binary.right = right;
 
     return node;
 }

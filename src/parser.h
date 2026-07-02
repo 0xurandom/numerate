@@ -32,29 +32,52 @@ typedef enum {
 // TODO: change union to
 // anonymous union
 
+typedef struct Node Node;
+
 struct Node {
+    NodeKind kind;
+
     union {
         struct {
             double value;
         } literal;
 
         struct {
-            // TODO: change token op to tokenkind op
             Token op;
-            struct Node* operand;
+            Node* operand;
         } unary;
 
         struct {
             Token op;
-            struct Node* left;
-            struct Node* right;
+            Node* left;
+            Node* right;
         } binary;
-    } data;
-
-    NodeKind kind;
+    };
 };
 
-typedef struct Node Node;
+// struct Node {
+//     union {
+//         struct {
+//             double value;
+//         } literal;
+//
+//         struct {
+//             // TODO: change token op to tokenkind op
+//             Token op;
+//             struct Node* operand;
+//         } unary;
+//
+//         struct {
+//             Token op;
+//             struct Node* left;
+//             struct Node* right;
+//         } binary;
+//     } data;
+//
+//     NodeKind kind;
+// };
+//
+// typedef struct Node Node;
 
 Node* parse(Parser* parser, Precedence precedence);
 Node* simplifyTree(Node* node);

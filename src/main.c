@@ -58,5 +58,5 @@ void evaluateString(Lexer *lexer, Parser *parser, char *str) {
 
     Node *result = simplifyTree(tree);
 
-    printf("= %.2f\n\n", result->data.literal.value);
+    printf("= %.2f\n\n", result->literal.value);
 }
