@@ -1,13 +1,6 @@
-#ifndef PARSER_H
-#define PARSER_H
+#pragma once
 
 #include "lexer.h"
-
-typedef struct {
-    char* arr;
-    size_t count;
-    size_t capacity;
-} Stack;
 
 typedef struct {
     Lexer* lexer;
@@ -22,8 +15,9 @@ typedef enum {
     PREC_ASSIGNMENT,  // =
     PREC_TERM,        // + -
     PREC_FACTOR,      // * /
-    PREC_EXPONENT,    // ^
     PREC_UNARY,       // -x, !x prefixes
+    PREC_EXPONENT,    // ^
+    PREC_FUNC,        // trig
     PREC_POSTFIX,     // x! postfixes
     PREC_CALL,
     PREC_PRIMARY
@@ -34,6 +28,9 @@ typedef enum {
     NODE_UNARY,
     NODE_BINARY,
 } NodeKind;
+
+// TODO: change union to
+// anonymous union
 
 struct Node {
     union {
@@ -68,5 +65,3 @@ Node* newLiteralNode(double num);
 Node* newUnaryNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);
 char* lookupTokenKind(TokenKind kind);
-
-#endif

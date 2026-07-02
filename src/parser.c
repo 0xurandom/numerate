@@ -27,6 +27,18 @@ Node* parse(Parser* parser, Precedence precedence) {
             break;
         }
 
+        case TOK_SIN:
+        case TOK_COS:
+        case TOK_TAN:
+        case TOK_COSEC:
+        case TOK_SEC:
+        case TOK_COT: {
+            Token op = parser->prev;
+            Node* operand = parse(parser, PREC_FUNC);
+            left = newUnaryNode(op, operand);
+            break;
+        }
+
         case TOK_MINUS: {
             // unary minus
             Token op = parser->prev;
@@ -117,6 +129,34 @@ Node* simplifyTree(Node* node) {
 
         case NODE_UNARY: {
             node->data.unary.operand = simplifyTree(node->data.unary.operand);
+
+            // TODO: change to a switch statement
+
+            if (node->data.unary.operand->kind == NODE_LITERAL &&
+                node->data.unary.op.kind == TOK_SIN) {
+                Node* newNode = newLiteralNode(
+                    sin(node->data.unary.operand->data.literal.value));
+                printf("evaluating sin with %f",
+                       node->data.unary.operand->data.literal.value);
+                freeNode(node);
+                return newNode;
+            }
+
+            if (node->data.unary.operand->kind == NODE_LITERAL &&
+                node->data.unary.op.kind == TOK_COS) {
+                Node* newNode = newLiteralNode(
+                    cos(node->data.unary.operand->data.literal.value));
+                freeNode(node);
+                return newNode;
+            }
+
+            if (node->data.unary.operand->kind == NODE_LITERAL &&
+                node->data.unary.op.kind == TOK_TAN) {
+                Node* newNode = newLiteralNode(
+                    tan(node->data.unary.operand->data.literal.value));
+                freeNode(node);
+                return newNode;
+            }
 
             // handle unary minus
             if (node->data.unary.operand->kind == NODE_LITERAL &&
