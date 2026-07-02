@@ -130,53 +130,62 @@ Node* simplifyTree(Node* node) {
         case NODE_UNARY: {
             node->data.unary.operand = simplifyTree(node->data.unary.operand);
 
+            // TODO: handle error gracefully
+            if (node->data.unary.operand->kind != NODE_LITERAL) {
+                fprintf(stderr, "Error: Could not simplify unary operand\n");
+                exit(1);
+            }
+
             // TODO: change to a switch statement
+            double num = node->data.unary.operand->data.literal.value;
+            double result;
+            switch (node->data.unary.op.kind) {
+                case TOK_SIN: {
+                    result = sin(num);
+                    break;
+                }
+                case TOK_COS: {
+                    result = cos(num);
+                    break;
+                }
+                case TOK_TAN: {
+                    result = tan(num);
+                    break;
+                }
 
-            if (node->data.unary.operand->kind == NODE_LITERAL &&
-                node->data.unary.op.kind == TOK_SIN) {
-                Node* newNode = newLiteralNode(
-                    sin(node->data.unary.operand->data.literal.value));
-                printf("evaluating sin with %f",
-                       node->data.unary.operand->data.literal.value);
-                freeNode(node);
-                return newNode;
+                // TODO: handle division by zero case
+                case TOK_COSEC: {
+                    result = 1 / sin(num);
+                    break;
+                }
+                case TOK_SEC: {
+                    result = 1 / cos(num);
+                    break;
+                }
+                case TOK_COT: {
+                    result = 1 / tan(num);
+                    break;
+                }
+
+                case TOK_MINUS: {
+                    result = -num;
+                    break;
+                }
+
+                case TOK_BANG: {
+                    result = factorial(num);
+                    break;
+                }
+
+                default: {
+                    fprintf(stderr, "Error: Unexpected unary operator\n");
+                }
             }
 
-            if (node->data.unary.operand->kind == NODE_LITERAL &&
-                node->data.unary.op.kind == TOK_COS) {
-                Node* newNode = newLiteralNode(
-                    cos(node->data.unary.operand->data.literal.value));
-                freeNode(node);
-                return newNode;
-            }
+            Node* newNode = newLiteralNode(result);
+            freeNode(node);
+            return newNode;
 
-            if (node->data.unary.operand->kind == NODE_LITERAL &&
-                node->data.unary.op.kind == TOK_TAN) {
-                Node* newNode = newLiteralNode(
-                    tan(node->data.unary.operand->data.literal.value));
-                freeNode(node);
-                return newNode;
-            }
-
-            // handle unary minus
-            if (node->data.unary.operand->kind == NODE_LITERAL &&
-                node->data.unary.op.kind == TOK_MINUS) {
-                Node* newNode = newLiteralNode(
-                    -node->data.unary.operand->data.literal.value);
-                freeNode(node);
-                return newNode;
-            }
-
-            if (node->data.unary.operand->kind == NODE_LITERAL &&
-                node->data.unary.op.kind == TOK_BANG) {
-                Node* newNode = newLiteralNode(
-                    factorial(node->data.unary.operand->data.literal.value));
-                freeNode(node);
-                return newNode;
-            }
-
-            fprintf(stderr, "Error: Could not simplify unary operand\n");
-            exit(1);
             break;
         }
 
