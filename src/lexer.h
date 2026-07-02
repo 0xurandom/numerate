@@ -28,6 +28,7 @@ typedef enum {
     TOK_SEC,
     TOK_COT,
 
+    TOK_SPACE,
     TOK_END,
     TOK_UNKNOWN,
 } TokenKind;

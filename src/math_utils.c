@@ -7,7 +7,6 @@ double factorial(double num) { return tgamma(num + 1); }
 // TODO: implement subfactorial
 // in parser
 double subfactorial(double num) {
-    // TODO: implement subfactorial
     if (num == 0) return 1;
     if (num == 1) return 0;
 

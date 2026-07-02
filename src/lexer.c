@@ -33,6 +33,8 @@ Token tokenise(Lexer* lexer) {
             char* keyword = &lexer->string[start];
 
             token.kind = lookupKeyword(keyword, keyword_len);
+
+            if (LEXER_DEBUG == 1) printf("%.*s", keyword_len, keyword);
             break;
         }
 
@@ -127,10 +129,13 @@ Token tokenise(Lexer* lexer) {
         }
 
         case ' ': {
-            // if space, ignore and re-tokenise
             lexer->cursor++;
-            printDebug("Space\n");
             return tokenise(lexer);
+
+            // token.kind = TOK_SPACE;
+            // lexer->cursor++;
+            // printDebug("Space\n");
+            // break;
         }
 
         default: {

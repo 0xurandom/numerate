@@ -178,7 +178,8 @@ Node* simplifyTree(Node* node) {
                 }
 
                 default: {
-                    fprintf(stderr, "Error: Unexpected unary operator\n");
+                    fprintf(stderr, "Error: Unexpected unary operator: %s\n",
+                            lookupTokenKind(node->data.unary.op.kind));
                 }
             }
 
