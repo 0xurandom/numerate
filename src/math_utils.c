@@ -2,16 +2,14 @@
 
 #include <math.h>
 
-double factorial(double num) {
-    // assuming num is an int
-    // TODO: use gamma function
-    // to implement decimal factorials
-    if (num == 0 || num == 1)
-        return 1;
-    else
-        return num * factorial(num - 1);
-}
+double factorial(double num) { return tgamma(num + 1); }
 
+// TODO: implement subfactorial
+// in parser
 double subfactorial(double num) {
     // TODO: implement subfactorial
+    if (num == 0) return 1;
+    if (num == 1) return 0;
+
+    return round(tgamma(num + 1) / exp(1));
 }

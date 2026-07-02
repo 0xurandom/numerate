@@ -24,11 +24,11 @@ int main() {
         .lexer = &lexer,
     };
 
-    char testString1[] = "2*8";
-    char testString2[] = "7 * 9";
-
-    evaluateString(&lexer, &parser, testString1);
-    evaluateString(&lexer, &parser, testString2);
+    // char testString1[] = "2*8";
+    // char testString2[] = "7 * 9";
+    //
+    // evaluateString(&lexer, &parser, testString1);
+    // evaluateString(&lexer, &parser, testString2);
 
     while (true) {
         evaluateInput(&lexer, &parser, stringView);
@@ -42,7 +42,6 @@ void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
     // TODO: change scanf to fgets
 
     scanf("%99[^\n]%*c", stringView.arr);
-    printf("'%s'\n", stringView.arr);
 
     evaluateString(lexer, parser, stringView.arr);
 }

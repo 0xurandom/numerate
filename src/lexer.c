@@ -8,7 +8,7 @@
 
 #include "parser.h"
 
-#define LEXER_DEBUG 1
+#define LEXER_DEBUG 0
 
 Token tokenise(Lexer* lexer) {
     Token token;

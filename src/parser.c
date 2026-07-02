@@ -98,7 +98,7 @@ Node* parse(Parser* parser, Precedence precedence) {
             }
 
             default: {
-                fprintf(stderr, "Unexpected infix token: %s\n",
+                fprintf(stderr, "Unexpected postfix/infix token: %s\n",
                         lookupTokenKind(op.kind));
             }
         }
@@ -135,8 +135,8 @@ Node* simplifyTree(Node* node) {
                 return newNode;
             }
 
-            fprintf(stderr,
-                    "Warning: Got node with unary type without unary minus\n");
+            fprintf(stderr, "Error: Could not simplify unary operand\n");
+            exit(1);
             break;
         }
 
