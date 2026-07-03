@@ -83,6 +83,7 @@ Node* parse(Parser* parser, Precedence precedence);
 Node* simplifyTree(Node* node);
 Precedence getPrecedence(TokenKind kind);
 void nextToken(Parser* parser);
+double evaluateString(Lexer* lexer, Parser* parser, char* str);
 void freeNode(Node* node);
 Node* newLiteralNode(double num);
 Node* newUnaryNode(Token op, Node* operand);

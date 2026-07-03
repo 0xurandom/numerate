@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ucontext.h>
 
 #include "lexer.h"
@@ -278,6 +279,23 @@ Precedence getPrecedence(TokenKind kind) {
                     lookupTokenKind(kind));
             return PREC_NONE;
     }
+}
+
+double evaluateString(Lexer* lexer, Parser* parser, char* str) {
+    printf("\n\nevaluating: %s\n", str);
+    lexer->string = str;
+    lexer->cursor = 0;
+    lexer->length = strlen(str);
+
+    parser->cur = tokenise(lexer);
+
+    Node* tree = parse(parser, PREC_ASSIGNMENT);
+    Node* result = simplifyTree(tree);
+
+    double result_val = result->literal.value;
+    freeNode(result);
+
+    return result_val;
 }
 
 void nextToken(Parser* parser) {
