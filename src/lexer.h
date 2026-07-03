@@ -28,6 +28,8 @@ typedef enum {
     TOK_SEC,
     TOK_COT,
 
+    TOK_SGN,
+
     TOK_SPACE,
     TOK_END,
     TOK_UNKNOWN,

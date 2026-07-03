@@ -34,7 +34,9 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_TAN:
         case TOK_COSEC:
         case TOK_SEC:
-        case TOK_COT: {
+        case TOK_COT:
+
+        case TOK_SGN: {
             Token op = parser->prev;
             Node* operand = parse(parser, PREC_FUNC);
             left = newUnaryNode(op, operand);
@@ -165,6 +167,11 @@ Node* simplifyTree(Node* node) {
                 }
                 case TOK_COT: {
                     result = 1 / tan(num);
+                    break;
+                }
+
+                case TOK_SGN: {
+                    result = signum(num);
                     break;
                 }
 

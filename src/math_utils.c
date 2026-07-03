@@ -4,6 +4,15 @@
 
 double factorial(double num) { return tgamma(num + 1); }
 
+double signum(double num) {
+    if (num > 0)
+        return 1;
+    else if (num < 0)
+        return -1;
+    else
+        return 0;
+}
+
 // TODO: implement subfactorial
 // in parser
 double subfactorial(double num) {

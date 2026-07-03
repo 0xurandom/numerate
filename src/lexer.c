@@ -188,4 +188,11 @@ TokenKind lookupKeyword(char* keyword, int len) {
         return TOK_SEC;
     else if (len == 3 && memcmp(keyword, "cot", 3) == 0)
         return TOK_COT;
+    else if (len == 3 && memcmp(keyword, "sgn", 3) == 0)
+        return TOK_SGN;
+
+    else {
+        fprintf(stderr, "Unknown keyword: %.*s", len, keyword);
+        exit(1);
+    }
 }
