@@ -1,15 +1,17 @@
-#include "main.h"
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "lexer.h"
+#include "parser.h"
+
 #define INPUT_STRING_CAP 10
+
+void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView);
 
 int main() {
     Stack stringView = {
         .arr = malloc(INPUT_STRING_CAP * sizeof(char)),
-
         .capacity = INPUT_STRING_CAP,
     };
 

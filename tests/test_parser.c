@@ -9,10 +9,10 @@
 typedef struct {
     char *input;
     double ans;
-} TestCase;
+} ParserTestCase;
 
 void test_parser(Lexer *lexer, Parser *parser) {
-    TestCase tests[] = {
+    ParserTestCase tests[] = {
         //
         {"8+21", 29},
         {"-56+318", 262},
@@ -20,7 +20,7 @@ void test_parser(Lexer *lexer, Parser *parser) {
 
     };
 
-    size_t tests_count = sizeof(tests) / sizeof(TestCase);
+    size_t tests_count = sizeof(tests) / sizeof(ParserTestCase);
 
     for (int i = 0; i < tests_count; i++) {
         printf("Running case %d: %s\n", i + 1, tests[i].input);
