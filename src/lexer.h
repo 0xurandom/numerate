@@ -56,7 +56,7 @@ typedef struct {
 } Lexer;
 
 Token tokenise(Lexer *lexer);
-TokenKind peekNextTokenKind(Lexer *lexer);
+char peekNext(Lexer *lexer);
 void lexString(char *string);
 void checkAllocation(void *ptr);
 TokenKind lookupKeyword(char *keyword, int len);

@@ -100,7 +100,16 @@ Node* parse(Parser* parser, Precedence precedence) {
                 break;
             }
 
-                // right associative tokens
+            // right associative tokens
+            case TOK_EQUALS_EQUALS:
+            case TOK_NOT_EQUALS: {
+                // definitely comparison operators
+
+                Node* right = parse(parser, getPrecedence(op.kind));
+                left = newBinaryNode(op, left, right);
+
+                break;
+            }
 
             case TOK_EQUALS: {
                 //  comparison and assignment operator
@@ -227,6 +236,25 @@ Node* simplifyTree(Node* node) {
                 double result;
 
                 switch (node->binary.op.kind) {
+                    case TOK_EQUALS_EQUALS: {
+                        if (left == right)
+                            result = 1;
+                        else
+                            result = 0;
+
+                        newNode = newBooleanNode(result);
+                        break;
+                    }
+
+                    case TOK_NOT_EQUALS: {
+                        if (left != right)
+                            result = 1;
+                        else
+                            result = 0;
+
+                        newNode = newBooleanNode(result);
+                        break;
+                    }
                     // TODO: simplify this
                     case TOK_EQUALS: {
                         if (node->binary.left->kind == NODE_VARIABLE ||
@@ -315,6 +343,9 @@ Node* simplifyTree(Node* node) {
 // if = is comparison or assignment
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
+        case TOK_EQUALS_EQUALS:
+        case TOK_NOT_EQUALS:
+            return PREC_EQUALILTY;
         case TOK_BANG:
             return PREC_POSTFIX;
 

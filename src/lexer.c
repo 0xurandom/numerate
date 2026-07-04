@@ -17,6 +17,9 @@ Token tokenise(Lexer* lexer) {
     }
 
     switch (lexer->string[lexer->cursor]) {
+        // TODO: lex idents and nums
+        // as char* in Stack and
+        // change to nums in parser
         case 'a' ... 'z':
         case 'A' ... 'Z': {
             int start = lexer->cursor;
@@ -69,7 +72,7 @@ Token tokenise(Lexer* lexer) {
         }
 
         case '=': {
-            if (peekNextTokenKind(lexer) == TOK_EQUALS) {
+            if (peekNext(lexer) == '=') {
                 token.kind = TOK_EQUALS_EQUALS;
                 lexer->cursor = lexer->cursor + 2;
 
@@ -121,7 +124,7 @@ Token tokenise(Lexer* lexer) {
         }
 
         case '!': {
-            if (peekNextTokenKind(lexer) == TOK_EQUALS) {
+            if (peekNext(lexer) == '=') {
                 token.kind = TOK_NOT_EQUALS;
                 lexer->cursor = lexer->cursor + 2;
 
@@ -166,11 +169,14 @@ Token tokenise(Lexer* lexer) {
     return token;
 }
 
-TokenKind peekNextTokenKind(Lexer* lexer) {
-    return tokenise(&(Lexer){.string = lexer->string,
-                             .cursor = lexer->cursor + 1,
-                             .length = lexer->length})
-        .kind;
+char peekNext(Lexer* lexer) {
+    if (lexer->cursor + 1 > lexer->length) {
+        // TODO: handle this error gracefully
+        fprintf(stderr, "Error: string accessed at illegal index\n");
+        exit(1);
+    } else {
+        return lexer->string[lexer->cursor + 1];
+    }
 }
 
 void lexString(char* string) {

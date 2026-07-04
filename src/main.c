@@ -34,7 +34,7 @@ void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
     // TODO: change scanf to fgets
 
     scanf("%99[^\n]%*c", stringView.arr);
-    lexString(stringView.arr);
+    // lexString(stringView.arr);
 
-    // printf("= %.2f\n\n", evaluateString(lexer, parser, stringView.arr));
+    printf("= %.2f\n\n", evaluateString(lexer, parser, stringView.arr));
 }
