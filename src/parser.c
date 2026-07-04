@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -99,7 +100,15 @@ Node* parse(Parser* parser, Precedence precedence) {
                 break;
             }
 
-            // right associative tokens
+                // right associative tokens
+
+            case TOK_EQUALS: {
+                Node* right = parse(parser, getPrecedence(op.kind));
+                left = newBinaryNode(op, left, right);
+
+                break;
+            }
+
             case TOK_CARET: {
                 Node* right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
@@ -127,8 +136,13 @@ Node* simplifyTree(Node* node) {
     if (node == NULL) return NULL;
 
     switch (node->kind) {
-        case NODE_LITERAL: {
+        case NODE_LITERAL:
+        case NODE_BOOLEAN: {
             return node;
+        }
+
+        case NODE_VARIABLE: {
+            // TODO: lookup variable value
         }
 
         case NODE_UNARY: {
@@ -202,26 +216,59 @@ Node* simplifyTree(Node* node) {
             node->binary.left = simplifyTree(node->binary.left);
             node->binary.right = simplifyTree(node->binary.right);
 
-            if (node->binary.left->kind == NODE_LITERAL &&
+            if (node->binary.left->kind == NODE_LITERAL ||
                 node->binary.right->kind == NODE_LITERAL) {
                 double left = node->binary.left->literal.value;
                 double right = node->binary.right->literal.value;
 
+                Node* newNode;
                 double result;
 
                 switch (node->binary.op.kind) {
+                    // TODO: simplify this
+                    case TOK_EQUALS: {
+                        if (node->binary.left->kind == NODE_VARIABLE ||
+                            node->binary.right->kind == NODE_VARIABLE) {
+                            // assign variable
+                            Node* variable =
+                                (node->binary.left->kind == NODE_VARIABLE
+                                     ? node->binary.left
+                                     : node->binary.right);
+                            Node* literal =
+                                (node->binary.left->kind == NODE_LITERAL
+                                     ? node->binary.left
+                                     : node->binary.right);
+                            // TODO: Make variable store
+                            newNode = newLiteralNode(1);
+                        } else {
+                            // TODO: Make bool node
+                            // compare nodes
+
+                            if (left == right)
+                                result = 1;
+                            else
+                                result = 0;
+
+                            newNode = newBooleanNode(result);
+                        }
+                        break;
+                    }
+
                     case TOK_PLUS: {
                         result = left + right;
+                        newNode = newLiteralNode(result);
                         break;
                     }
 
                     case TOK_MINUS: {
                         result = left - right;
+                        newNode = newLiteralNode(result);
                         break;
                     }
 
                     case TOK_ASTERISK: {
                         result = left * right;
+                        newNode = newLiteralNode(result);
                         break;
                     }
 
@@ -232,6 +279,7 @@ Node* simplifyTree(Node* node) {
                             exit(1);
                         }
                         result = left / right;
+                        newNode = newLiteralNode(result);
                         break;
                     }
 
@@ -239,6 +287,7 @@ Node* simplifyTree(Node* node) {
                         // TODO: caret simplification does not reach
                         // this case
                         result = pow(left, right);
+                        newNode = newLiteralNode(result);
                         break;
                     }
 
@@ -249,7 +298,6 @@ Node* simplifyTree(Node* node) {
                     }
                 }
 
-                Node* newNode = newLiteralNode(result);
                 freeNode(node);
                 return newNode;
             } else {
@@ -261,6 +309,8 @@ Node* simplifyTree(Node* node) {
     }
 }
 
+// TODO: look at surrounding tokens to determine
+// if = is comparison or assignment
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
         case TOK_BANG:
@@ -343,6 +393,24 @@ Node* newLiteralNode(double num) {
     return node;
 }
 
+Node* newBooleanNode(double num) {
+    Node* node = malloc(sizeof(Node));
+
+    node->kind = NODE_BOOLEAN;
+    node->literal.value = num;
+
+    return node;
+}
+
+Node* newVariableNode(Token name) {
+    Node* node = malloc(sizeof(Node));
+
+    node->kind = NODE_VARIABLE;
+    node->variable.name = name;
+
+    return node;
+}
+
 Node* newUnaryNode(Token op, Node* operand) {
     Node* node = malloc(sizeof(Node));
 
@@ -399,4 +467,11 @@ char* lookupTokenKind(TokenKind kind) {
             return "Unknown Tokenkind";
         }
     }
+}
+
+bool canBeNodeLiteral(Node* node) {
+    if (node->kind == NODE_LITERAL || node->kind == NODE_BOOLEAN)
+        return true;
+    else
+        return false;
 }

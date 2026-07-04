@@ -34,6 +34,12 @@ Token tokenise(Lexer* lexer) {
 
             token.kind = lookupKeyword(keyword, keyword_len);
 
+            if (token.kind == TOK_VAR) {
+                token.ident = (Stack){.arr = keyword,
+                                      .count = keyword_len,
+                                      .capacity = keyword_len};
+            }
+
             if (LEXER_DEBUG == 1) printf("%.*s", keyword_len, keyword);
             break;
         }
@@ -65,6 +71,13 @@ Token tokenise(Lexer* lexer) {
 
             if (LEXER_DEBUG == 1) printf("%f\n", token.num);
 
+            break;
+        }
+
+        case '=': {
+            token.kind = TOK_EQUALS;
+            lexer->cursor++;
+            printDebug("=\n");
             break;
         }
 
@@ -192,7 +205,6 @@ TokenKind lookupKeyword(char* keyword, int len) {
         return TOK_SGN;
 
     else {
-        fprintf(stderr, "Unknown keyword: %.*s", len, keyword);
-        exit(1);
+        return TOK_VAR;
     }
 }

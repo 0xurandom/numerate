@@ -25,6 +25,8 @@ typedef enum {
 
 typedef enum {
     NODE_LITERAL,
+    NODE_BOOLEAN,
+    NODE_VARIABLE,
     NODE_UNARY,
     NODE_BINARY,
 } NodeKind;
@@ -43,6 +45,10 @@ struct Node {
         } literal;
 
         struct {
+            Token name;
+        } variable;
+
+        struct {
             Token op;
             Node* operand;
         } unary;
@@ -55,30 +61,6 @@ struct Node {
     };
 };
 
-// struct Node {
-//     union {
-//         struct {
-//             double value;
-//         } literal;
-//
-//         struct {
-//             // TODO: change token op to tokenkind op
-//             Token op;
-//             struct Node* operand;
-//         } unary;
-//
-//         struct {
-//             Token op;
-//             struct Node* left;
-//             struct Node* right;
-//         } binary;
-//     } data;
-//
-//     NodeKind kind;
-// };
-//
-// typedef struct Node Node;
-
 Node* parse(Parser* parser, Precedence precedence);
 Node* simplifyTree(Node* node);
 Precedence getPrecedence(TokenKind kind);
@@ -86,6 +68,8 @@ void nextToken(Parser* parser);
 double evaluateString(Lexer* lexer, Parser* parser, char* str);
 void freeNode(Node* node);
 Node* newLiteralNode(double num);
+Node* newBooleanNode(double num);
+Node* newVariableNode(Token name);
 Node* newUnaryNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);
 char* lookupTokenKind(TokenKind kind);

@@ -8,8 +8,10 @@ typedef struct {
 } Stack;
 
 typedef enum {
+    TOK_VAR,
     TOK_NUMBER,
 
+    TOK_EQUALS,
     TOK_PLUS,
     TOK_MINUS,
     TOK_ASTERISK,
@@ -36,6 +38,8 @@ typedef enum {
 } TokenKind;
 
 typedef struct {
+    // TODO: remove stack.cap
+    // if zero copy lexing
     union {
         Stack ident;
         double num;
