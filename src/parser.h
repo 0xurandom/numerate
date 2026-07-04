@@ -13,6 +13,8 @@ typedef struct {
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,  // =
+    PREC_EQUALILTY,   // =, !=, ==
+    PREC_COMPARISON,  // <, >, <=, >=
     PREC_TERM,        // + -
     PREC_FACTOR,      // * /
     PREC_UNARY,       // -x, !x prefixes

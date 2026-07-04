@@ -8,14 +8,11 @@
 
 #include "parser.h"
 
-#define LEXER_DEBUG 0
-
 Token tokenise(Lexer* lexer) {
     Token token;
 
     if (lexer->cursor == lexer->length) {
         token.kind = TOK_END;
-        printDebug("End\n");
         return token;
     }
 
@@ -40,7 +37,6 @@ Token tokenise(Lexer* lexer) {
                                       .capacity = keyword_len};
             }
 
-            if (LEXER_DEBUG == 1) printf("%.*s", keyword_len, keyword);
             break;
         }
 
@@ -69,75 +65,85 @@ Token tokenise(Lexer* lexer) {
                 lexer->cursor = i;
             }
 
-            if (LEXER_DEBUG == 1) printf("%f\n", token.num);
-
             break;
         }
 
         case '=': {
-            token.kind = TOK_EQUALS;
-            lexer->cursor++;
-            printDebug("=\n");
+            if (peekNextTokenKind(lexer) == TOK_EQUALS) {
+                token.kind = TOK_EQUALS_EQUALS;
+                lexer->cursor = lexer->cursor + 2;
+
+            } else {
+                token.kind = TOK_EQUALS;
+                lexer->cursor++;
+            }
+
             break;
         }
 
         case '+': {
             token.kind = TOK_PLUS;
             lexer->cursor++;
-            printDebug("+\n");
+
             break;
         }
         case '-': {
             token.kind = TOK_MINUS;
             lexer->cursor++;
-            printDebug("-\n");
+
             break;
         }
         case '*': {
             token.kind = TOK_ASTERISK;
             lexer->cursor++;
-            printDebug("*\n");
+
             break;
         }
         case '/': {
             token.kind = TOK_SLASH;
             lexer->cursor++;
-            printDebug("/\n");
+
             break;
         }
 
         case '^': {
             token.kind = TOK_CARET;
             lexer->cursor++;
-            printDebug("^\n");
+
             break;
         }
 
         case '%': {
             token.kind = TOK_PERCENT;
             lexer->cursor++;
-            printDebug("%\n");
+
             break;
         }
 
         case '!': {
-            token.kind = TOK_BANG;
-            lexer->cursor++;
-            printDebug("!\n");
+            if (peekNextTokenKind(lexer) == TOK_EQUALS) {
+                token.kind = TOK_NOT_EQUALS;
+                lexer->cursor = lexer->cursor + 2;
+
+            } else {
+                token.kind = TOK_BANG;
+                lexer->cursor++;
+            }
+
             break;
         }
 
         case '(': {
             token.kind = TOK_LPAREN;
             lexer->cursor++;
-            printDebug("(\n");
+
             break;
         }
 
         case ')': {
             token.kind = TOK_RPAREN;
             lexer->cursor++;
-            printDebug(")\n");
+
             break;
         }
 
@@ -154,11 +160,17 @@ Token tokenise(Lexer* lexer) {
         default: {
             token.kind = TOK_UNKNOWN;
             lexer->cursor++;
-            printDebug("Unknown\n");
         }
     }
 
     return token;
+}
+
+TokenKind peekNextTokenKind(Lexer* lexer) {
+    return tokenise(&(Lexer){.string = lexer->string,
+                             .cursor = lexer->cursor + 1,
+                             .length = lexer->length})
+        .kind;
 }
 
 void lexString(char* string) {
@@ -180,12 +192,6 @@ void checkAllocation(void* ptr) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit(1);
     }
-}
-
-void printDebug(char* string) {
-    if (LEXER_DEBUG == 1) printf("%s", string);
-
-    return;
 }
 
 TokenKind lookupKeyword(char* keyword, int len) {

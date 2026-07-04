@@ -103,6 +103,7 @@ Node* parse(Parser* parser, Precedence precedence) {
                 // right associative tokens
 
             case TOK_EQUALS: {
+                //  comparison and assignment operator
                 Node* right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
 
@@ -143,6 +144,7 @@ Node* simplifyTree(Node* node) {
 
         case NODE_VARIABLE: {
             // TODO: lookup variable value
+            break;
         }
 
         case NODE_UNARY: {
@@ -435,6 +437,12 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
 
 char* lookupTokenKind(TokenKind kind) {
     switch (kind) {
+        case TOK_EQUALS:
+            return "Equals";
+        case TOK_EQUALS_EQUALS:
+            return "Equals Equals";
+        case TOK_NOT_EQUALS:
+            return "Not Equals";
         case TOK_NUMBER:
             return "Number";
         case TOK_PLUS:

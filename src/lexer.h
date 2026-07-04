@@ -12,6 +12,8 @@ typedef enum {
     TOK_NUMBER,
 
     TOK_EQUALS,
+    TOK_EQUALS_EQUALS,
+    TOK_NOT_EQUALS,
     TOK_PLUS,
     TOK_MINUS,
     TOK_ASTERISK,
@@ -54,7 +56,7 @@ typedef struct {
 } Lexer;
 
 Token tokenise(Lexer *lexer);
-void checkAllocation(void *ptr);
+TokenKind peekNextTokenKind(Lexer *lexer);
 void lexString(char *string);
-void printDebug(char *string);
+void checkAllocation(void *ptr);
 TokenKind lookupKeyword(char *keyword, int len);
