@@ -29,6 +29,14 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             break;
         }
+        // subfactorial for literal and
+        // not operator for bool
+        case TOK_BANG: {
+            Token op = parser->prev;
+            Node* operand = parse(parser, PREC_UNARY);
+            left = newPrefixNode(op, operand);
+            break;
+        }
 
         case TOK_SIN:
         case TOK_COS:
@@ -40,7 +48,7 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_SGN: {
             Token op = parser->prev;
             Node* operand = parse(parser, PREC_FUNC);
-            left = newUnaryNode(op, operand);
+            left = newPrefixNode(op, operand);
             break;
         }
 
@@ -48,7 +56,7 @@ Node* parse(Parser* parser, Precedence precedence) {
             // unary minus
             Token op = parser->prev;
             Node* operand = parse(parser, PREC_UNARY);
-            left = newUnaryNode(op, operand);
+            left = newPrefixNode(op, operand);
 
             break;
         }
@@ -112,7 +120,8 @@ Node* parse(Parser* parser, Precedence precedence) {
             }
 
             case TOK_EQUALS: {
-                //  comparison and assignment operator
+                // assignment operator
+
                 Node* right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
 
@@ -153,21 +162,37 @@ Node* simplifyTree(Node* node) {
 
         case NODE_VARIABLE: {
             // TODO: lookup variable value
+            exit(1);
             break;
         }
 
-        case NODE_UNARY: {
+        // unary -, trig, sgn, subfactorial !, not !
+        case NODE_PREFIX: {
             node->unary.operand = simplifyTree(node->unary.operand);
-
-            // TODO: handle error gracefully
-            if (node->unary.operand->kind != NODE_LITERAL) {
-                fprintf(stderr, "Error: Could not simplify unary operand\n");
-                exit(1);
-            }
 
             double num = node->unary.operand->literal.value;
             double result;
             switch (node->unary.op.kind) {
+                case TOK_BANG: {
+                    if (node->unary.operand->kind == NODE_LITERAL) {
+                        result = subfactorial(num);
+                    } else if (node->unary.operand->kind == NODE_BOOLEAN) {
+                        result = (num == 1 ? 0 : 1);
+                        Node* newNode = newBooleanNode(result);
+                        freeNode(node);
+                        return newNode;
+                    } else {
+                        fprintf(stderr,
+                                "Invalid operand for prefix node with bang "
+                                "operator\n");
+                        exit(1);
+                    }
+                    break;
+                }
+                case TOK_MINUS: {
+                    result = -num;
+                    break;
+                }
                 case TOK_SIN: {
                     result = sin(num);
                     break;
@@ -180,7 +205,6 @@ Node* simplifyTree(Node* node) {
                     result = tan(num);
                     break;
                 }
-
                 // TODO: handle division by zero case
                 case TOK_COSEC: {
                     result = 1 / sin(num);
@@ -199,12 +223,29 @@ Node* simplifyTree(Node* node) {
                     result = signum(num);
                     break;
                 }
-
-                case TOK_MINUS: {
-                    result = -num;
-                    break;
+                default: {
+                    fprintf(stderr, "Error: Unexpected prefix operator: %s\n",
+                            lookupTokenKind(node->unary.op.kind));
                 }
+            }
+            Node* newNode = newLiteralNode(result);
+            freeNode(node);
+            return newNode;
+            break;
+        }
 
+        case NODE_UNARY: {
+            node->unary.operand = simplifyTree(node->unary.operand);
+
+            // TODO: handle error gracefully
+            if (node->unary.operand->kind != NODE_LITERAL) {
+                fprintf(stderr, "Error: Could not simplify unary operand\n");
+                exit(1);
+            }
+
+            double num = node->unary.operand->literal.value;
+            double result;
+            switch (node->unary.op.kind) {
                 case TOK_BANG: {
                     result = factorial(num);
                     break;
@@ -255,32 +296,19 @@ Node* simplifyTree(Node* node) {
                         newNode = newBooleanNode(result);
                         break;
                     }
-                    // TODO: simplify this
+
                     case TOK_EQUALS: {
-                        if (node->binary.left->kind == NODE_VARIABLE ||
-                            node->binary.right->kind == NODE_VARIABLE) {
-                            // assign variable
-                            Node* variable =
-                                (node->binary.left->kind == NODE_VARIABLE
-                                     ? node->binary.left
-                                     : node->binary.right);
-                            Node* literal =
-                                (node->binary.left->kind == NODE_LITERAL
-                                     ? node->binary.left
-                                     : node->binary.right);
-                            // TODO: Make variable store
-                            newNode = newLiteralNode(1);
-                        } else {
-                            // TODO: Make bool node
-                            // compare nodes
+                        // assign variable
+                        Node* variable =
+                            (node->binary.left->kind == NODE_VARIABLE
+                                 ? node->binary.left
+                                 : node->binary.right);
+                        Node* literal = (node->binary.left->kind == NODE_LITERAL
+                                             ? node->binary.left
+                                             : node->binary.right);
+                        // TODO: Make variable store
+                        newNode = newLiteralNode(1);
 
-                            if (left == right)
-                                result = 1;
-                            else
-                                result = 0;
-
-                            newNode = newBooleanNode(result);
-                        }
                         break;
                     }
 
@@ -339,13 +367,15 @@ Node* simplifyTree(Node* node) {
     }
 }
 
-// TODO: look at surrounding tokens to determine
-// if = is comparison or assignment
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
         case TOK_EQUALS_EQUALS:
         case TOK_NOT_EQUALS:
             return PREC_EQUALILTY;
+
+        case TOK_EQUALS:
+            return PREC_ASSIGNMENT;
+
         case TOK_BANG:
             return PREC_POSTFIX;
 
@@ -360,6 +390,7 @@ Precedence getPrecedence(TokenKind kind) {
         case TOK_MINUS:
             return PREC_TERM;
 
+        case TOK_RPAREN:
         case TOK_END:
             return PREC_NONE;
 
@@ -448,6 +479,16 @@ Node* newUnaryNode(Token op, Node* operand) {
     Node* node = malloc(sizeof(Node));
 
     node->kind = NODE_UNARY;
+    node->unary.op = op;
+    node->unary.operand = operand;
+
+    return node;
+}
+
+Node* newPrefixNode(Token op, Node* operand) {
+    Node* node = malloc(sizeof(Node));
+
+    node->kind = NODE_PREFIX;
     node->unary.op = op;
     node->unary.operand = operand;
 

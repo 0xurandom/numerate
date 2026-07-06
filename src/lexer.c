@@ -17,9 +17,6 @@ Token tokenise(Lexer* lexer) {
     }
 
     switch (lexer->string[lexer->cursor]) {
-        // TODO: lex idents and nums
-        // as char* in Stack and
-        // change to nums in parser
         case 'a' ... 'z':
         case 'A' ... 'Z': {
             int start = lexer->cursor;
@@ -75,9 +72,32 @@ Token tokenise(Lexer* lexer) {
             if (peekNext(lexer) == '=') {
                 token.kind = TOK_EQUALS_EQUALS;
                 lexer->cursor = lexer->cursor + 2;
-
             } else {
                 token.kind = TOK_EQUALS;
+                lexer->cursor++;
+            }
+
+            break;
+        }
+
+        case '<': {
+            if (peekNext(lexer) == '=') {
+                token.kind = TOK_LESS_EQUALS;
+                lexer->cursor = lexer->cursor + 2;
+            } else {
+                token.kind = TOK_LESS;
+                lexer->cursor++;
+            }
+
+            break;
+        }
+
+        case '>': {
+            if (peekNext(lexer) == '=') {
+                token.kind = TOK_GREATER_EQUALS;
+                lexer->cursor = lexer->cursor + 2;
+            } else {
+                token.kind = TOK_GREATER;
                 lexer->cursor++;
             }
 

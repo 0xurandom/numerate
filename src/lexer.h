@@ -11,9 +11,14 @@ typedef enum {
     TOK_VAR,
     TOK_NUMBER,
 
-    TOK_EQUALS,
     TOK_EQUALS_EQUALS,
     TOK_NOT_EQUALS,
+    TOK_LESS,
+    TOK_GREATER,
+    TOK_GREATER_EQUALS,
+    TOK_LESS_EQUALS,
+
+    TOK_EQUALS,
     TOK_PLUS,
     TOK_MINUS,
     TOK_ASTERISK,

@@ -13,7 +13,7 @@ typedef struct {
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,  // =
-    PREC_EQUALILTY,   // =, !=, ==
+    PREC_EQUALILTY,   // !=, ==
     PREC_COMPARISON,  // <, >, <=, >=
     PREC_TERM,        // + -
     PREC_FACTOR,      // * /
@@ -27,14 +27,12 @@ typedef enum {
 
 typedef enum {
     NODE_LITERAL,
-    NODE_BOOLEAN,
+    NODE_BOOLEAN,  // can be calculated as literal
     NODE_VARIABLE,
-    NODE_UNARY,
+    NODE_UNARY,   // postfix
+    NODE_PREFIX,  // can be calculated as unary
     NODE_BINARY,
 } NodeKind;
-
-// TODO: change union to
-// anonymous union
 
 typedef struct Node Node;
 
@@ -73,5 +71,6 @@ Node* newLiteralNode(double num);
 Node* newBooleanNode(double num);
 Node* newVariableNode(Token name);
 Node* newUnaryNode(Token op, Node* operand);
+Node* newPrefixNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);
 char* lookupTokenKind(TokenKind kind);
