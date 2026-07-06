@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdbool.h>
+
 #include "lexer.h"
 
 typedef struct {
@@ -74,3 +76,7 @@ Node* newUnaryNode(Token op, Node* operand);
 Node* newPrefixNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);
 char* lookupTokenKind(TokenKind kind);
+char* lookupNodeKind(NodeKind kind);
+bool canBeNodeLiteral(Node* node);
+bool isArithOp(TokenKind kind);
+bool isComparisonOp(TokenKind kind);

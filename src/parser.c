@@ -108,10 +108,21 @@ Node* parse(Parser* parser, Precedence precedence) {
                 break;
             }
 
+            case TOK_LESS:
+            case TOK_GREATER:
+            case TOK_LESS_EQUALS:
+            case TOK_GREATER_EQUALS: {
+                Node* right = parse(parser, getPrecedence(op.kind) + 1);
+
+                left = newBinaryNode(op, left, right);
+
+                break;
+            }
+
             // right associative tokens
             case TOK_EQUALS_EQUALS:
             case TOK_NOT_EQUALS: {
-                // definitely comparison operators
+                // comparison operators
 
                 Node* right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
@@ -207,14 +218,32 @@ Node* simplifyTree(Node* node) {
                 }
                 // TODO: handle division by zero case
                 case TOK_COSEC: {
+                    if (sin(num) == 0) {
+                        fprintf(stderr,
+                                "Error: Division by zero is undefined\n");
+                        exit(1);
+                    }
+
                     result = 1 / sin(num);
                     break;
                 }
                 case TOK_SEC: {
+                    if (cos(num) == 0) {
+                        fprintf(stderr,
+                                "Error: Division by zero is undefined\n");
+                        exit(1);
+                    }
+
                     result = 1 / cos(num);
                     break;
                 }
                 case TOK_COT: {
+                    if (tan(num) == 0) {
+                        fprintf(stderr,
+                                "Error: Division by zero is undefined\n");
+                        exit(1);
+                    }
+
                     result = 1 / tan(num);
                     break;
                 }
@@ -268,101 +297,134 @@ Node* simplifyTree(Node* node) {
             node->binary.left = simplifyTree(node->binary.left);
             node->binary.right = simplifyTree(node->binary.right);
 
-            if (node->binary.left->kind == NODE_LITERAL ||
-                node->binary.right->kind == NODE_LITERAL) {
-                double left = node->binary.left->literal.value;
-                double right = node->binary.right->literal.value;
-
-                Node* newNode;
-                double result;
-
-                switch (node->binary.op.kind) {
-                    case TOK_EQUALS_EQUALS: {
-                        if (left == right)
-                            result = 1;
-                        else
-                            result = 0;
-
-                        newNode = newBooleanNode(result);
-                        break;
-                    }
-
-                    case TOK_NOT_EQUALS: {
-                        if (left != right)
-                            result = 1;
-                        else
-                            result = 0;
-
-                        newNode = newBooleanNode(result);
-                        break;
-                    }
-
-                    case TOK_EQUALS: {
-                        // assign variable
-                        Node* variable =
-                            (node->binary.left->kind == NODE_VARIABLE
-                                 ? node->binary.left
-                                 : node->binary.right);
-                        Node* literal = (node->binary.left->kind == NODE_LITERAL
-                                             ? node->binary.left
-                                             : node->binary.right);
-                        // TODO: Make variable store
-                        newNode = newLiteralNode(1);
-
-                        break;
-                    }
-
-                    case TOK_PLUS: {
-                        result = left + right;
-                        newNode = newLiteralNode(result);
-                        break;
-                    }
-
-                    case TOK_MINUS: {
-                        result = left - right;
-                        newNode = newLiteralNode(result);
-                        break;
-                    }
-
-                    case TOK_ASTERISK: {
-                        result = left * right;
-                        newNode = newLiteralNode(result);
-                        break;
-                    }
-
-                    case TOK_SLASH: {
-                        if (right == 0) {
-                            fprintf(stderr, "Warning: cannot divide by zero\n");
-                            // TODO: handle divisions by zero gracefully
-                            exit(1);
-                        }
-                        result = left / right;
-                        newNode = newLiteralNode(result);
-                        break;
-                    }
-
-                    case TOK_CARET: {
-                        // TODO: caret simplification does not reach
-                        // this case
-                        result = pow(left, right);
-                        newNode = newLiteralNode(result);
-                        break;
-                    }
-
-                    default: {
-                        fprintf(stderr, "Unable to simplify token: %s\n",
-                                lookupTokenKind(node->binary.op.kind));
-                        exit(1);
-                    }
+            if (isArithOp(node->binary.op.kind)) {
+                // can handle literals and bools
+                if (!(canBeNodeLiteral(node->binary.left) ||
+                      canBeNodeLiteral(node->binary.right))) {
+                    fprintf(stderr,
+                            "Error: Invalid nodes for arith op: %s\tleft: "
+                            "%s\tright: %s",
+                            lookupTokenKind(node->binary.op.kind),
+                            lookupNodeKind(node->binary.left->kind),
+                            lookupNodeKind(node->binary.right->kind));
+                    exit(1);
                 }
-
-                freeNode(node);
-                return newNode;
+            } else if (isComparisonOp(node->binary.op.kind)) {
+                if (node->binary.left->kind != NODE_LITERAL ||
+                    node->binary.left->kind != NODE_LITERAL) {
+                    fprintf(stderr,
+                            "Error: Invalid nodes for comparison op: %s\tleft: "
+                            "%s\tright: %s",
+                            lookupTokenKind(node->binary.op.kind),
+                            lookupNodeKind(node->binary.left->kind),
+                            lookupNodeKind(node->binary.right->kind));
+                    exit(1);
+                }
             } else {
-                fprintf(stderr, "Could not simplify subnodes for operator: %s",
+                fprintf(stderr,
+                        "Error: Binary operator is neither arith nor "
+                        "comparison: %s",
                         lookupTokenKind(node->binary.op.kind));
                 exit(1);
             }
+
+            double left = node->binary.left->literal.value;
+            double right = node->binary.right->literal.value;
+
+            Node* newNode;
+            double result;
+
+            switch (node->binary.op.kind) {
+                case TOK_EQUALS_EQUALS: {
+                    newNode = newBooleanNode(left == right);
+                    break;
+                }
+
+                case TOK_NOT_EQUALS: {
+                    newNode = newBooleanNode(left != right);
+                    break;
+                }
+
+                case TOK_LESS: {
+                    newNode = newBooleanNode(left < right);
+                    break;
+                }
+
+                case TOK_GREATER: {
+                    newNode = newBooleanNode(left > right);
+                    break;
+                }
+
+                case TOK_LESS_EQUALS: {
+                    newNode = newBooleanNode(left <= right);
+                    break;
+                }
+
+                case TOK_GREATER_EQUALS: {
+                    newNode = newBooleanNode(left >= right);
+                    break;
+                }
+
+                case TOK_EQUALS: {
+                    // assign variable
+                    Node* variable = (node->binary.left->kind == NODE_VARIABLE
+                                          ? node->binary.left
+                                          : node->binary.right);
+                    Node* literal = (node->binary.left->kind == NODE_LITERAL
+                                         ? node->binary.left
+                                         : node->binary.right);
+                    // TODO: Make variable store
+                    newNode = newLiteralNode(1);
+
+                    break;
+                }
+
+                case TOK_PLUS: {
+                    result = left + right;
+                    newNode = newLiteralNode(result);
+                    break;
+                }
+
+                case TOK_MINUS: {
+                    result = left - right;
+                    newNode = newLiteralNode(result);
+                    break;
+                }
+
+                case TOK_ASTERISK: {
+                    result = left * right;
+                    newNode = newLiteralNode(result);
+                    break;
+                }
+
+                case TOK_SLASH: {
+                    if (right == 0) {
+                        fprintf(stderr, "Warning: cannot divide by zero\n");
+                        // TODO: handle divisions by zero gracefully
+                        exit(1);
+                    }
+                    result = left / right;
+                    newNode = newLiteralNode(result);
+                    break;
+                }
+
+                case TOK_CARET: {
+                    // TODO: caret simplification does not reach
+                    // this case
+                    result = pow(left, right);
+                    newNode = newLiteralNode(result);
+                    break;
+                }
+
+                default: {
+                    fprintf(stderr, "Unable to simplify token: %s\n",
+                            lookupTokenKind(node->binary.op.kind));
+                    exit(1);
+                }
+            }
+
+            freeNode(node);
+            return newNode;
         }
     }
 }
@@ -375,6 +437,12 @@ Precedence getPrecedence(TokenKind kind) {
 
         case TOK_EQUALS:
             return PREC_ASSIGNMENT;
+
+        case TOK_LESS:
+        case TOK_GREATER:
+        case TOK_LESS_EQUALS:
+        case TOK_GREATER_EQUALS:
+            return PREC_COMPARISON;
 
         case TOK_BANG:
             return PREC_POSTFIX;
@@ -549,9 +617,66 @@ char* lookupTokenKind(TokenKind kind) {
     }
 }
 
+char* lookupNodeKind(NodeKind kind) {
+    switch (kind) {
+        case NODE_LITERAL:
+            return "Literal";
+        case NODE_BOOLEAN:
+            return "Boolean";
+        case NODE_BINARY:
+            return "Binary";
+        case NODE_UNARY:
+            return "Unary";
+        case NODE_VARIABLE:
+            return "Variable";
+        case NODE_PREFIX:
+            return "Prefix";
+
+        default: {
+            fprintf(stderr,
+                    "Warning: lookupNodeKind returning Unknown for unknown "
+                    "NodeKind\n");
+            return "Unknown NodeKind";
+        }
+    }
+}
+
 bool canBeNodeLiteral(Node* node) {
-    if (node->kind == NODE_LITERAL || node->kind == NODE_BOOLEAN)
-        return true;
-    else
-        return false;
+    return (node->kind == NODE_LITERAL || node->kind == NODE_BOOLEAN);
+}
+
+bool isArithOp(TokenKind kind) {
+    switch (kind) {
+        case TOK_PLUS:
+        case TOK_MINUS:
+        case TOK_ASTERISK:
+        case TOK_SLASH:
+        case TOK_CARET:
+        case TOK_BANG:
+        case TOK_SIN:
+        case TOK_COS:
+        case TOK_TAN:
+        case TOK_COSEC:
+        case TOK_SEC:
+        case TOK_COT:
+        case TOK_SGN:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+bool isComparisonOp(TokenKind kind) {
+    switch (kind) {
+        case TOK_EQUALS_EQUALS:
+        case TOK_NOT_EQUALS:
+        case TOK_LESS:
+        case TOK_GREATER:
+        case TOK_LESS_EQUALS:
+        case TOK_GREATER_EQUALS:
+            return true;
+        default:
+            return false;
+    }
 }
