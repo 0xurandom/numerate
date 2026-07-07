@@ -8,7 +8,7 @@
 #include <sys/ucontext.h>
 
 #include "lexer.h"
-#include "math_utils.h"
+#include "utils/math_utils.h"
 
 Node* parse(Parser* parser, Precedence precedence) {
     nextToken(parser);
@@ -219,8 +219,9 @@ Node* simplifyTree(Node* node) {
                 // TODO: handle division by zero case
                 case TOK_COSEC: {
                     if (sin(num) == 0) {
-                        fprintf(stderr,
-                                "Error: Division by zero is undefined\n");
+                        fprintf(
+                            stderr,
+                            "Error: Cosec is undefined for multiples of pi\n");
                         exit(1);
                     }
 
@@ -230,7 +231,8 @@ Node* simplifyTree(Node* node) {
                 case TOK_SEC: {
                     if (cos(num) == 0) {
                         fprintf(stderr,
-                                "Error: Division by zero is undefined\n");
+                                "Error: Sec is undefined for odd multiples of "
+                                "pi/2\n");
                         exit(1);
                     }
 
@@ -239,8 +241,9 @@ Node* simplifyTree(Node* node) {
                 }
                 case TOK_COT: {
                     if (tan(num) == 0) {
-                        fprintf(stderr,
-                                "Error: Division by zero is undefined\n");
+                        fprintf(
+                            stderr,
+                            "Error: Cot is undefined for multiples of pi\n");
                         exit(1);
                     }
 
@@ -409,8 +412,6 @@ Node* simplifyTree(Node* node) {
                 }
 
                 case TOK_CARET: {
-                    // TODO: caret simplification does not reach
-                    // this case
                     result = pow(left, right);
                     newNode = newLiteralNode(result);
                     break;
@@ -462,7 +463,6 @@ Precedence getPrecedence(TokenKind kind) {
         case TOK_END:
             return PREC_NONE;
 
-        // TODO: add more for comparison operators
         default:
             fprintf(stderr, "Warning: using PREC_NONE for token kind: %s\n",
                     lookupTokenKind(kind));

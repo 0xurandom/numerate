@@ -7,10 +7,10 @@
 
 #define INPUT_STRING_CAP 10
 
-void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView);
+void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView);
 
 int main() {
-    Stack stringView = {
+    StringView stringView = {
         .arr = malloc(INPUT_STRING_CAP * sizeof(char)),
         .capacity = INPUT_STRING_CAP,
     };
@@ -29,7 +29,7 @@ int main() {
     return 0;
 }
 
-void evaluateInput(Lexer *lexer, Parser *parser, Stack stringView) {
+void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
     printf("> ");
     // TODO: change scanf to fgets
 

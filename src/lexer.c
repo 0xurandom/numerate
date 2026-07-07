@@ -32,9 +32,9 @@ Token tokenise(Lexer* lexer) {
             token.kind = lookupKeyword(keyword, keyword_len);
 
             if (token.kind == TOK_VAR) {
-                token.ident = (Stack){.arr = keyword,
-                                      .count = keyword_len,
-                                      .capacity = keyword_len};
+                token.ident = (StringView){.arr = keyword,
+                                           .length = keyword_len,
+                                           .capacity = keyword_len};
             }
 
             break;

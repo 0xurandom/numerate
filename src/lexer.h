@@ -1,12 +1,7 @@
 #pragma once
 #include <stddef.h>
 
-typedef struct {
-    char *arr;
-    size_t count;
-    size_t capacity;
-} Stack;
-
+#include "utils/string_view_utils.h"
 typedef enum {
     TOK_VAR,
     TOK_NUMBER,
@@ -48,7 +43,7 @@ typedef struct {
     // TODO: remove stack.cap
     // if zero copy lexing
     union {
-        Stack ident;
+        StringView ident;
         double num;
     };
     TokenKind kind;
