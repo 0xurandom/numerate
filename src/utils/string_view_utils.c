@@ -6,7 +6,7 @@
 #define DEFAULT_STRING_CAPACITY 10
 
 // init a string view and set it to a string
-StringView initStringView(char *string, size_t length) {
+StringView newStringView(char *string, size_t length) {
     StringView view;
 
     if (length > DEFAULT_STRING_CAPACITY) {

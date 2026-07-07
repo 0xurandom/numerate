@@ -2,9 +2,9 @@
 
 #include "string_view_utils.h"
 
-LL_Node initLL_Node(char *key, size_t key_length, double value) {
+LL_Node newLL_Node(char *key, size_t key_length, double value) {
     LL_Node node = {
-        .key = initStringView(key, key_length),
+        .key = newStringView(key, key_length),
         .value = value,
         .next = NULL,
     };
