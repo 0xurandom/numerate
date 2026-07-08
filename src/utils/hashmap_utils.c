@@ -8,7 +8,7 @@
 
 // keep this as power of two
 // for faster hash calculations
-#define HASHMAP_CAPACITY 64
+#define HASHMAP_CAPACITY 32
 
 HashMap newHashmap() {
     HashMap hashmap = {.arr = malloc(HASHMAP_CAPACITY * sizeof(LL_Node *)),
@@ -57,6 +57,26 @@ int lookupVar(HashMap *hashMap, StringView *stringView, double *result) {
     }
 
     return -1;
+}
+
+void deleteVar(HashMap *hashMap, StringView *stringView) {
+    size_t bucketIndex = djb2(stringView->arr, stringView->length);
+    LL_Node *prevNode = NULL;
+    LL_Node *curNode = hashMap->arr[bucketIndex];
+
+    while (curNode != NULL) {
+        if (compareViews(&curNode->key, stringView)) {
+            prevNode->next = curNode->next;
+            freeLL_Node(curNode);
+
+            return;
+        } else {
+            prevNode = curNode;
+            curNode = curNode->next;
+        }
+    }
+
+    return;
 }
 
 size_t djb2(char *str, size_t str_length) {
