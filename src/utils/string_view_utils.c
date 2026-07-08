@@ -1,5 +1,6 @@
 #include "string_view_utils.h"
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,6 +42,15 @@ char *getCstring(StringView *view) {
     cstring[view->length] = '\0';
 
     return cstring;
+}
+
+bool compareViews(StringView *view1, StringView *view2) {
+    if (view1->length != view2->length) return false;
+
+    if (strncmp(view1->arr, view2->arr, view1->length) == 0)
+        return true;
+    else
+        return false;
 }
 
 void freeStringView(StringView *view) {
