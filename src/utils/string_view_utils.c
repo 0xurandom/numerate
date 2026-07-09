@@ -6,6 +6,12 @@
 
 #define DEFAULT_STRING_CAPACITY 10
 
+void initStringView(StringView *view) {
+    view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
+    view->length = 0;
+    view->capacity = DEFAULT_STRING_CAPACITY;
+}
+
 // init a string view and set it to a string
 StringView newStringView(char *string, size_t length) {
     StringView view;
@@ -17,6 +23,8 @@ StringView newStringView(char *string, size_t length) {
         view.arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
         view.capacity = DEFAULT_STRING_CAPACITY;
     }
+    memcpy(view.arr, string, length);
+
     view.length = length;
 
     return view;
@@ -31,7 +39,15 @@ void setStringView(StringView *view, char *string, size_t length) {
         view->arr = string;
     }
 
+    memcpy(view->arr, string, length);
+
     view->length = length;
+}
+
+void appendToStringView(StringView *view, char c) {
+    if (view->length + 1 > view->capacity) reallocStringView(view);
+
+    view->arr[view->length] = c;
 }
 
 // get a c string from the string view
@@ -51,6 +67,12 @@ bool compareViews(StringView *view1, StringView *view2) {
         return true;
     else
         return false;
+}
+
+// double the capacity of StringView
+void reallocStringView(StringView *view) {
+    view->arr = realloc(view->arr, view->capacity * 2);
+    view->capacity *= 2;
 }
 
 void freeStringView(StringView *view) {

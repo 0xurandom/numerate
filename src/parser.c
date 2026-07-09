@@ -100,7 +100,10 @@ Node* parse(Parser* parser, Precedence precedence) {
             case TOK_PLUS:
             case TOK_MINUS:
             case TOK_ASTERISK:
-            case TOK_SLASH: {
+            case TOK_SLASH:
+
+            case TOK_AND:
+            case TOK_OR: {
                 Node* right = parse(parser, getPrecedence(op.kind) + 1);
 
                 left = newBinaryNode(op, left, right);
@@ -338,6 +341,15 @@ Node* simplifyTree(Node* node) {
             double result;
 
             switch (node->binary.op.kind) {
+                case TOK_AND: {
+                    newNode = newBooleanNode(left && right);
+                    break;
+                }
+
+                case TOK_OR: {
+                    newNode = newBooleanNode(left || right);
+                }
+
                 case TOK_EQUALS_EQUALS: {
                     newNode = newBooleanNode(left == right);
                     break;
@@ -432,6 +444,12 @@ Node* simplifyTree(Node* node) {
 
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
+        case TOK_AND:
+            return PREC_AND;
+
+        case TOK_OR:
+            return PREC_OR;
+
         case TOK_EQUALS_EQUALS:
         case TOK_NOT_EQUALS:
             return PREC_EQUALILTY;
@@ -577,6 +595,10 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
 
 char* lookupTokenKind(TokenKind kind) {
     switch (kind) {
+        case TOK_AND:
+            return "And";
+        case TOK_OR:
+            return "Or";
         case TOK_EQUALS:
             return "Equals";
         case TOK_EQUALS_EQUALS:
@@ -669,6 +691,8 @@ bool isArithOp(TokenKind kind) {
 
 bool isComparisonOp(TokenKind kind) {
     switch (kind) {
+        case TOK_AND:
+        case TOK_OR:
         case TOK_EQUALS_EQUALS:
         case TOK_NOT_EQUALS:
         case TOK_LESS:

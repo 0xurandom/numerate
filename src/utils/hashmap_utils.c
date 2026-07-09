@@ -38,6 +38,7 @@ void insertVar(HashMap *hashMap, StringView *stringView, double value) {
         hashMap->arr[bucketIndex] = &newNode;
     }
 
+    hashMap->count++;
     return;
 }
 
@@ -76,7 +77,28 @@ void deleteVar(HashMap *hashMap, StringView *stringView) {
         }
     }
 
+    hashMap->count--;
     return;
+}
+
+void freeHashmap(HashMap *hashMap) {
+    LL_Node *curNode = NULL;
+    LL_Node *nextNode = NULL;
+
+    for (size_t i = 0; i < hashMap->capacity; i++) {
+        curNode = hashMap->arr[i];
+        nextNode = curNode->next;
+
+        while (curNode != NULL) {
+            nextNode = curNode->next;
+            freeLL_Node(curNode);
+            curNode = nextNode;
+        }
+    }
+
+    free(hashMap->arr);
+    hashMap->count = 0;
+    hashMap->capacity = 0;
 }
 
 size_t djb2(char *str, size_t str_length) {

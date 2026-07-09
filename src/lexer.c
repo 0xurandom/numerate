@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "parser.h"
+#include "utils/string_view_utils.h"
 
 Token tokenise(Lexer* lexer) {
     Token token;
@@ -25,7 +26,8 @@ Token tokenise(Lexer* lexer) {
                 lexer->cursor++;
             }
 
-            int keyword_len = lexer->cursor - start;
+            StringView keyword =
+                newStringView(&lexer->string[start], lexer->cursor - start);
 
             char* keyword = &lexer->string[start];
 
@@ -235,6 +237,11 @@ TokenKind lookupKeyword(char* keyword, int len) {
         return TOK_COT;
     else if (len == 3 && memcmp(keyword, "sgn", 3) == 0)
         return TOK_SGN;
+
+    else if (len == 3 && memcmp(keyword, "and", 3) == 0)
+        return TOK_AND;
+    else if (len == 2 && memcmp(keyword, "or", 2) == 0)
+        return TOK_OR;
 
     else {
         return TOK_VAR;

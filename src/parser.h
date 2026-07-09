@@ -15,6 +15,8 @@ typedef struct {
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,  // =
+    PREC_OR,
+    PREC_AND,
     PREC_EQUALILTY,   // !=, ==
     PREC_COMPARISON,  // <, >, <=, >=
     PREC_TERM,        // + -

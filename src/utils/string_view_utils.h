@@ -9,8 +9,11 @@ typedef struct {
     size_t capacity;
 } StringView;
 
+void initStringView(StringView *view);
 StringView newStringView(char *string, size_t length);
 void setStringView(StringView *view, char *string, size_t length);
+void appendToStringView(StringView *view, char c);
 char *getCstring(StringView *view);
 bool compareViews(StringView *view1, StringView *view2);
+void reallocStringView(StringView *view);
 void freeStringView(StringView *view);
