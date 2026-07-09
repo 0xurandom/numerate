@@ -35,8 +35,6 @@ void setStringView(StringView *view, char *string, size_t length) {
     if (length > view->capacity) {
         view->arr = realloc(view->arr, length * sizeof(char));
         view->capacity = length;
-    } else {
-        view->arr = string;
     }
 
     memcpy(view->arr, string, length);

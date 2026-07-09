@@ -15,6 +15,9 @@ Node* parse(Parser* parser, Precedence precedence) {
 
     // TODO: handle spaces for keyword funcs
 
+    // TODO: spinoff helper funcs into
+    // different file
+
     // TODO: handle percent as modulo
     // and as * 0.01
 

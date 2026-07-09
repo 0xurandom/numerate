@@ -29,14 +29,10 @@ Token tokenise(Lexer* lexer) {
             StringView keyword =
                 newStringView(&lexer->string[start], lexer->cursor - start);
 
-            char* keyword = &lexer->string[start];
-
-            token.kind = lookupKeyword(keyword, keyword_len);
+            token.kind = lookupKeyword(keyword.arr, keyword.length);
 
             if (token.kind == TOK_VAR) {
-                token.ident = (StringView){.arr = keyword,
-                                           .length = keyword_len,
-                                           .capacity = keyword_len};
+                // token.ident = newStringView(char* string, size_t length);
             }
 
             break;
@@ -46,6 +42,14 @@ Token tokenise(Lexer* lexer) {
         case '.': {
             token.num = 0;
             token.kind = TOK_NUMBER;
+
+            if (lexer->string[lexer->cursor] == '0') {
+                if (peekNext(lexer) == 'x') {
+                    token.num = parseHex(lexer);
+                } else if (peekNext(lexer) == 'b' || peekNext(lexer) == 'B') {
+                    token.num = parseBin(lexer);
+                }
+            }
 
             int i;
             for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
@@ -246,4 +250,46 @@ TokenKind lookupKeyword(char* keyword, int len) {
     else {
         return TOK_VAR;
     }
+}
+
+double parseHex(Lexer* lexer) {
+    lexer->cursor = lexer->cursor + 2;
+
+    char* endptr;
+    double value = strtol(&lexer->string[lexer->cursor], &endptr, 16);
+
+    int offset = endptr - (lexer->string + lexer->cursor);
+    lexer->cursor += offset;
+
+    return value;
+}
+
+double parseBin(Lexer* lexer) {
+    lexer->cursor = lexer->cursor + 2;
+
+    char* endptr;
+    double value = strtol(&lexer->string[lexer->cursor], &endptr, 2);
+
+    int offset = endptr - (lexer->string + lexer->cursor);
+    lexer->cursor += offset;
+
+    return value;
+}
+
+bool isHex(StringView string) {
+    if (string.length < 3) return false;
+
+    if (string.arr[0] == '0' && string.arr[1] == 'x')
+        return true;
+    else
+        return false;
+}
+
+bool isBin(StringView string) {
+    if (string.length < 3) return false;
+
+    if (string.arr[0] == '0' && (string.arr[1] == 'b' || string.arr[1] == 'B'))
+        return true;
+    else
+        return false;
 }

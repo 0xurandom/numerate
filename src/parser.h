@@ -40,6 +40,7 @@ typedef enum {
 
 typedef struct Node Node;
 
+// TODO: add a format kind for lilteral
 struct Node {
     NodeKind kind;
 
