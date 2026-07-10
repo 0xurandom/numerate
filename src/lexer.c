@@ -22,17 +22,17 @@ Token tokenise(Lexer* lexer) {
         case 'A' ... 'Z': {
             int start = lexer->cursor;
 
-            while (isalpha(lexer->string[lexer->cursor])) {
+            while (isalnum(lexer->string[lexer->cursor])) {
                 lexer->cursor++;
             }
 
-            StringView keyword =
-                newStringView(&lexer->string[start], lexer->cursor - start);
+            char* keyword = &lexer->string[start];
+            size_t keyword_len = lexer->cursor - start;
 
-            token.kind = lookupKeyword(keyword.arr, keyword.length);
+            token.kind = lookupKeyword(keyword, keyword_len);
 
             if (token.kind == TOK_VAR) {
-                // token.ident = newStringView(char* string, size_t length);
+                token.ident = newStringView(keyword, keyword_len);
             }
 
             break;
@@ -40,36 +40,22 @@ Token tokenise(Lexer* lexer) {
 
         case '0' ... '9':
         case '.': {
-            token.num = 0;
             token.kind = TOK_NUMBER;
 
             if (lexer->string[lexer->cursor] == '0') {
-                if (peekNext(lexer) == 'x') {
+                char nextChar = peekNext(lexer);
+
+                if (nextChar == 'x' || nextChar == 'X') {
                     token.num = parseHex(lexer);
-                } else if (peekNext(lexer) == 'b' || peekNext(lexer) == 'B') {
+                    break;
+
+                } else if (nextChar == 'b' || nextChar == 'B') {
                     token.num = parseBin(lexer);
+                    break;
                 }
             }
 
-            int i;
-            for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
-                token.num *= 10;
-                token.num += (lexer->string[i] - '0');
-            }
-
-            lexer->cursor = i;
-
-            if (lexer->string[lexer->cursor] == '.') {
-                int initial_cursor = lexer->cursor;
-                lexer->cursor++;
-
-                for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
-                    token.num += (lexer->string[i] - '0') *
-                                 pow(10, -(i - initial_cursor));
-                }
-
-                lexer->cursor = i;
-            }
+            token.num = parseDec(lexer);
 
             break;
         }
@@ -253,6 +239,30 @@ TokenKind lookupKeyword(char* keyword, int len) {
     }
 }
 
+double parseDec(Lexer* lexer) {
+    int i;
+    double value;
+    for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
+        value *= 10;
+        value += (lexer->string[i] - '0');
+    }
+
+    lexer->cursor = i;
+
+    if (lexer->string[lexer->cursor] == '.') {
+        int initial_cursor = lexer->cursor;
+        lexer->cursor++;
+
+        for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
+            value += (lexer->string[i] - '0') * pow(10, -(i - initial_cursor));
+        }
+
+        lexer->cursor = i;
+    }
+
+    return value;
+}
+
 double parseHex(Lexer* lexer) {
     lexer->cursor = lexer->cursor + 2;
     char* endptr;
@@ -261,8 +271,6 @@ double parseHex(Lexer* lexer) {
     int offset = endptr - (lexer->string + lexer->cursor);
 
     if (*endptr == '.') {
-        // TODO: handle hex string with decimal
-
         lexer->cursor += offset + 1;
 
         int dec_index = 0;

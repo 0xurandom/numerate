@@ -63,6 +63,7 @@ char peekNext(Lexer *lexer);
 void lexString(char *string);
 void checkAllocation(void *ptr);
 TokenKind lookupKeyword(char *keyword, int len);
+double parseDec(Lexer *lexer);
 double parseHex(Lexer *lexer);
 double parseBin(Lexer *lexer);
 int hexToInt(char c);
