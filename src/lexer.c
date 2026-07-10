@@ -188,6 +188,7 @@ Token tokenise(Lexer* lexer) {
 
         default: {
             token.kind = TOK_UNKNOWN;
+            token.ident = newStringView(&lexer->string[lexer->cursor], 1);
             lexer->cursor++;
         }
     }
@@ -254,12 +255,28 @@ TokenKind lookupKeyword(char* keyword, int len) {
 
 double parseHex(Lexer* lexer) {
     lexer->cursor = lexer->cursor + 2;
-
     char* endptr;
-    double value = strtol(&lexer->string[lexer->cursor], &endptr, 16);
 
+    double value = strtol(&lexer->string[lexer->cursor], &endptr, 16);
     int offset = endptr - (lexer->string + lexer->cursor);
-    lexer->cursor += offset;
+
+    if (*endptr == '.') {
+        // TODO: handle hex string with decimal
+
+        lexer->cursor += offset + 1;
+
+        int dec_index = 0;
+
+        while (isxdigit(lexer->string[lexer->cursor])) {
+            value += hexToInt(lexer->string[lexer->cursor]) *
+                     pow(16, -(dec_index + 1));
+            dec_index++;
+            lexer->cursor++;
+        }
+
+    } else {
+        lexer->cursor += offset;
+    }
 
     return value;
 }
@@ -292,4 +309,11 @@ bool isBin(StringView string) {
         return true;
     else
         return false;
+}
+
+int hexToInt(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    return -1;
 }

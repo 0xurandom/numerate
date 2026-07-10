@@ -598,6 +598,32 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
 
 char* lookupTokenKind(TokenKind kind) {
     switch (kind) {
+        case TOK_VAR:
+            return "Var";
+        case TOK_LESS:
+            return "Less";
+        case TOK_GREATER:
+            return "Greater";
+        case TOK_LESS_EQUALS:
+            return "Less Equals";
+        case TOK_GREATER_EQUALS:
+            return "Greater Equals";
+        case TOK_SIN:
+            return "Sin";
+        case TOK_COS:
+            return "Cos";
+        case TOK_TAN:
+            return "Tan";
+        case TOK_COSEC:
+            return "Cosec";
+        case TOK_SEC:
+            return "Sec";
+        case TOK_COT:
+            return "Cot";
+        case TOK_SGN:
+            return "Sgn";
+        case TOK_SPACE:
+            return "Space";
         case TOK_AND:
             return "And";
         case TOK_OR:
@@ -637,6 +663,7 @@ char* lookupTokenKind(TokenKind kind) {
             fprintf(stderr,
                     "Warning: lookupTokenKind returning Unknown for unknown "
                     "TokenKind\n");
+
             return "Unknown Tokenkind";
         }
     }

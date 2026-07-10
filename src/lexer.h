@@ -65,3 +65,4 @@ void checkAllocation(void *ptr);
 TokenKind lookupKeyword(char *keyword, int len);
 double parseHex(Lexer *lexer);
 double parseBin(Lexer *lexer);
+int hexToInt(char c);
