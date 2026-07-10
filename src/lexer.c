@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.h"
+#include "utils/parser_utils.h"
 #include "utils/string_view_utils.h"
 
 Token tokenise(Lexer* lexer) {
