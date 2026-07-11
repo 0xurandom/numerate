@@ -13,6 +13,8 @@ typedef enum {
     TOK_GREATER_EQUALS,
     TOK_LESS_EQUALS,
 
+    TOK_BITWISE_AND,
+    TOK_BITWISE_OR,
     TOK_AND,
     TOK_OR,
 

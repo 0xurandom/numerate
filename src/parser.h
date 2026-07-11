@@ -15,6 +15,8 @@ typedef struct {
 typedef enum {
     PREC_NONE,
     PREC_ASSIGNMENT,  // =
+    PREC_BITWISE_OR,
+    PREC_BITWISE_AND,
     PREC_OR,
     PREC_AND,
     PREC_EQUALILTY,   // !=, ==

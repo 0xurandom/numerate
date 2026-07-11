@@ -95,6 +95,30 @@ Token tokenise(Lexer* lexer) {
             break;
         }
 
+        case '&': {
+            if (peekNext(lexer) == '&') {
+                token.kind = TOK_AND;
+                lexer->cursor = lexer->cursor + 2;
+            } else {
+                token.kind = TOK_BITWISE_AND;
+                lexer->cursor++;
+            }
+
+            break;
+        }
+
+        case '|': {
+            if (peekNext(lexer) == '|') {
+                token.kind = TOK_OR;
+                lexer->cursor = lexer->cursor + 2;
+            } else {
+                token.kind = TOK_BITWISE_OR;
+                lexer->cursor++;
+            }
+
+            break;
+        }
+
         case '+': {
             token.kind = TOK_PLUS;
             lexer->cursor++;
@@ -108,8 +132,14 @@ Token tokenise(Lexer* lexer) {
             break;
         }
         case '*': {
-            token.kind = TOK_ASTERISK;
-            lexer->cursor++;
+            // TODO: this is jank
+            if (peekNext(lexer) == '*') {
+                token.kind = TOK_CARET;
+                lexer->cursor = lexer->cursor + 2;
+            } else {
+                token.kind = TOK_ASTERISK;
+                lexer->cursor++;
+            }
 
             break;
         }

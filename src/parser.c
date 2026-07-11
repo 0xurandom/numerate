@@ -1,3 +1,5 @@
+#include "parser.h"
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -351,6 +353,11 @@ Node* simplifyTree(Node* node) {
                     newNode = newBooleanNode(left || right);
                 }
 
+                case TOK_BITWISE_AND: {
+                    // TODO: bitwise operators cannot be used with doubles
+                    // newNode = newLiteralNode(left )
+                }
+
                 case TOK_EQUALS_EQUALS: {
                     newNode = newBooleanNode(left == right);
                     break;
@@ -450,6 +457,12 @@ Precedence getPrecedence(TokenKind kind) {
 
         case TOK_OR:
             return PREC_OR;
+
+        case TOK_BITWISE_AND:
+            return PREC_BITWISE_AND;
+
+        case TOK_BITWISE_OR:
+            return PREC_BITWISE_OR;
 
         case TOK_EQUALS_EQUALS:
         case TOK_NOT_EQUALS:

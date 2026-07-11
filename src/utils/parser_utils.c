@@ -124,6 +124,8 @@ bool isArithOp(TokenKind kind) {
         case TOK_SEC:
         case TOK_COT:
         case TOK_SGN:
+        case TOK_BITWISE_AND:
+        case TOK_BITWISE_OR:
             return true;
 
         default:
@@ -175,6 +177,10 @@ char* lookupTokenKind(TokenKind kind) {
             return "Sgn";
         case TOK_SPACE:
             return "Space";
+        case TOK_BITWISE_AND:
+            return "Bitwise And";
+        case TOK_BITWISE_OR:
+            return "Bitwise Or";
         case TOK_AND:
             return "And";
         case TOK_OR:
