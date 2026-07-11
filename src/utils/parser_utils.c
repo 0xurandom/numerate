@@ -22,11 +22,12 @@ Node* newBooleanNode(double num) {
     return node;
 }
 
-Node* newVariableNode(Token name) {
+Node* newAssignmentNode(Token name, Node* value) {
     Node* node = malloc(sizeof(Node));
 
-    node->kind = NODE_VARIABLE;
-    node->variable.name = name;
+    node->kind = NODE_ASSIGNMENT;
+    node->assignment.name = name;
+    node->assignment.value = value;
 
     return node;
 }
@@ -72,7 +73,7 @@ double evaluateString(Lexer* lexer, Parser* parser, char* str) {
     parser->cur = tokenise(lexer);
 
     Node* tree = parse(parser, PREC_ASSIGNMENT);
-    Node* result = simplifyTree(tree);
+    Node* result = simplifyTree(parser, tree);
 
     double result_val = result->literal.value;
     freeNode(result);
@@ -236,7 +237,7 @@ char* lookupNodeKind(NodeKind kind) {
             return "Binary";
         case NODE_UNARY:
             return "Unary";
-        case NODE_VARIABLE:
+        case NODE_ASSIGNMENT:
             return "Variable";
         case NODE_PREFIX:
             return "Prefix";

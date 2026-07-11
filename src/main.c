@@ -4,6 +4,8 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "utils/lexer_utils.h"
+#include "variable_store.h"
 
 #define INPUT_STRING_CAP 10
 
@@ -18,9 +20,7 @@ int main() {
     checkAllocation(stringView.arr);
 
     Lexer lexer;
-    Parser parser = {
-        .lexer = &lexer,
-    };
+    Parser parser = {.lexer = &lexer, .varStore = newVarStore()};
 
     while (true) {
         evaluateInput(&lexer, &parser, stringView);

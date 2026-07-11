@@ -3,7 +3,7 @@
 
 Node* newLiteralNode(double num);
 Node* newBooleanNode(double num);
-Node* newVariableNode(Token name);
+Node* newAssignmentNode(Token name, Node* value);
 Node* newUnaryNode(Token op, Node* operand);
 Node* newPrefixNode(Token op, Node* operand);
 Node* newBinaryNode(Token op, Node* left, Node* right);

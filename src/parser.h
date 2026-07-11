@@ -3,11 +3,16 @@
 #include <stdbool.h>
 
 #include "lexer.h"
+#include "utils/hashmap_utils.h"
+#include "variable_store.h"
 
 typedef struct {
     Lexer* lexer;
+
     Token cur;
     Token prev;
+
+    HashMap varStore;
 } Parser;
 
 // Precedence in ascending order
@@ -34,10 +39,10 @@ typedef enum {
 typedef enum {
     NODE_LITERAL,
     NODE_BOOLEAN,  // can be calculated as literal
-    NODE_VARIABLE,
-    NODE_UNARY,   // postfix
-    NODE_PREFIX,  // can be calculated as unary
+    NODE_UNARY,    // postfix
+    NODE_PREFIX,   // can be calculated as unary
     NODE_BINARY,
+    NODE_ASSIGNMENT,
 } NodeKind;
 
 typedef struct Node Node;
@@ -52,10 +57,6 @@ struct Node {
         } literal;
 
         struct {
-            Token name;
-        } variable;
-
-        struct {
             Token op;
             Node* operand;
         } unary;
@@ -65,11 +66,16 @@ struct Node {
             Node* left;
             Node* right;
         } binary;
+
+        struct {
+            Token name;
+            Node* value;
+        } assignment;
     };
 };
 
 Node* parse(Parser* parser, Precedence precedence);
-Node* simplifyTree(Node* node);
+Node* simplifyTree(Parser* parser, Node* node);
 Precedence getPrecedence(TokenKind kind);
 void nextToken(Parser* parser);
 double evaluateString(Lexer* lexer, Parser* parser, char* str);

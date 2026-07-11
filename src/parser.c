@@ -7,8 +7,10 @@
 #include <sys/ucontext.h>
 
 #include "lexer.h"
+#include "utils/hashmap_utils.h"
 #include "utils/math_utils.h"
 #include "utils/parser_utils.h"
+#include "utils/string_view_utils.h"
 
 Node* parse(Parser* parser, Precedence precedence) {
     nextToken(parser);
@@ -32,6 +34,20 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             break;
         }
+
+        case TOK_VAR: {
+            // TODO: this is duplicated somewhere
+            double result;
+            if (lookupVar(&parser->varStore, &parser->prev.ident, &result) ==
+                0) {
+                left = newLiteralNode(result);
+            } else {
+                fprintf(stderr, "Error: unknown var\n");
+                exit(1);
+            }
+            break;
+        }
+
         // subfactorial for literal and
         // not operator for bool
         case TOK_BANG: {
@@ -126,18 +142,15 @@ Node* parse(Parser* parser, Precedence precedence) {
             }
 
             // right associative tokens
-            case TOK_EQUALS_EQUALS:
-            case TOK_NOT_EQUALS: {
-                // comparison operators
-
-                Node* right = parse(parser, getPrecedence(op.kind));
-                left = newBinaryNode(op, left, right);
-
+            case TOK_EQUALS: {
+                Node* value = parse(parser, getPrecedence(op.kind));
+                left = newAssignmentNode(parser->prev, value);
                 break;
             }
 
-            case TOK_EQUALS: {
-                // assignment operator
+            case TOK_EQUALS_EQUALS:
+            case TOK_NOT_EQUALS: {
+                // comparison operators
 
                 Node* right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
@@ -168,7 +181,7 @@ Node* parse(Parser* parser, Precedence precedence) {
     return left;
 }
 
-Node* simplifyTree(Node* node) {
+Node* simplifyTree(Parser* parser, Node* node) {
     if (node == NULL) return NULL;
 
     switch (node->kind) {
@@ -177,15 +190,27 @@ Node* simplifyTree(Node* node) {
             return node;
         }
 
-        case NODE_VARIABLE: {
-            // TODO: lookup variable value
-            exit(1);
+        // TODO: check if this is necessary
+        case NODE_ASSIGNMENT: {
+            double result;
+
+            if (lookupVar(&parser->varStore, &node->assignment.name.ident,
+                          &result) == 0) {
+                // lookup successsful
+                Node* newNode = newLiteralNode(result);
+            } else {
+                // lookup failed
+                // TODO: handle this gracefully
+                fprintf(stderr, "Error: Undefined variable referened: %s",
+                        getCstring(&node->assignment.name.ident));
+                exit(1);
+            }
             break;
         }
 
         // unary -, trig, sgn, subfactorial !, not !
         case NODE_PREFIX: {
-            node->unary.operand = simplifyTree(node->unary.operand);
+            node->unary.operand = simplifyTree(parser, node->unary.operand);
 
             double num = node->unary.operand->literal.value;
             double result;
@@ -273,7 +298,7 @@ Node* simplifyTree(Node* node) {
         }
 
         case NODE_UNARY: {
-            node->unary.operand = simplifyTree(node->unary.operand);
+            node->unary.operand = simplifyTree(parser, node->unary.operand);
 
             // TODO: handle error gracefully
             if (node->unary.operand->kind != NODE_LITERAL) {
@@ -303,8 +328,8 @@ Node* simplifyTree(Node* node) {
         }
 
         case NODE_BINARY: {
-            node->binary.left = simplifyTree(node->binary.left);
-            node->binary.right = simplifyTree(node->binary.right);
+            node->binary.left = simplifyTree(parser, node->binary.left);
+            node->binary.right = simplifyTree(parser, node->binary.right);
 
             if (isArithOp(node->binary.op.kind)) {
                 // can handle literals and bools
@@ -356,6 +381,7 @@ Node* simplifyTree(Node* node) {
                 case TOK_BITWISE_AND: {
                     // TODO: bitwise operators cannot be used with doubles
                     // newNode = newLiteralNode(left )
+                    exit(1);
                 }
 
                 case TOK_EQUALS_EQUALS: {
@@ -385,20 +411,6 @@ Node* simplifyTree(Node* node) {
 
                 case TOK_GREATER_EQUALS: {
                     newNode = newBooleanNode(left >= right);
-                    break;
-                }
-
-                case TOK_EQUALS: {
-                    // assign variable
-                    Node* variable = (node->binary.left->kind == NODE_VARIABLE
-                                          ? node->binary.left
-                                          : node->binary.right);
-                    Node* literal = (node->binary.left->kind == NODE_LITERAL
-                                         ? node->binary.left
-                                         : node->binary.right);
-                    // TODO: Make variable store
-                    newNode = newLiteralNode(1);
-
                     break;
                 }
 
