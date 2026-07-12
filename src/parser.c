@@ -42,7 +42,8 @@ Node* parse(Parser* parser, Precedence precedence) {
                 0) {
                 left = newLiteralNode(result);
             } else {
-                fprintf(stderr, "Error: unknown var\n");
+                fprintf(stderr, "Error: unknown var: '%s'\n",
+                        getCstring(&parser->prev.ident));
                 exit(1);
             }
             break;
