@@ -9,10 +9,25 @@ void initMatrix(Matrix *matrix, unsigned short rows, unsigned short columns) {
         exit(1);
     }
 
+    // TODO: set an upper limit for matrix dimensions
+
     matrix->arr = malloc(rows * sizeof(double *));
 
     for (size_t i = 0; i < columns; i++) {
         matrix->arr[i] = malloc(sizeof(double));
+    }
+}
+
+void initIdentityMatrix(Matrix *matrix, unsigned short order) {
+    initMatrix(matrix, order, order);
+
+    for (size_t i = 0; i < matrix->rows; i++) {
+        for (size_t j = 0; j < matrix->columns; j++) {
+            if (i == j)
+                matrix->arr[i][j] = 1;
+            else
+                matrix->arr[i][j] = 0;
+        }
     }
 }
 
@@ -80,5 +95,21 @@ void getMatrixTranspose(Matrix *matrix, Matrix *result) {
 
 double getDeterminant(Matrix *matrix) {}
 
+void getMinorMatrix(Matrix *matrix, unsigned short row, unsigned short column,
+                    Matrix *result) {
+    initMatrix(result, row - 1, column - 1);
+}
+
 void getCofactor(Matrix *matrix, unsigned short row, unsigned short column,
                  Matrix *result) {}
+
+void freeMatrix(Matrix *matrix) {
+    for (size_t i = 0; i < matrix->columns; i++) {
+        free(matrix->arr[i]);
+    }
+
+    matrix->rows = 0;
+    matrix->columns = 0;
+
+    free(matrix->arr);
+}
