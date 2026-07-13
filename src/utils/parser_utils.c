@@ -176,6 +176,8 @@ char* lookupTokenKind(TokenKind kind) {
             return "Cot";
         case TOK_SGN:
             return "Sgn";
+        case TOK_TWOS:
+            return "Twos";
         case TOK_SPACE:
             return "Space";
         case TOK_BITWISE_AND:

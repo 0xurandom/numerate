@@ -65,7 +65,9 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_SEC:
         case TOK_COT:
 
-        case TOK_SGN: {
+        case TOK_SGN:
+        case TOK_TWOS:
+        case TOK_ABS: {
             Token op = parser->prev;
             Node* operand = parse(parser, PREC_FUNC);
             left = newPrefixNode(op, operand);
@@ -287,6 +289,19 @@ Node* simplifyTree(Parser* parser, Node* node) {
                     result = signum(num);
                     break;
                 }
+
+                case TOK_TWOS: {
+                    result = twosComplement(num);
+                    break;
+                }
+
+                // TODO: does not work correctly
+                // when used without ()
+                case TOK_ABS: {
+                    result = fabs(num);
+                    break;
+                }
+
                 default: {
                     fprintf(stderr, "Error: Unexpected prefix operator: %s\n",
                             lookupTokenKind(node->unary.op.kind));

@@ -38,6 +38,8 @@ typedef enum {
     TOK_COT,
 
     TOK_SGN,
+    TOK_ABS,
+    TOK_TWOS,
 
     TOK_SPACE,
     TOK_END,

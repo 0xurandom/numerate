@@ -1,5 +1,7 @@
 #include "lexer_utils.h"
 
+#include <string.h>
+
 void lexString(char* string) {
     int len = strlen(string);
     Lexer lexer = {
@@ -34,13 +36,18 @@ TokenKind lookupKeyword(char* keyword, int len) {
         return TOK_SEC;
     else if (len == 3 && memcmp(keyword, "cot", 3) == 0)
         return TOK_COT;
-    else if (len == 3 && memcmp(keyword, "sgn", 3) == 0)
-        return TOK_SGN;
 
     else if (len == 3 && memcmp(keyword, "and", 3) == 0)
         return TOK_AND;
     else if (len == 2 && memcmp(keyword, "or", 2) == 0)
         return TOK_OR;
+
+    else if (len == 3 && memcmp(keyword, "sgn", 3) == 0)
+        return TOK_SGN;
+    else if (len == 4 && memcmp(keyword, "twos", 4) == 0)
+        return TOK_TWOS;
+    else if (len == 3 && memcmp(keyword, "abs", 3) == 0)
+        return TOK_ABS;
 
     else {
         return TOK_VAR;
