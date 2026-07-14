@@ -9,6 +9,12 @@
 #include "../lexer.h"
 #include "parser_utils.h"
 
+typedef struct {
+    char string[10];
+    int len;
+    TokenKind tokenKind;
+} Keyword;
+
 void lexString(char* string);
 void checkAllocation(void* ptr);
 TokenKind lookupKeyword(char* keyword, int len);

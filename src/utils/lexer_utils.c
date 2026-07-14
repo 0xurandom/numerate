@@ -24,34 +24,29 @@ void checkAllocation(void* ptr) {
 }
 
 TokenKind lookupKeyword(char* keyword, int len) {
-    if (len == 3 && memcmp(keyword, "sin", 3) == 0)
-        return TOK_SIN;
-    else if (len == 3 && memcmp(keyword, "cos", 3) == 0)
-        return TOK_COS;
-    else if (len == 3 && memcmp(keyword, "tan", 3) == 0)
-        return TOK_TAN;
-    else if (len == 5 && memcmp(keyword, "cosec", 5) == 0)
-        return TOK_COSEC;
-    else if (len == 3 && memcmp(keyword, "sec", 3) == 0)
-        return TOK_SEC;
-    else if (len == 3 && memcmp(keyword, "cot", 3) == 0)
-        return TOK_COT;
+    Keyword keywords[] = {
+        (Keyword){.string = "sin", .len = 3, .tokenKind = TOK_SIN},
+        (Keyword){.string = "cos", .len = 3, .tokenKind = TOK_COS},
+        (Keyword){.string = "tan", .len = 3, .tokenKind = TOK_TAN},
+        (Keyword){.string = "sec", .len = 3, .tokenKind = TOK_SEC},
+        (Keyword){.string = "csc", .len = 3, .tokenKind = TOK_COSEC},
+        (Keyword){.string = "cosec", .len = 5, .tokenKind = TOK_COSEC},
+        (Keyword){.string = "cot", .len = 3, .tokenKind = TOK_COT},
+        (Keyword){.string = "sgn", .len = 3, .tokenKind = TOK_SGN},
+        (Keyword){.string = "signum", .len = 6, .tokenKind = TOK_SGN},
+        (Keyword){.string = "twos", .len = 3, .tokenKind = TOK_TWOS},
+        (Keyword){.string = "abs", .len = 3, .tokenKind = TOK_ABS},
+        (Keyword){.string = "sqrt", .len = 4, .tokenKind = TOK_SQRT},
+    };
 
-    else if (len == 3 && memcmp(keyword, "and", 3) == 0)
-        return TOK_AND;
-    else if (len == 2 && memcmp(keyword, "or", 2) == 0)
-        return TOK_OR;
+    size_t keywordsCount = sizeof(keywords) / sizeof(Keyword);
 
-    else if (len == 3 && memcmp(keyword, "sgn", 3) == 0)
-        return TOK_SGN;
-    else if (len == 4 && memcmp(keyword, "twos", 4) == 0)
-        return TOK_TWOS;
-    else if (len == 3 && memcmp(keyword, "abs", 3) == 0)
-        return TOK_ABS;
-
-    else {
-        return TOK_VAR;
+    for (size_t i = 0; i < keywordsCount; i++) {
+        if (len == keywords[i].len && memcmp(keyword, keywords[i].string, len))
+            return keywords[i].tokenKind;
     }
+
+    return TOK_VAR;
 }
 
 double parseDec(Lexer* lexer) {
