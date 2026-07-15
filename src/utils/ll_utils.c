@@ -1,15 +1,18 @@
 #include "ll_utils.h"
 
+#include <stdlib.h>
+
 #include "string_view_utils.h"
 
-LL_Node newLL_Node(char *key, size_t key_length, double value) {
-    LL_Node node = {
-        .key = newStringView(key, key_length),
-        .value = value,
-        .next = NULL,
-    };
+void initLL_Node(LL_Node *node, char *key, size_t key_length, double value) {
+    StringView view;
+    newStringView(&view, key, key_length);
 
-    return node;
+    node->key = view;
+    node->value = value;
+    node->next = NULL;
+
+    return;
 }
 
 void setLL_Node(LL_Node *node, double value) { node->value = value; }

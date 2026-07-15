@@ -8,7 +8,7 @@ typedef struct HashMap {
     size_t capacity;
 } HashMap;
 
-HashMap newHashmap();
+void initHashmap(HashMap *map);
 void insertVar(HashMap *hashMap, StringView *stringView, double value);
 int lookupVar(HashMap *hashMap, StringView *stringView, double *result);
 void deleteVar(HashMap *hashMap, StringView *stringView);

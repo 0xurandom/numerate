@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "parser.h"
+#include "utils/hashmap_utils.h"
 #include "utils/lexer_utils.h"
 #include "variable_store.h"
 
@@ -20,7 +21,9 @@ int main() {
     checkAllocation(stringView.arr);
 
     Lexer lexer;
-    Parser parser = {.lexer = &lexer, .varStore = newVarStore()};
+    HashMap varStore;
+    initVarStore(&varStore);
+    Parser parser = {.lexer = &lexer, .varStore = varStore};
 
     while (true) {
         evaluateInput(&lexer, &parser, stringView);
@@ -36,5 +39,5 @@ void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
     scanf("%99[^\n]%*c", stringView.arr);
     // lexString(stringView.arr);
 
-    printf("= %.9f\n\n", evaluateString(lexer, parser, stringView.arr));
+    printf("= %.3f\n\n", evaluateString(lexer, parser, stringView.arr));
 }

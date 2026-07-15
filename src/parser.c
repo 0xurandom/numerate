@@ -37,6 +37,7 @@ Node* parse(Parser* parser, Precedence precedence) {
 
         case TOK_VAR: {
             // TODO: this is duplicated somewhere
+            // but necessary here
             double result;
             if (lookupVar(&parser->varStore, &parser->prev.ident, &result) ==
                 0) {
@@ -67,7 +68,8 @@ Node* parse(Parser* parser, Precedence precedence) {
 
         case TOK_SGN:
         case TOK_TWOS:
-        case TOK_ABS: {
+        case TOK_ABS:
+        case TOK_SQRT: {
             Token op = parser->prev;
             Node* operand = parse(parser, PREC_FUNC);
             left = newPrefixNode(op, operand);
@@ -302,6 +304,12 @@ Node* simplifyTree(Parser* parser, Node* node) {
                     break;
                 }
 
+                case TOK_SQRT: {
+                    // TODO: assrt num isnt negative
+                    result = sqrt(num);
+                    break;
+                }
+
                 default: {
                     fprintf(stderr, "Error: Unexpected prefix operator: %s\n",
                             lookupTokenKind(node->unary.op.kind));
@@ -392,12 +400,14 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
                 case TOK_OR: {
                     newNode = newBooleanNode(left || right);
+                    break;
                 }
 
                 case TOK_BITWISE_AND: {
                     // TODO: bitwise operators cannot be used with doubles
                     // newNode = newLiteralNode(left )
                     exit(1);
+                    break;
                 }
 
                 case TOK_EQUALS_EQUALS: {
@@ -480,6 +490,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
+        // TODO: check trig func precedence
         case TOK_AND:
             return PREC_AND;
 
@@ -522,6 +533,17 @@ Precedence getPrecedence(TokenKind kind) {
         case TOK_RPAREN:
         case TOK_END:
             return PREC_NONE;
+
+        case TOK_SIN:
+        case TOK_COS:
+        case TOK_TAN:
+        case TOK_COSEC:
+        case TOK_SEC:
+        case TOK_COT:
+        case TOK_SGN:
+        case TOK_ABS:
+        case TOK_SQRT:
+            return PREC_UNARY;
 
         default:
             fprintf(stderr, "Warning: using PREC_NONE for token kind: %s\n",

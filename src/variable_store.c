@@ -2,17 +2,18 @@
 
 #include "utils/string_view_utils.h"
 
-HashMap newVarStore() {
-    HashMap varStore = newHashmap();
+void initVarStore(HashMap *map) {
+    initHashmap(map);
 
-    StringView pi = newStringView("pi", 2);
-    insertVar(&varStore, &pi, 3.14159);
+    StringView pi;
+    newStringView(&pi, "pi", 2);
+    insertVar(map, &pi, 3.14159);
 
-    StringView tau = newStringView("tau", 3);
-    insertVar(&varStore, &tau, 6.2832);
+    StringView tau;
+    newStringView(&tau, "tau", 3);
+    insertVar(map, &tau, 6.2832);
 
-    StringView phi = newStringView("phi", 3);
-    insertVar(&varStore, &tau, 1.6180);
-
-    return varStore;
+    StringView phi;
+    newStringView(&phi, "phi", 3);
+    insertVar(map, &phi, 1.6180);
 }

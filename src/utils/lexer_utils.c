@@ -1,6 +1,9 @@
 #include "lexer_utils.h"
 
+#include <stdio.h>
 #include <string.h>
+
+#include "parser_utils.h"
 
 void lexString(char* string) {
     int len = strlen(string);
@@ -42,10 +45,14 @@ TokenKind lookupKeyword(char* keyword, int len) {
     size_t keywordsCount = sizeof(keywords) / sizeof(Keyword);
 
     for (size_t i = 0; i < keywordsCount; i++) {
-        if (len == keywords[i].len && memcmp(keyword, keywords[i].string, len))
+        if (len == keywords[i].len &&
+            memcmp(keyword, keywords[i].string, len) == 0) {
             return keywords[i].tokenKind;
+        }
     }
 
+    // string did not match a keyword,
+    // is a varibale instead
     return TOK_VAR;
 }
 

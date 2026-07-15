@@ -40,6 +40,7 @@ typedef enum {
     TOK_SGN,
     TOK_ABS,
     TOK_TWOS,
+    TOK_SQRT,
 
     TOK_SPACE,
     TOK_END,

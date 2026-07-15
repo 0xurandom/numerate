@@ -10,26 +10,28 @@
 // for faster hash calculations
 #define HASHMAP_CAPACITY 32
 
-HashMap newHashmap() {
-    HashMap hashmap = {.arr = malloc(HASHMAP_CAPACITY * sizeof(LL_Node *)),
-                       .count = 0,
-                       .capacity = HASHMAP_CAPACITY};
+// TODO: make hashmap automatically resize
+void initHashmap(HashMap *map) {
+    map->arr = malloc(HASHMAP_CAPACITY * sizeof(LL_Node *));
+    map->count = 0;
+    map->capacity = HASHMAP_CAPACITY;
 
     for (size_t i = 0; i < HASHMAP_CAPACITY; i++) {
-        hashmap.arr[i] = NULL;
+        map->arr[i] = NULL;
     }
 
-    if (hashmap.arr == NULL) {
+    if (map->arr == NULL) {
         fprintf(stderr, "Error: Could not allocate hashmap arr\n");
         exit(1);
     }
-    return hashmap;
+    return;
 }
 
 void insertVar(HashMap *hashMap, StringView *stringView, double value) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
 
-    LL_Node newNode = newLL_Node(stringView->arr, stringView->length, value);
+    LL_Node newNode;
+    initLL_Node(&newNode, stringView->arr, stringView->length, value);
 
     if (hashMap->arr[bucketIndex] == NULL) {
         hashMap->arr[bucketIndex] = &newNode;
@@ -103,10 +105,9 @@ void freeHashmap(HashMap *hashMap) {
 
 size_t djb2(char *str, size_t str_length) {
     size_t hash = 5381;
-    int c;
 
-    for (int i = 0; i < str_length; i++) {
-        hash = ((hash << 5) + hash) + c;
+    for (size_t i = 0; i < str_length; i++) {
+        hash = ((hash << 5) + hash) + str[i];
     }
 
     return hash & (HASHMAP_CAPACITY - 1);
