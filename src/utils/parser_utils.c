@@ -32,6 +32,15 @@ Node* newAssignmentNode(Token name, Node* value) {
     return node;
 }
 
+Node* newVarNode(Token name) {
+    Node* node = malloc(sizeof(Node));
+
+    node->kind = NODE_VAR;
+    node->var.name = name;
+
+    return node;
+}
+
 Node* newUnaryNode(Token op, Node* operand) {
     Node* node = malloc(sizeof(Node));
 

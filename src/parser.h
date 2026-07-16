@@ -43,6 +43,7 @@ typedef enum {
     NODE_PREFIX,   // can be calculated as unary
     NODE_BINARY,
     NODE_ASSIGNMENT,
+    NODE_VAR,  // subset of assignment
 } NodeKind;
 
 typedef struct Node Node;
@@ -66,6 +67,10 @@ struct Node {
             Node* left;
             Node* right;
         } binary;
+
+        struct {
+            Token name;
+        } var;
 
         struct {
             Token name;

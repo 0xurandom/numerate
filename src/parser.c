@@ -36,19 +36,10 @@ Node* parse(Parser* parser, Precedence precedence) {
         }
 
         case TOK_VAR: {
-            // TODO: this is duplicated somewhere
-            // but necessary here
-            //
-            // TODO: value of pi in hashmap keeps going to 0
-            double result;
-            if (lookupVar(&parser->varStore, &parser->prev.ident, &result) ==
-                0) {
-                left = newLiteralNode(result);
-            } else {
-                fprintf(stderr, "Error: unknown var: '%s'\n",
-                        getCstring(&parser->prev.ident));
-                exit(1);
-            }
+            // TODO: change var node names from token
+            // to ident
+            left = newVarNode(parser->prev);
+
             break;
         }
 
@@ -150,8 +141,14 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             // right associative tokens
             case TOK_EQUALS: {
+                if (left->kind != NODE_VAR) {
+                    // TODO: maybe implement comparison here?
+                    fprintf(stderr, "Error: Cannot assign to a non var\n");
+                    exit(1);
+                }
+
                 Node* value = parse(parser, getPrecedence(op.kind));
-                left = newAssignmentNode(parser->prev, value);
+                left = newAssignmentNode(left->var.name, value);
                 break;
             }
 
@@ -197,22 +194,42 @@ Node* simplifyTree(Parser* parser, Node* node) {
             return node;
         }
 
-        // TODO: check if this is necessary
-        case NODE_ASSIGNMENT: {
+        case NODE_VAR: {
             double result;
 
             if (lookupVar(&parser->varStore, &node->assignment.name.ident,
                           &result) == 0) {
-                // lookup successsful
                 Node* newNode = newLiteralNode(result);
                 return newNode;
             } else {
-                // lookup failed
-                // TODO: handle this gracefully
-                fprintf(stderr, "Error: Undefined variable referened: %s",
+                fprintf(stderr, "Error: Invalid variable referenced: %s\n",
+                        getCstring(&node->var.name.ident));
+                exit(1);
+            }
+        }
+
+        // TODO: check if this is necessary
+        case NODE_ASSIGNMENT: {
+            double result;
+
+            node->assignment.value =
+                simplifyTree(parser, node->assignment.value);
+
+            if (node->assignment.value->kind != NODE_LITERAL) {
+                fprintf(stderr,
+                        "Error: Could not simplify the value of var: %s\n",
                         getCstring(&node->assignment.name.ident));
                 exit(1);
             }
+
+            double value = node->assignment.value->literal.value;
+
+            insertVar(&parser->varStore, &node->assignment.name.ident, value);
+
+            Node* newNode = newLiteralNode(value);
+            freeNode(node);
+            return newNode;
+
             break;
         }
 
