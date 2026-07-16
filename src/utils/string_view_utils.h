@@ -10,7 +10,7 @@ typedef struct {
 } StringView;
 
 void initStringView(StringView *view);
-void newStringView(StringView *view, char *string, size_t length);
+StringView *newStringView(char *string, size_t length);
 void setStringView(StringView *view, char *string, size_t length);
 void appendToStringView(StringView *view, char c);
 char *getCstring(StringView *view);

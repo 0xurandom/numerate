@@ -31,9 +31,8 @@ Token tokenise(Lexer* lexer) {
             token.kind = lookupKeyword(keyword, keyword_len);
 
             if (token.kind == TOK_VAR) {
-                StringView view;
-                newStringView(&view, keyword, keyword_len);
-                token.ident = view;
+                StringView* view = newStringView(keyword, keyword_len);
+                token.ident = *view;
             }
 
             break;
@@ -205,9 +204,8 @@ Token tokenise(Lexer* lexer) {
 
         default: {
             token.kind = TOK_UNKNOWN;
-            StringView view;
-            newStringView(&view, &lexer->string[lexer->cursor], 1);
-            token.ident = view;
+            StringView* view = newStringView(&lexer->string[lexer->cursor], 1);
+            token.ident = *view;
             lexer->cursor++;
         }
     }

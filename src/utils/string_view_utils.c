@@ -12,8 +12,11 @@ void initStringView(StringView *view) {
     view->capacity = DEFAULT_STRING_CAPACITY;
 }
 
-// init a string view and set it to a string
-void newStringView(StringView *view, char *string, size_t length) {
+// copies length number of bytes from string
+// and allocates a new string view
+StringView *newStringView(char *string, size_t length) {
+    StringView *view = malloc(sizeof(StringView));
+
     if (length > DEFAULT_STRING_CAPACITY) {
         view->arr = malloc(length * sizeof(char));
         view->capacity = length;
@@ -24,6 +27,8 @@ void newStringView(StringView *view, char *string, size_t length) {
     memcpy(view->arr, string, length);
 
     view->length = length;
+
+    return view;
 }
 
 // change the string of an existing string view

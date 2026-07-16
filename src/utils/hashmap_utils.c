@@ -30,14 +30,13 @@ void initHashmap(HashMap *map) {
 void insertVar(HashMap *hashMap, StringView *stringView, double value) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
 
-    LL_Node newNode;
-    initLL_Node(&newNode, stringView->arr, stringView->length, value);
+    LL_Node *newNode = newLL_Node(stringView->arr, stringView->length, value);
 
     if (hashMap->arr[bucketIndex] == NULL) {
-        hashMap->arr[bucketIndex] = &newNode;
+        hashMap->arr[bucketIndex] = newNode;
     } else {
-        newNode.next = hashMap->arr[bucketIndex];
-        hashMap->arr[bucketIndex] = &newNode;
+        newNode->next = hashMap->arr[bucketIndex];
+        hashMap->arr[bucketIndex] = newNode;
     }
 
     hashMap->count++;

@@ -38,6 +38,8 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_VAR: {
             // TODO: this is duplicated somewhere
             // but necessary here
+            //
+            // TODO: value of pi in hashmap keeps going to 0
             double result;
             if (lookupVar(&parser->varStore, &parser->prev.ident, &result) ==
                 0) {
@@ -203,6 +205,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                           &result) == 0) {
                 // lookup successsful
                 Node* newNode = newLiteralNode(result);
+                return newNode;
             } else {
                 // lookup failed
                 // TODO: handle this gracefully

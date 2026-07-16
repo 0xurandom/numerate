@@ -4,15 +4,16 @@
 
 #include "string_view_utils.h"
 
-void initLL_Node(LL_Node *node, char *key, size_t key_length, double value) {
-    StringView view;
-    newStringView(&view, key, key_length);
+LL_Node *newLL_Node(char *key, size_t key_length, double value) {
+    LL_Node *node = malloc(sizeof(LL_Node));
 
-    node->key = view;
+    StringView *view = newStringView(key, key_length);
+
+    node->key = *view;
     node->value = value;
     node->next = NULL;
 
-    return;
+    return node;
 }
 
 void setLL_Node(LL_Node *node, double value) { node->value = value; }
