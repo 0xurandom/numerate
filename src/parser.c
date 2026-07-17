@@ -62,7 +62,9 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_SGN:
         case TOK_TWOS:
         case TOK_ABS:
-        case TOK_SQRT: {
+        case TOK_SQRT:
+        case TOK_CBRT:
+        case TOK_EXP: {
             Token op = parser->prev;
             Node* operand = parse(parser, PREC_FUNC);
             left = newPrefixNode(op, operand);
@@ -327,6 +329,21 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 case TOK_SQRT: {
                     // TODO: assrt num isnt negative
                     result = sqrt(num);
+                    break;
+                }
+
+                case TOK_CBRT: {
+                    result = cbrt(num);
+                    break;
+                }
+
+                case TOK_EXP: {
+                    double e;
+                    StringView* eVar = newStringView("e", 1);
+                    lookupVar(&parser->varStore, eVar, &e);
+                    freeStringView(eVar);
+
+                    result = pow(e, num);
                     break;
                 }
 

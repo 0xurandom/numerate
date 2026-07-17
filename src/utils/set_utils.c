@@ -45,9 +45,8 @@ void insertElement(Set *set, double val) {
 
     if (binarySearch(set, val, &index)) return;
 
-    if (set->count + 1 > set->capacity)
-    // realloc
-    {
+    if (set->count + 1 > set->capacity) {
+        reallocSet(set);
     }
 
     for (size_t i = 0; i < index; i++) {
@@ -242,6 +241,17 @@ bool binarySearch(Set *set, double val, size_t *result) {
 
     *result = low;
     return false;
+}
+
+void reallocSet(Set *set) {
+    set->elements = realloc(set->elements, 2 * set->capacity);
+
+    if (set->elements == NULL) {
+        fprintf(stderr, "Could not reallocate set\n");
+        exit(1);
+    }
+
+    set->capacity *= 2;
 }
 
 void freeSet(Set *set) {

@@ -41,6 +41,8 @@ typedef enum {
     TOK_ABS,
     TOK_TWOS,
     TOK_SQRT,
+    TOK_CBRT,
+    TOK_EXP,
 
     TOK_SPACE,
     TOK_END,
@@ -64,4 +66,4 @@ typedef struct {
 } Lexer;
 
 Token tokenise(Lexer *lexer);
-char peekNext(Lexer *lexer);
+TokenKind lookupKeyword(char *keyword, int len);

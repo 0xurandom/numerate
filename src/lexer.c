@@ -213,12 +213,34 @@ Token tokenise(Lexer* lexer) {
     return token;
 }
 
-char peekNext(Lexer* lexer) {
-    if (lexer->cursor + 1 > lexer->length) {
-        // TODO: handle this error gracefully
-        fprintf(stderr, "Error: string accessed at illegal index\n");
-        exit(1);
-    } else {
-        return lexer->string[lexer->cursor + 1];
+TokenKind lookupKeyword(char* keyword, int len) {
+    Keyword keywords[] = {
+        (Keyword){.string = "sin", .len = 3, .tokenKind = TOK_SIN},
+        (Keyword){.string = "cos", .len = 3, .tokenKind = TOK_COS},
+        (Keyword){.string = "tan", .len = 3, .tokenKind = TOK_TAN},
+        (Keyword){.string = "sec", .len = 3, .tokenKind = TOK_SEC},
+        (Keyword){.string = "csc", .len = 3, .tokenKind = TOK_COSEC},
+        (Keyword){.string = "cosec", .len = 5, .tokenKind = TOK_COSEC},
+        (Keyword){.string = "cot", .len = 3, .tokenKind = TOK_COT},
+        (Keyword){.string = "sgn", .len = 3, .tokenKind = TOK_SGN},
+        (Keyword){.string = "signum", .len = 6, .tokenKind = TOK_SGN},
+        (Keyword){.string = "twos", .len = 3, .tokenKind = TOK_TWOS},
+        (Keyword){.string = "abs", .len = 3, .tokenKind = TOK_ABS},
+        (Keyword){.string = "sqrt", .len = 4, .tokenKind = TOK_SQRT},
+        (Keyword){.string = "cbrt", .len = 4, .tokenKind = TOK_CBRT},
+        (Keyword){.string = "exp", .len = 3, .tokenKind = TOK_EXP},
+    };
+
+    size_t keywordsCount = sizeof(keywords) / sizeof(Keyword);
+
+    for (size_t i = 0; i < keywordsCount; i++) {
+        if (len == keywords[i].len &&
+            memcmp(keyword, keywords[i].string, len) == 0) {
+            return keywords[i].tokenKind;
+        }
     }
+
+    // string did not match a keyword,
+    // is a varibale instead
+    return TOK_VAR;
 }

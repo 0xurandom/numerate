@@ -1,5 +1,6 @@
 #include "variable_store.h"
 
+#include "utils/hashmap_utils.h"
 #include "utils/string_view_utils.h"
 
 void initVarStore(HashMap *map) {
@@ -7,6 +8,9 @@ void initVarStore(HashMap *map) {
 
     StringView *pi = newStringView("pi", 2);
     insertVar(map, pi, 3.14159);
+
+    StringView *e = newStringView("e", 2);
+    insertVar(map, e, 2.71828);
 
     StringView *tau = newStringView("tau", 3);
     insertVar(map, tau, 6.2832);

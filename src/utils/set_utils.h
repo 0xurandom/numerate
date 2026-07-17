@@ -24,4 +24,5 @@ Set *subtractSets(Set *set1, Set *set2);
 void appendToSet(Set *set, double element);
 bool binarySearch(Set *set, double val, size_t *result);
 void appendToSet(Set *set, double element);
+void reallocSet(Set *set);
 void freeSet(Set *set);
