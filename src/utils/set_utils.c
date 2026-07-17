@@ -7,7 +7,9 @@
 
 #define DEFAULT_SET_CAP 10
 
-void initSet(Set *set) {
+Set *newSet() {
+    Set *set = malloc(sizeof(Set));
+
     set->elements = malloc(DEFAULT_SET_CAP * sizeof(double));
     if (set->elements == NULL) {
         fprintf(stderr, "Error: Could not allocate memory to set\n");
@@ -16,6 +18,24 @@ void initSet(Set *set) {
 
     set->count = 0;
     set->capacity = DEFAULT_SET_CAP;
+
+    return set;
+}
+
+Set *allocateSet(unsigned long mem) {
+    Set *set = malloc(sizeof(Set));
+
+    set->elements = malloc(mem * sizeof(double));
+
+    if (set->elements == NULL) {
+        fprintf(stderr, "Errpr: Could not allocate memory to set\n");
+        exit(1);
+    }
+
+    set->count = 0;
+    set->capacity = mem;
+
+    return set;
 }
 
 bool isElement(Set *set, double val) { return binarySearch(set, val, NULL); }
@@ -55,7 +75,11 @@ bool removeElement(Set *set, double val) {
     return true;
 }
 
-void getUnion(Set *set1, Set *set2, Set *result) {
+Set *getUnion(Set *set1, Set *set2) {
+    size_t maxCap = set1->count > set2->count ? set1->count : set2->count;
+
+    Set *result = allocateSet(maxCap);
+
     size_t i = 0;
     size_t j = 0;
 
@@ -74,12 +98,14 @@ void getUnion(Set *set1, Set *set2, Set *result) {
             j++;
         }
     }
+
+    return result;
 }
 
-void getIntersection(Set *set1, Set *set2, Set *result) {
+Set *getIntersection(Set *set1, Set *set2) {
     size_t maxCap = (set1->count > set2->count) ? set1->count : set2->count;
 
-    // allocate result
+    Set *result = allocateSet(maxCap);
 
     size_t i = 0;
     size_t j = 0;
@@ -98,11 +124,75 @@ void getIntersection(Set *set1, Set *set2, Set *result) {
             j++;
         }
     }
+
+    return result;
 }
 
+bool isSubset(Set *subset, Set *superset) {
+    if (subset->count > superset->count) return false;
 
+    size_t i = 0;
+    size_t j = 0;
 
-void subtractSets(Set *set1, Set *set2, Set *result) {
+    while (i < subset->count && j < superset->count) {
+        if (subset->elements[i] < superset->elements[j]) {
+            return false;
+        } else if (subset->elements[i] > superset->elements[j]) {
+            j++;
+        } else {
+            i++;
+            j++;
+        }
+    }
+
+    return (i == subset->count - 1);
+}
+
+bool isSuperset(Set *superset, Set *subset) {
+    return isSubset(subset, superset);
+}
+
+Set *getSymmetricDifference(Set *set1, Set *set2) {
+    size_t maxCap = (set1->count > set2->count) ? set1->count : set2->count;
+
+    Set *result = allocateSet(maxCap);
+
+    size_t i = 0;
+    size_t j = 0;
+
+    while (i < set1->count && j < set2->count) {
+        if (set1->elements[i] < set2->elements[j]) {
+            appendToSet(result, set1->elements[i]);
+            i++;
+
+        } else if (set1->elements[i] > set2->elements[j]) {
+            appendToSet(result, set2->elements[j]);
+            j++;
+
+        } else {
+            i++;
+            j++;
+        }
+    }
+
+    while (i < set1->count) {
+        appendToSet(result, set1->elements[i]);
+        i++;
+    }
+
+    while (j < set2->count) {
+        appendToSet(result, set2->elements[j]);
+        j++;
+    }
+
+    return result;
+}
+
+Set *subtractSets(Set *set1, Set *set2) {
+    size_t maxCap = (set1->count > set2->count) ? set1->count : set2->count;
+
+    Set *result = allocateSet(maxCap);
+
     size_t i = 0;
     size_t j = 0;
 
@@ -152,4 +242,12 @@ bool binarySearch(Set *set, double val, size_t *result) {
 
     *result = low;
     return false;
+}
+
+void freeSet(Set *set) {
+    free(set->elements);
+    free(set);
+
+    set->count = 0;
+    set->capacity = 0;
 }
