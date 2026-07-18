@@ -19,3 +19,4 @@ void divideComplexNums(ComplexNum *num1, ComplexNum *num2, ComplexNum *result);
 void conjugateComplexNum(ComplexNum *num);
 double getArgument(ComplexNum *num);
 double getMagnitude(ComplexNum *num);
+void rotateComplexNum(ComplexNum *num, double rad);
