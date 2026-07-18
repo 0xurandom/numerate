@@ -43,6 +43,8 @@ typedef enum {
     TOK_SQRT,
     TOK_CBRT,
     TOK_EXP,
+    TOK_LN,
+    TOK_LOG,
 
     TOK_SPACE,
     TOK_END,

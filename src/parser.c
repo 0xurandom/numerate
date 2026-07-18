@@ -62,9 +62,13 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_SGN:
         case TOK_TWOS:
         case TOK_ABS:
+
         case TOK_SQRT:
         case TOK_CBRT:
-        case TOK_EXP: {
+        case TOK_EXP:
+
+        case TOK_LN:
+        case TOK_LOG: {
             Token op = parser->prev;
             Node* operand = parse(parser, PREC_FUNC);
             left = newPrefixNode(op, operand);
@@ -212,8 +216,6 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
         // TODO: check if this is necessary
         case NODE_ASSIGNMENT: {
-            double result;
-
             node->assignment.value =
                 simplifyTree(parser, node->assignment.value);
 
@@ -344,6 +346,16 @@ Node* simplifyTree(Parser* parser, Node* node) {
                     freeStringView(eVar);
 
                     result = pow(e, num);
+                    break;
+                }
+
+                case TOK_LN: {
+                    result = log(num);
+                    break;
+                }
+
+                case TOK_LOG: {
+                    result = log10(num);
                     break;
                 }
 

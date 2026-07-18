@@ -229,6 +229,9 @@ TokenKind lookupKeyword(char* keyword, int len) {
         (Keyword){.string = "sqrt", .len = 4, .tokenKind = TOK_SQRT},
         (Keyword){.string = "cbrt", .len = 4, .tokenKind = TOK_CBRT},
         (Keyword){.string = "exp", .len = 3, .tokenKind = TOK_EXP},
+        (Keyword){.string = "ln", .len = 2, .tokenKind = TOK_LN},
+        // TODO: log breaks pi for some reason?
+        // (Keyword){.string = "log", .len = 3, .tokenKind = TOK_LOG},
     };
 
     size_t keywordsCount = sizeof(keywords) / sizeof(Keyword);

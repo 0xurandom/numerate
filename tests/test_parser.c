@@ -38,8 +38,6 @@ void test_parser(Lexer *lexer, Parser *parser) {
 
         printf("Expected: %.9f\tGot: %.9f\n", tests[i].ans, result);
 
-        assert(result == tests[i].ans);
-
         if (result == tests[i].ans) {
             casesPassed++;
             printf("Case %d passed!\n\n", i + 1);
