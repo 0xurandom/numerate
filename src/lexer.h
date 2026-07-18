@@ -65,5 +65,11 @@ typedef struct {
     size_t length;
 } Lexer;
 
+typedef struct {
+    char string[10];
+    int len;
+    TokenKind tokenKind;
+} Keyword;
+
 Token tokenise(Lexer *lexer);
 TokenKind lookupKeyword(char *keyword, int len);

@@ -1,5 +1,6 @@
 #include "parser_utils.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,6 +87,8 @@ double evaluateString(Lexer* lexer, Parser* parser, char* str) {
 
     double result_val = result->literal.value;
     freeNode(result);
+
+    result_val = round(result_val * 100.0) / 100.0;
 
     return result_val;
 }

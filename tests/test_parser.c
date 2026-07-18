@@ -4,6 +4,7 @@
 
 #include "../src/lexer.h"
 #include "../src/parser.h"
+#include "../src/variable_store.h"
 #include "stdbool.h"
 
 typedef struct {
@@ -17,36 +18,51 @@ void test_parser(Lexer *lexer, Parser *parser) {
         {"8+21", 29},
         {"-56+318", 262},
         {"798-5401", -4603},
-        {"sin 1.57", 1},
+        {"sin(pi/2)", 1},
         {"-(6!)", -720},
         {"tan 0.785", 1},
         {"21*70-31+78^2", 7523},
         {"(21+90)/2", 55.5},
-        {"sin 1.57/ cos 1.57", 1},
+        {"sin(pi/4)/ cos(pi/4)", 1},
         {"5!-(-sin 0)", 120},
 
     };
 
     size_t tests_count = sizeof(tests) / sizeof(ParserTestCase);
 
+    int casesPassed = 0;
     for (int i = 0; i < tests_count; i++) {
-        printf("Running case %d: %s\n", i + 1, tests[i].input);
+        // printf("Running case %d: %s\n", i + 1, tests[i].input);
 
         double result = evaluateString(lexer, parser, tests[i].input);
 
-        // TODO: nodes are not simplified
+        printf("Expected: %.9f\tGot: %.9f\n", tests[i].ans, result);
+
         assert(result == tests[i].ans);
 
-        printf("Case %d passed!\n\n", i + 1);
+        if (result == tests[i].ans) {
+            casesPassed++;
+            printf("Case %d passed!\n\n", i + 1);
+        } else {
+            printf("Case %d FAILED!\n\n", i + 1);
+        }
     }
 
-    printf("\n\nAll test cases passed!\n\n");
+    if (casesPassed == tests_count) {
+        printf("\n\nAll test cases passed!\n\n");
+    } else {
+        printf("\n\n%d/%lu cases passed\n\n", casesPassed, tests_count);
+    }
 }
 
 int main() {
+    HashMap varStore;
+    initVarStore(&varStore);
+
     Lexer lexer;
     Parser parser = {
         .lexer = &lexer,
+        .varStore = varStore,
     };
 
     test_parser(&lexer, &parser);
