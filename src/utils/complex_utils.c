@@ -3,31 +3,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-// TODO: chnage result from parameter
-// to making a new complex num
-
 // TODO: use complex.h
-
-ComplexNum *newComplexNum() {
-    ComplexNum *num = malloc(sizeof(ComplexNum));
-    initComplexNum(num);
-
-    return num;
-}
-
-void initComplexNum(ComplexNum *num) {
-    num->real = 0;
-    num->imag = 0;
-}
 
 void getComplexSqrt(double num, ComplexNum *result) {
     result->real = 0;
     result->imag = sqrt(num);
 }
 
-void getComplexCbrts(double num, ComplexNum *result1, ComplexNum *result2) {
-    // TODO
-}
+double complex ccbrt(double complex num) { return cexp(clog(num) / 3); }
 
 void getCbrtofComplex(ComplexNum *num, ComplexNum *result1, ComplexNum *result2,
                       ComplexNum *result3) {
@@ -53,12 +36,6 @@ void subtractComplexNums(ComplexNum *num1, ComplexNum *num2,
                          ComplexNum *result) {
     result->real = num1->real - num2->real;
     result->imag = num1->imag - num2->imag;
-}
-
-void multiplyComplexNums(ComplexNum *num1, ComplexNum *num2,
-                         ComplexNum *result) {
-    result->real = (num1->real * num2->real) - (num1->imag * num2->imag);
-    result->imag = (num1->real * num2->imag) + (num1->imag * num2->real);
 }
 
 void raiseComplexNum(ComplexNum *num, size_t power, ComplexNum *result) {

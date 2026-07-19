@@ -1,5 +1,6 @@
 #pragma once
 
+#include <complex.h>
 #include <math.h>
 #include <stddef.h>
 
@@ -8,7 +9,7 @@ typedef struct {
     double imag;
 } ComplexNum;
 
-ComplexNum *newComplexNum();
+double complex ccbrt(double complex num);
 void initComplexNum(ComplexNum *num);
 void addComplexNums(ComplexNum *num1, ComplexNum *num2, ComplexNum *result);
 void subtractComplexNums(ComplexNum *num1, ComplexNum *num2,

@@ -1,10 +1,12 @@
 #include "equation_utils.h"
 
+#include <complex.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "complex_utils.h"
+#include "set_utils.h"
 
 // TODO: use newton rhapson for equation solving
 
@@ -42,9 +44,11 @@ Set *solveQuadratic(Polynomial *quadratic) {
         return set;
 
     } else {
-        // has complex root
-        // TODO: use better number type for sets
-        // which can be a complex num
+        double complex complexDeterminant = determinant + (0 * I);
+        double complex x = (-b + csqrt(complexDeterminant)) / (2 * a);
+        double complex y = (-b - csqrt(complexDeterminant)) / (2 * a);
+
+        // TODO
     }
 }
 
@@ -63,10 +67,29 @@ Set *getCubicRoots(Polynomial *cubic) {
     double d0 = pow(b, 2) - (3 * a * c);
     double d1 = (2 * pow(b, 3)) - (9 * a * b * c) + (27 * pow(a, 2) * d);
 
-    double Dsquared = pow(d1, 2) - (4 * pow(d0, 3));
+    double DSquared = pow(d1, 2) - (4 * pow(d0, 3));
 
-    double C1 = 0, C2 = 0, C3 = 0;
-    double x = 0, y = 0, z = 0;
+    double complex C1 = 0, C2 = 0, C3 = 0;
+    double complex x = 0, y = 0, z = 0;
+
+    double unityCbrt = (-1 + sqrt(3) * I) / 2;
+
+    // D is complex hence numerator of c is complex
+    if (DSquared < 0) {
+        double complex DsquaredComplex = DSquared + (0 * I);
+        double complex D = csqrt(DsquaredComplex);
+
+        C1 = ccbrt((d1 + D) / 2);
+        C2 = unityCbrt * C1;
+        C3 = cpow(unityCbrt, 2) * C1;
+
+    } else {
+        double D = sqrt(DSquared);
+
+        C1 = ccbrt(((double complex)(d1 + D)) / 2);
+        C2 = unityCbrt * C1;
+        C3 = cpow(unityCbrt, 2) * C1;
+    }
 
     if ((d0 == 0) && (d1 == 0)) {
         x = (-1 / (3 * a)) * (b + C1);
@@ -78,11 +101,5 @@ Set *getCubicRoots(Polynomial *cubic) {
         z = (-1 / (3 * a)) * (b + C3 + (d0 / C3));
     }
 
-    // D is complex hence numerator of c is complex
-    if (Dsquared < 0) {
-        ComplexNum *D = newComplexNum();
-
-    } else {
-        double C1 = cbrt(() / 2)
-    }
+    // TODO: sets dont support double complexes
 }
