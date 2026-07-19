@@ -8,6 +8,7 @@ typedef struct {
     double imag;
 } ComplexNum;
 
+ComplexNum *newComplexNum();
 void initComplexNum(ComplexNum *num);
 void addComplexNums(ComplexNum *num1, ComplexNum *num2, ComplexNum *result);
 void subtractComplexNums(ComplexNum *num1, ComplexNum *num2,
