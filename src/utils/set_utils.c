@@ -1,5 +1,6 @@
 #include "set_utils.h"
 
+#include <mpc.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -10,10 +11,14 @@
 Set *newSet() {
     Set *set = malloc(sizeof(Set));
 
-    set->elements = malloc(DEFAULT_SET_CAP * sizeof(double));
+    set->elements = malloc(DEFAULT_SET_CAP * sizeof(mpfr_t));
     if (set->elements == NULL) {
         fprintf(stderr, "Error: Could not allocate memory to set\n");
         exit(1);
+    }
+
+    for (size_t i = 0; i < set->capacity; i++) {
+        mpfr_init_set_d(set->elements[i], (double)0, MPFR_RNDN);
     }
 
     set->count = 0;
@@ -25,10 +30,10 @@ Set *newSet() {
 Set *allocateSet(unsigned long mem) {
     Set *set = malloc(sizeof(Set));
 
-    set->elements = malloc(mem * sizeof(double));
+    set->elements = malloc(mem * sizeof(mpfr_t));
 
     if (set->elements == NULL) {
-        fprintf(stderr, "Errpr: Could not allocate memory to set\n");
+        fprintf(stderr, "Error: Could not allocate memory to set\n");
         exit(1);
     }
 
@@ -38,9 +43,9 @@ Set *allocateSet(unsigned long mem) {
     return set;
 }
 
-bool isElement(Set *set, double val) { return binarySearch(set, val, NULL); }
+bool isElement(Set *set, mpfr_t val) { return binarySearch(set, val, NULL); }
 
-void insertElement(Set *set, double val) {
+void insertElement(Set *set, mpfr_t val) {
     size_t index;
 
     if (binarySearch(set, val, &index)) return;
@@ -50,15 +55,16 @@ void insertElement(Set *set, double val) {
     }
 
     for (size_t i = 0; i < index; i++) {
-        set->elements[set->count - i + 1] = set->elements[set->count - i];
+        mpfr_set(set->elements[set->count - i + 1],
+                 set->elements[set->count - i], MPFR_RNDN);
     }
 
-    set->elements[index] = val;
+    mpfr_set(set->elements[index], val, MPFR_RNDN);
 }
 
 // returns true if element was successfully removed,
 // false if element was not in the set
-bool removeElement(Set *set, double val) {
+bool removeElement(Set *set, mpfr_t val) {
     size_t index;
 
     bool valExists = binarySearch(set, val, &index);
@@ -66,7 +72,7 @@ bool removeElement(Set *set, double val) {
     if (valExists == false) return false;
 
     for (size_t i = index; i < set->count - 1; i++) {
-        set->elements[i] = set->elements[i + 1];
+        mpfr_set(set->elements[i], set->elements[i + 1], MPFR_RNDN);
     }
 
     set->count--;
@@ -208,32 +214,35 @@ Set *subtractSets(Set *set1, Set *set2) {
             j++;
         }
     }
+
+    return result;
 }
 
 // only use if it is known that the
 // element will be added to the end
-void appendToSet(Set *set, double element) {
+void appendToSet(Set *set, mpfr_t element) {
     // TODO: check capacity
 
-    set->elements[set->count] = element;
+    mpfr_set(set->elements[set->count], element, MPFR_RNDN);
     set->count++;
 }
 
 // returns true is val is found
 // and sets result to index where it is/should be
-bool binarySearch(Set *set, double val, size_t *result) {
+bool binarySearch(Set *set, mpfr_t val, size_t *result) {
     size_t low = 0;
     size_t high = set->count - 1;
 
     while (low <= high) {
         int mid = low + (high - low) / 2;
 
-        if (set->elements[mid] == val) {
-            *result = val;
+        if (mpfr_cmp(set->elements[mid], val) == 0) {
+            *result = mid;
+
             return true;
         }
 
-        if (set->elements[mid] < val)
+        if (mpfr_cmp(set->elements[mid], val) < 0)
             low = mid + 1;
         else
             high = mid - 1;
@@ -255,6 +264,10 @@ void reallocSet(Set *set) {
 }
 
 void freeSet(Set *set) {
+    for (size_t i = 0; i < set->capacity; i++) {
+        mpfr_clear(set->elements[i]);
+    }
+
     free(set->elements);
     free(set);
 

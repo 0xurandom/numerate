@@ -2,6 +2,8 @@
 
 #include <complex.h>
 #include <math.h>
+#include <mpc.h>
+#include <mpfr.h>
 #include <stddef.h>
 
 void getSqrtofComplex(double complex num, double complex* result1,
