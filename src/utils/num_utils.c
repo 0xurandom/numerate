@@ -3,9 +3,17 @@
 #include <gmp-x86_64.h>
 #include <mpc.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // TODO: allow changing precision
 #define PRECISION 10
+
+Number *numNew(NumberKind kind) {
+    Number *num = malloc(sizeof(Number));
+    numInit(num, kind);
+
+    return num;
+}
 
 void numInit(Number *num, NumberKind kind) {
     num->kind = kind;
@@ -28,11 +36,51 @@ void numInit(Number *num, NumberKind kind) {
     }
 }
 
-// TODO
-// inits x and x = y
-void numSet(Number *x, const Number *y) { numInit(x, y->kind); }
+// expects dest to be from numNew
+void numCopy(Number *dest, const Number *src) {
+    switch (src->kind) {
+        case NUM_REAL: {
+            mpfr_set(dest->real, src->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_COMPLEX: {
+            mpc_set(dest->complex, src->complex, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpq_set(dest->rational, src->rational);
+            break;
+        }
+    }
+
+    return;
+}
+
+// inits x and sets x = src with NumberKind kind
+Number *numConvertandSet(const Number *src, NumberKind kind) {
+    Number *num = numNew(src->kind);
+
+    if (src->kind == kind) {
+        numCopy(num, src);
+
+    } else {
+        Number *temp = numNew(src->kind);
+        numCopy(temp, src);
+
+        numConvert(temp, kind);
+
+        numCopy(num, temp);
+
+        numClear(temp);
+    }
+
+    return num;
+}
 
 void numConvert(Number *num, NumberKind kind) {
+    // TODO: result can be replaced here?
     if (num->kind == kind) return;
 
     switch (kind) {
