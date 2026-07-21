@@ -4,6 +4,7 @@
 #include <mpc.h>
 #include <stdio.h>
 
+// TODO: allow changing precision
 #define PRECISION 10
 
 void numInit(Number *num, NumberKind kind) {
@@ -75,6 +76,77 @@ void numConvert(Number *num, NumberKind kind) {
             mpfr_set(num->real, result, MPFR_RNDN);
 
             mpfr_clear(result);
+            break;
+        }
+
+        case NUM_COMPLEX: {
+            mpc_t result;
+            mpc_init2(result, PRECISION);
+
+            switch (num->kind) {
+                case NUM_COMPLEX:
+                    break;
+
+                case NUM_REAL: {
+                    mpfr_set(mpc_realref(result), num->real, MPFR_RNDN);
+
+                    break;
+                }
+
+                case NUM_RATIONAL: {
+                    mpfr_set_q(mpc_realref(result), num->rational, MPFR_RNDN);
+                    break;
+                }
+            }
+            numClear(num);
+
+            num->kind = NUM_COMPLEX;
+            mpc_init2(num->complex, PRECISION);
+            mpc_set(num->complex, result, MPFR_RNDN);
+
+            mpc_clear(result);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpq_t result;
+            mpq_init(result);
+
+            switch (num->kind) {
+                case NUM_RATIONAL:
+                    break;
+
+                case NUM_REAL: {
+                    mpfr_get_q(result, num->real);
+
+                    break;
+                }
+
+                case NUM_COMPLEX: {
+                    mpfr_t tempImag;
+                    mpfr_init2(tempImag, PRECISION);
+
+                    mpfr_set(tempImag, mpc_imagref(num->complex), MPFR_RNDN);
+
+                    if (mpfr_cmp_si(tempImag, 0) == 0) {
+                        fprintf(stderr,
+                                "Warning: Converting complex number with "
+                                "imaginary value to rational number\n");
+                    }
+
+                    mpfr_get_q(result, mpc_realref(num->complex));
+
+                    mpfr_clear(tempImag);
+                    break;
+                }
+            }
+            numClear(num);
+
+            num->kind = NUM_RATIONAL;
+            mpq_init(num->rational);
+            mpq_set(num->rational, result);
+
+            mpq_clear(result);
             break;
         }
     }

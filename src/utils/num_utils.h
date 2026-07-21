@@ -10,6 +10,7 @@ typedef enum {
     NUM_RATIONAL,
 } NumberKind;
 
+// TODO: consider bin and hex nums
 typedef struct {
     NumberKind kind;
 
