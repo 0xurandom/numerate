@@ -24,7 +24,7 @@ typedef struct {
 
 Number *numNew(NumberKind kind);
 void numInit(Number *num, NumberKind kind);
-void numCopy(Number *dest, const Number *src);
+void numSet(Number *dest, const Number *src);
 Number *numConvertandSet(const Number *src, NumberKind kind);
 void numConvert(Number *num, NumberKind kind);
-void numClear(Number *num);
+void numFree(Number *num);

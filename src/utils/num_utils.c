@@ -15,6 +15,8 @@ Number *numNew(NumberKind kind) {
     return num;
 }
 
+// TODO: add num set
+
 void numInit(Number *num, NumberKind kind) {
     num->kind = kind;
 
@@ -36,8 +38,15 @@ void numInit(Number *num, NumberKind kind) {
     }
 }
 
-// expects dest to be from numNew
-void numCopy(Number *dest, const Number *src) {
+// expects dest to be from numNew and for dest
+// to have the same NumberKind as src
+void numSet(Number *dest, const Number *src) {
+    if (dest->kind != src->kind) {
+        fprintf(stderr,
+                "Error: numCopy received dest and src of different kinds\n");
+        exit(1);
+    }
+
     switch (src->kind) {
         case NUM_REAL: {
             mpfr_set(dest->real, src->real, MPFR_RNDN);
@@ -63,17 +72,17 @@ Number *numConvertandSet(const Number *src, NumberKind kind) {
     Number *num = numNew(src->kind);
 
     if (src->kind == kind) {
-        numCopy(num, src);
+        numSet(num, src);
 
     } else {
         Number *temp = numNew(src->kind);
-        numCopy(temp, src);
+        numSet(temp, src);
 
         numConvert(temp, kind);
 
-        numCopy(num, temp);
+        numSet(num, temp);
 
-        numClear(temp);
+        numFree(temp);
     }
 
     return num;
@@ -117,7 +126,7 @@ void numConvert(Number *num, NumberKind kind) {
                 }
             }
 
-            numClear(num);
+            numFree(num);
 
             num->kind = NUM_REAL;
             mpfr_init2(num->real, PRECISION);
@@ -146,7 +155,7 @@ void numConvert(Number *num, NumberKind kind) {
                     break;
                 }
             }
-            numClear(num);
+            numFree(num);
 
             num->kind = NUM_COMPLEX;
             mpc_init2(num->complex, PRECISION);
@@ -188,7 +197,7 @@ void numConvert(Number *num, NumberKind kind) {
                     break;
                 }
             }
-            numClear(num);
+            numFree(num);
 
             num->kind = NUM_RATIONAL;
             mpq_init(num->rational);
@@ -200,7 +209,7 @@ void numConvert(Number *num, NumberKind kind) {
     }
 }
 
-void numClear(Number *num) {
+void numFree(Number *num) {
     switch (num->kind) {
         case NUM_REAL: {
             mpfr_clear(num->real);

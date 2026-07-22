@@ -1,15 +1,42 @@
 #include "string_view_utils.h"
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define DEFAULT_STRING_CAPACITY 10
 
+// TODO: add malloc null checks
+
 void initStringView(StringView *view) {
     view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
     view->length = 0;
     view->capacity = DEFAULT_STRING_CAPACITY;
+}
+
+void initStringViewWithString(StringView *view, const char *string,
+                              size_t stringLength) {
+    if (stringLength > DEFAULT_STRING_CAPACITY) {
+        view->arr = malloc(stringLength * sizeof(char));
+        view->capacity = stringLength;
+        view->length = stringLength;
+
+    } else {
+        view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
+        view->capacity = DEFAULT_STRING_CAPACITY;
+        view->length = stringLength;
+    }
+
+    if (view->arr == NULL) {
+        fprintf(stderr, "Error: Could not allocate string view\n");
+        exit(1);
+    }
+
+    memcpy(view->arr, string, stringLength);
+
+    return;
 }
 
 // copies length number of bytes from string

@@ -10,6 +10,8 @@ typedef struct {
 } StringView;
 
 void initStringView(StringView *view);
+void initStringViewWithString(StringView *view, const char *string,
+                              size_t stringLength);
 StringView *newStringView(char *string, size_t length);
 void setStringView(StringView *view, char *string, size_t length);
 void appendToStringView(StringView *view, char c);
