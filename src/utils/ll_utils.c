@@ -20,7 +20,14 @@ LL_Node *newLL_Node(const char *key, size_t key_length, const Number *src) {
     return node;
 }
 
-void setLL_Node(LL_Node *node, const Number*  value) { node->value = value; }
+void setLL_Node(LL_Node *node, const Number *value) {
+    numFree(&node->value);
+
+    node->value.kind = value->kind;
+    numSet(&node->value, value);
+
+    return;
+}
 
 void setNextLL_Node(LL_Node *node, LL_Node *next_node) {
     node->next = next_node;

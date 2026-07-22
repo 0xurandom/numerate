@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ll_utils.h"
+#include "num_utils.h"
 
 typedef struct HashMap {
     LL_Node **arr;
@@ -9,8 +10,9 @@ typedef struct HashMap {
 } HashMap;
 
 void initHashmap(HashMap *map);
-void insertVar(HashMap *hashMap, StringView *stringView, double value);
-int lookupVar(HashMap *hashMap, StringView *stringView, double *result);
-void deleteVar(HashMap *hashMap, StringView *stringView);
+void insertVar(HashMap *hashMap, const StringView *stringView,
+               const Number *value);
+int lookupVar(HashMap *hashMap, const StringView *stringView, Number *result);
+void deleteVar(HashMap *hashMap, const StringView *stringView);
 void freeHashmap(HashMap *hashMap);
 size_t djb2(char *str, size_t str_length);

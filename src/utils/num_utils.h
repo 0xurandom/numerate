@@ -27,4 +27,5 @@ void numInit(Number *num, NumberKind kind);
 void numSet(Number *dest, const Number *src);
 Number *numConvertandSet(const Number *src, NumberKind kind);
 void numConvert(Number *num, NumberKind kind);
+NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2);
 void numFree(Number *num);

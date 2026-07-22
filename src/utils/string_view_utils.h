@@ -16,6 +16,6 @@ StringView *newStringView(char *string, size_t length);
 void setStringView(StringView *view, char *string, size_t length);
 void appendToStringView(StringView *view, char c);
 char *getCstring(StringView *view);
-bool compareViews(StringView *view1, StringView *view2);
+bool compareViews(const StringView *view1, const StringView *view2);
 void reallocStringView(StringView *view);
 void freeStringView(StringView *view);

@@ -209,6 +209,47 @@ void numConvert(Number *num, NumberKind kind) {
     }
 }
 
+// rational > real > complex
+NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2) {
+    if (kind1 == NUM_COMPLEX || kind2 == NUM_COMPLEX)
+        return NUM_COMPLEX;
+    else if (kind1 == NUM_REAL || kind2 == NUM_REAL)
+        return NUM_REAL;
+    else
+        return NUM_RATIONAL;
+}
+
+Number *numAdd(const Number *a, const Number *b) {
+    NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
+
+    Number *tempA = numConvertandSet(a, promotedKind);
+    Number *tempB = numConvertandSet(b, promotedKind);
+
+    Number *result = numNew(promotedKind);
+
+    switch (promotedKind) {
+        case NUM_COMPLEX: {
+            mpc_add(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_add(result->real, tempA->real, tempB->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpq_add(result->rational, tempA->rational, tempB->rational);
+            break;
+        }
+    }
+
+    numFree(tempA);
+    numFree(tempB);
+
+    return result;
+}
+
 void numFree(Number *num) {
     switch (num->kind) {
         case NUM_REAL: {

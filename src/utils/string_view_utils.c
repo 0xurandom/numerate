@@ -9,6 +9,7 @@
 #define DEFAULT_STRING_CAPACITY 10
 
 // TODO: add malloc null checks
+// and const parameters
 
 void initStringView(StringView *view) {
     view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
@@ -86,7 +87,7 @@ char *getCstring(StringView *view) {
     return cstring;
 }
 
-bool compareViews(StringView *view1, StringView *view2) {
+bool compareViews(const StringView *view1, const StringView *view2) {
     if (view1->length != view2->length) return false;
 
     if (strncmp(view1->arr, view2->arr, view1->length) == 0)

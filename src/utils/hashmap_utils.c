@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "ll_utils.h"
+#include "num_utils.h"
 #include "string_view_utils.h"
 
 // keep this as power of two
@@ -27,7 +28,8 @@ void initHashmap(HashMap *map) {
     return;
 }
 
-void insertVar(HashMap *hashMap, StringView *stringView, double value) {
+void insertVar(HashMap *hashMap, const StringView *stringView,
+               const Number *value) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
 
     LL_Node *newNode = newLL_Node(stringView->arr, stringView->length, value);
@@ -45,14 +47,16 @@ void insertVar(HashMap *hashMap, StringView *stringView, double value) {
 
 // func returns status code,
 // result is stored at *result
-int lookupVar(HashMap *hashMap, StringView *stringView, double *result) {
+int lookupVar(HashMap *hashMap, const StringView *stringView, Number *result) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
     LL_Node *node = hashMap->arr[bucketIndex];
 
     while (node != NULL) {
         if (compareViews(&node->key, stringView)) {
-            *result = node->value;
+            result->kind = node->value.kind;
+            numSet(result, &node->value);
             return 0;
+
         } else {
             node = node->next;
         }
@@ -61,7 +65,7 @@ int lookupVar(HashMap *hashMap, StringView *stringView, double *result) {
     return -1;
 }
 
-void deleteVar(HashMap *hashMap, StringView *stringView) {
+void deleteVar(HashMap *hashMap, const StringView *stringView) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
     LL_Node *prevNode = NULL;
     LL_Node *curNode = hashMap->arr[bucketIndex];
