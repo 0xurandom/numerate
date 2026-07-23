@@ -387,6 +387,82 @@ int numCompare(const Number *a, const Number *b) {
     return result;
 }
 
+Number *numPow(const Number *base, const Number *exp) {
+    if (numIsInteger(exp)) {
+        // TODO: check if exp is greater than long
+        long expLong = 0;
+    }
+}
+
+// checks if number is an integer
+// and if the complex part is zero
+bool numIsInteger(const Number *num) {
+    switch (num->kind) {
+        case NUM_REAL: {
+            return mpfr_integer_p(num->real);
+        }
+
+        case NUM_COMPLEX: {
+            return (mpfr_integer_p(mpc_realref(num->complex))) &&
+                   (mpfr_zero_p(mpc_imagref(num->complex)));
+        }
+
+        case NUM_RATIONAL: {
+            mpz_t tempDeno;
+            mpz_init(tempDeno);
+
+            mpq_get_den(tempDeno, num->rational);
+
+            int result = (mpz_cmp_ui(tempDeno, 1));
+
+            mpz_clear(tempDeno);
+
+            return result;
+        }
+    }
+}
+
+// requires numIsInteger to be true
+// and imaginary part of complex
+// num to be zero
+long numToLong(Number *num) {
+    long numLong;
+
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            // TODO: check for limits
+            numLong = mpfr_get_si(mpc_realref(num->complex), MPFR_RNDN);
+
+            break;
+        }
+
+        case NUM_REAL: {
+            numLong = mpfr_get_si(num->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpz_t tempMpz;
+            mpz_init(tempMpz);
+
+            mpfr_t tempMpfr;
+            mpfr_init2(tempMpfr, PRECISION);
+
+            mpq_get_num(tempMpz, num->rational);
+            mpfr_set_z(tempMpfr, tempMpz, MPFR_RNDN);
+
+            numLong = mpfr_get_si(tempMpfr, MPFR_RNDN);
+
+            mpfr_clear(tempMpfr);
+            mpz_clear(tempMpz);
+
+            break;
+        }
+    }
+
+    return numLong;
+}
+
 void numFree(Number *num) {
     switch (num->kind) {
         case NUM_REAL: {
