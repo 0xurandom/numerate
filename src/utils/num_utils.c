@@ -219,6 +219,7 @@ NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2) {
         return NUM_RATIONAL;
 }
 
+// inits a number and sets it to the sum
 Number *numAdd(const Number *a, const Number *b) {
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
@@ -240,6 +241,142 @@ Number *numAdd(const Number *a, const Number *b) {
 
         case NUM_RATIONAL: {
             mpq_add(result->rational, tempA->rational, tempB->rational);
+            break;
+        }
+    }
+
+    numFree(tempA);
+    numFree(tempB);
+
+    return result;
+}
+
+Number *numSubtract(const Number *a, const Number *b) {
+    NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
+
+    Number *tempA = numConvertandSet(a, promotedKind);
+    Number *tempB = numConvertandSet(b, promotedKind);
+
+    Number *result = numNew(promotedKind);
+
+    switch (promotedKind) {
+        case NUM_COMPLEX: {
+            mpc_sub(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_sub(result->real, tempA->real, tempB->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpq_sub(result->rational, tempA->rational, tempB->rational);
+            break;
+        }
+    }
+
+    numFree(tempA);
+    numFree(tempB);
+
+    return result;
+}
+
+Number *numMultiply(const Number *a, const Number *b) {
+    NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
+
+    Number *tempA = numConvertandSet(a, promotedKind);
+    Number *tempB = numConvertandSet(b, promotedKind);
+
+    Number *result = numNew(promotedKind);
+
+    switch (promotedKind) {
+        case NUM_COMPLEX: {
+            mpc_mul(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_mul(result->real, tempA->real, tempB->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpq_mul(result->rational, tempA->rational, tempB->rational);
+            break;
+        }
+    }
+
+    numFree(tempA);
+    numFree(tempB);
+
+    return result;
+}
+
+Number *numDivide(const Number *a, const Number *b) {
+    NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
+
+    Number *tempA = numConvertandSet(a, promotedKind);
+    Number *tempB = numConvertandSet(b, promotedKind);
+
+    Number *result = numNew(promotedKind);
+
+    switch (promotedKind) {
+        case NUM_COMPLEX: {
+            mpc_div(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_div(result->real, tempA->real, tempB->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpq_div(result->rational, tempA->rational, tempB->rational);
+            break;
+        }
+    }
+
+    numFree(tempA);
+    numFree(tempB);
+
+    return result;
+}
+
+// compares numbers and the magnitude of complex nums
+// returns 0 if equal, 1 if a > b, -1 if a < b
+int numCompare(const Number *a, const Number *b) {
+    NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
+
+    Number *tempA = numConvertandSet(a, promotedKind);
+    Number *tempB = numConvertandSet(b, promotedKind);
+
+    int result = 0;
+
+    switch (promotedKind) {
+        case NUM_COMPLEX: {
+            Number *tempAmagnitude = numNew(NUM_REAL);
+            Number *tempBmagnitude = numNew(NUM_REAL);
+
+            mpc_abs(tempAmagnitude->real, tempA->complex, MPFR_RNDN);
+            mpc_abs(tempBmagnitude->real, tempA->complex, MPFR_RNDN);
+
+            result = mpfr_cmp(tempAmagnitude->real, tempBmagnitude->real);
+
+            numFree(tempAmagnitude);
+            numFree(tempBmagnitude);
+
+            break;
+        }
+
+        case NUM_REAL: {
+            result = mpfr_cmp(tempA->real, tempB->real);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            result = mpq_cmp(tempA->rational, tempB->rational);
             break;
         }
     }

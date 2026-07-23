@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "utils/lexer_utils.h"
+#include "utils/num_utils.h"
 #include "utils/string_view_utils.h"
 
 Token tokenise(Lexer* lexer) {
