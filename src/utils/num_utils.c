@@ -390,7 +390,63 @@ int numCompare(const Number *a, const Number *b) {
 Number *numPow(const Number *base, const Number *exp) {
     if (numIsInteger(exp)) {
         // TODO: check if exp is greater than long
-        long expLong = 0;
+        long expLong = numToLong(exp);
+
+        switch (base->kind) {
+            case NUM_COMPLEX: {
+                break;
+            }
+
+            case NUM_REAL: {
+                break;
+            }
+
+            case NUM_RATIONAL: {
+                Number *result = numNew(NUM_RATIONAL);
+
+                if (expLong >= 0) {
+                    mpz_t numer, denom;
+                    mpz_init(numer);
+                    mpz_init(denom);
+
+                    mpz_pow_ui(numer, mpq_numref(base->rational), expLong);
+                    mpz_pow_ui(denom, mpq_denref(base->rational), expLong);
+
+                    mpq_set_num(result->rational, numer);
+                    mpq_set_den(result->rational, denom);
+
+                    mpq_canonicalize(result->rational);
+
+                    mpz_clear(numer);
+                    mpz_clear(denom);
+
+                } else {
+                    mpq_t invertedNum;
+                    mpq_init(invertedNum);
+                    mpq_inv(invertedNum, base->rational);
+
+                    mpz_t numer, denom;
+                    mpz_init(numer);
+                    mpz_init(denom);
+
+                    mpz_pow_ui(numer, mpq_numref(invertedNum), expLong);
+                    mpz_pow_ui(denom, mpq_denref(invertedNum), expLong);
+
+                    mpq_set_num(result->rational, numer);
+                    mpq_set_den(result->rational, denom);
+
+                    mpq_canonicalize(result->rational);
+
+                    mpz_clear(numer);
+                    mpz_clear(denom);
+
+                    mpq_clear(invertedNum);
+                }
+
+                numFree(result);
+                break;
+            }
+        }
     }
 }
 
@@ -425,7 +481,7 @@ bool numIsInteger(const Number *num) {
 // requires numIsInteger to be true
 // and imaginary part of complex
 // num to be zero
-long numToLong(Number *num) {
+long numToLong(const Number *num) {
     long numLong;
 
     switch (num->kind) {

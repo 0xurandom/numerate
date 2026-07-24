@@ -40,6 +40,6 @@ Number *numPow(const Number *base, const Number *exp);
 
 bool numIsInteger(const Number *num);
 
-long numToLong(Number *num);
+long numToLong(const Number *num);
 
 void numFree(Number *num);
