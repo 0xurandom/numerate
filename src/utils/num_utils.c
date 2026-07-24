@@ -1,6 +1,7 @@
 #include "num_utils.h"
 
 #include <gmp-x86_64.h>
+#include <limits.h>
 #include <mpc.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -387,21 +388,63 @@ int numCompare(const Number *a, const Number *b) {
     return result;
 }
 
+int numSgn(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            // TODO: define the signum func
+            // for comples nums
+            break;
+        }
+
+        case NUM_REAL: {
+            return mpfr_sgn(num->real);
+        }
+
+        case NUM_RATIONAL: {
+            return mpq_sgn(num->rational);
+        }
+    }
+}
+
 Number *numPow(const Number *base, const Number *exp) {
+    // exp is an integer, keep base's kind the same
     if (numIsInteger(exp)) {
-        // TODO: check if exp is greater than long
         long expLong = numToLong(exp);
 
         switch (base->kind) {
             case NUM_COMPLEX: {
-                break;
+                if (mpc_cmp_si(base->complex, 0) == 0 && expLong < 0) {
+                    fprintf(stderr,
+                            "Error: Cannot raise zero to a -ve power\n");
+                    exit(1);
+                }
+
+                Number *result = numNew(NUM_COMPLEX);
+                mpc_pow_si(result->complex, base->complex, expLong, MPC_RNDNN);
+
+                return result;
             }
 
             case NUM_REAL: {
-                break;
+                if (mpfr_zero_p(base->real) && expLong < 0) {
+                    fprintf(stderr,
+                            "Error: Cannot raise zero to a -ve power\n");
+                    exit(1);
+                }
+
+                Number *result = numNew(NUM_REAL);
+                mpfr_pow_si(result->real, base->real, expLong, MPFR_RNDN);
+
+                return result;
             }
 
             case NUM_RATIONAL: {
+                if (mpq_sgn(base->rational) == 0 && expLong < 0) {
+                    fprintf(stderr,
+                            "Error: Cannot raise zero to a -ve power\n");
+                    exit(1);
+                }
+
                 Number *result = numNew(NUM_RATIONAL);
 
                 if (expLong >= 0) {
@@ -423,14 +466,21 @@ Number *numPow(const Number *base, const Number *exp) {
                 } else {
                     mpq_t invertedNum;
                     mpq_init(invertedNum);
+
+                    if (numSgn(base) == 0) {
+                        fprintf(stderr,
+                                "Error: Cannot raise zero to a -ve power\n");
+                        exit(1);
+                    }
+
                     mpq_inv(invertedNum, base->rational);
 
                     mpz_t numer, denom;
                     mpz_init(numer);
                     mpz_init(denom);
 
-                    mpz_pow_ui(numer, mpq_numref(invertedNum), expLong);
-                    mpz_pow_ui(denom, mpq_denref(invertedNum), expLong);
+                    mpz_pow_ui(numer, mpq_numref(invertedNum), -expLong);
+                    mpz_pow_ui(denom, mpq_denref(invertedNum), -expLong);
 
                     mpq_set_num(result->rational, numer);
                     mpq_set_den(result->rational, denom);
@@ -443,10 +493,48 @@ Number *numPow(const Number *base, const Number *exp) {
                     mpq_clear(invertedNum);
                 }
 
-                numFree(result);
-                break;
+                return result;
             }
         }
+    }
+
+    // base is complex, result will be complex
+    if (base->kind == NUM_COMPLEX) {
+        Number *complexExp = numConvertandSet(exp, NUM_COMPLEX);
+        Number *result = numNew(NUM_COMPLEX);
+
+        mpc_pow(result->complex, base->complex, complexExp->complex, MPC_RNDNN);
+
+        numFree(complexExp);
+
+        return result;
+    }
+
+    // base is less than zero, result can be complex
+    if (numSgn(base) < 0) {
+        Number *complexBase = numConvertandSet(base, NUM_COMPLEX);
+        Number *complexExp = numConvertandSet(exp, NUM_COMPLEX);
+
+        Number *result = numNew(NUM_COMPLEX);
+
+        mpc_pow(result->complex, complexBase->complex, complexExp->complex,
+                MPC_RNDNN);
+
+        numFree(complexBase);
+        numFree(complexExp);
+
+        return result;
+    } else {
+        Number *realBase = numConvertandSet(base, NUM_REAL);
+        Number *realExp = numConvertandSet(exp, NUM_REAL);
+
+        Number *result = numNew(NUM_REAL);
+
+        mpfr_pow(result->real, realBase->real, realExp->real, MPFR_RNDN);
+
+        numFree(realBase);
+        numFree(realExp);
+        return result;
     }
 }
 
@@ -487,12 +575,29 @@ long numToLong(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             // TODO: check for limits
+
+            if (mpfr_cmp_si(mpc_realref(num->complex), LONG_MAX) > 0) {
+                fprintf(
+                    stderr,
+                    "Error: Number is greater than LONG_MAX, cannot convert "
+                    "to long\n");
+                exit(1);
+            }
+
             numLong = mpfr_get_si(mpc_realref(num->complex), MPFR_RNDN);
 
             break;
         }
 
         case NUM_REAL: {
+            if (mpfr_cmp_si(num->real, LONG_MAX) > 0) {
+                fprintf(
+                    stderr,
+                    "Error: Number is greater than LONG_MAX, cannot convert "
+                    "to long\n");
+                exit(1);
+            }
+
             numLong = mpfr_get_si(num->real, MPFR_RNDN);
             break;
         }
@@ -506,6 +611,14 @@ long numToLong(const Number *num) {
 
             mpq_get_num(tempMpz, num->rational);
             mpfr_set_z(tempMpfr, tempMpz, MPFR_RNDN);
+
+            if (mpfr_cmp_si(num->real, LONG_MAX) > 0) {
+                fprintf(
+                    stderr,
+                    "Error: Number is greater than LONG_MAX, cannot convert "
+                    "to long\n");
+                exit(1);
+            }
 
             numLong = mpfr_get_si(tempMpfr, MPFR_RNDN);
 
