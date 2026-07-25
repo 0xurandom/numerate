@@ -9,6 +9,8 @@
 // TODO: allow changing precision
 #define PRECISION 10
 
+// TODO: check for functions using MPFR_RNDN instead of MPC_RNDNN
+
 Number *numNew(NumberKind kind) {
     Number *num = malloc(sizeof(Number));
     numInit(num, kind);
@@ -388,6 +390,31 @@ int numCompare(const Number *a, const Number *b) {
     return result;
 }
 
+Number *numNeg(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_neg(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpfr_neg(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *result = numNew(NUM_RATIONAL);
+            mpq_neg(result->rational, num->rational);
+
+            return result;
+        }
+    }
+}
+
 int numSgn(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -402,6 +429,33 @@ int numSgn(const Number *num) {
 
         case NUM_RATIONAL: {
             return mpq_sgn(num->rational);
+        }
+    }
+}
+
+// returns modulus of complex num
+// and abs for others
+Number *numAbs(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_REAL);
+            mpc_abs(result->real, num->complex, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_abs(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *result = numNew(NUM_RATIONAL);
+            mpq_abs(result->rational, num->rational);
+
+            return result;
         }
     }
 }

@@ -36,7 +36,9 @@ Number *numSubtract(const Number *a, const Number *b);
 Number *numMultiply(const Number *a, const Number *b);
 Number *numDivide(const Number *a, const Number *b);
 int numCompare(const Number *a, const Number *b);
+Number *numNeg(const Number *num);
 int numSgn(const Number *num);
+Number *numAbs(const Number *num);
 Number *numPow(const Number *base, const Number *exp);
 
 bool numIsInteger(const Number *num);
