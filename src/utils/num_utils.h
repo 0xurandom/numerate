@@ -37,10 +37,13 @@ Number *numMultiply(const Number *a, const Number *b);
 Number *numDivide(const Number *a, const Number *b);
 int numCompare(const Number *a, const Number *b);
 Number *numNeg(const Number *num);
+Number *numFloor(const Number *num);
+Number *numCeil(const Number *num);
 int numSgn(const Number *num);
 Number *numAbs(const Number *num);
 Number *numPow(const Number *base, const Number *exp);
 
+bool numCanBeLong(const Number *num);
 bool numIsInteger(const Number *num);
 
 long numToLong(const Number *num);

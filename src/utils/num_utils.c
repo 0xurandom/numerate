@@ -3,6 +3,7 @@
 #include <gmp-x86_64.h>
 #include <limits.h>
 #include <mpc.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -10,6 +11,10 @@
 #define PRECISION 10
 
 // TODO: check for functions using MPFR_RNDN instead of MPC_RNDNN
+
+// TODO: before calculaing an equation, check if NUM_RATIONAL can
+// be converted into a NUM_REAL
+// and if NUM_COMPLEX can be changed to NUM_REAL
 
 Number *numNew(NumberKind kind) {
     Number *num = malloc(sizeof(Number));
@@ -415,6 +420,136 @@ Number *numNeg(const Number *num) {
     }
 }
 
+Number *numFloor(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+
+            mpfr_floor(mpc_realref(result->complex), mpc_realref(num->complex));
+            mpfr_floor(mpc_imagref(result->complex), mpc_imagref(num->complex));
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+
+            mpfr_floor(result->real, num->real);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *result = numNew(NUM_REAL);
+
+            mpz_t tempInt;
+            mpz_init(tempInt);
+
+            mpz_fdiv_q(tempInt, mpq_numref(num->rational),
+                       mpq_denref(num->rational));
+            mpfr_set_z(result->real, tempInt, MPFR_RNDN);
+
+            mpz_clear(tempInt);
+
+            return result;
+        }
+    }
+}
+
+Number *numCeil(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+
+            mpfr_ceil(mpc_realref(result->complex), mpc_realref(num->complex));
+            mpfr_ceil(mpc_imagref(result->complex), mpc_imagref(num->complex));
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+
+            mpfr_ceil(result->real, num->real);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *result = numNew(NUM_REAL);
+
+            mpz_t tempInt;
+            mpz_init(tempInt);
+
+            mpz_cdiv_q(tempInt, mpq_numref(num->rational),
+                       mpq_denref(num->rational));
+            mpfr_set_z(result->real, tempInt, MPFR_RNDN);
+
+            mpz_clear(tempInt);
+
+            return result;
+
+            break;
+        }
+    }
+}
+
+Number *numFact(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            break;
+        }
+
+        case NUM_REAL: {
+            if (!numCanBeLong(num)) {
+                fprintf(stderr, "Error: Factorial is too large to compute\n");
+                exit(1);
+            }
+
+            Number *result = numNew(NUM_REAL);
+            mpfr_t numPlusOne;
+            mpfr_init2(numPlusOne, MPFR_RNDN);
+            mpfr_add_ui(numPlusOne, num->real, 1, MPFR_RNDN);
+
+            if (mpfr_integer_p(numPlusOne) && (mpfr_sgn(numPlusOne) <= 0)) {
+                fprintf(stderr,
+                        "Error: Factorial is undefined for this value\n");
+                exit(1);
+            }
+
+            mpfr_gamma(result->real, numPlusOne, MPFR_RNDN);
+
+            mpfr_clear(numPlusOne);
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            // TODO: this may be redundant if NUM_RATIONAL is
+            // automatically promoted to NUM_REAL
+
+            if (numIsInteger(num) && numSgn(num) >= 0) {
+                mpz_t tempNumer;
+                mpz_init(tempNumer);
+
+                mpz_set(tempNumer, mpq_numref(num->rational));
+
+                if (!mpz_fits_ulong_p) {
+                    fprintf(stderr,
+                            "Error: Factorial is too large to compute\n");
+                    exit(1);
+                }
+
+                unsigned long numerLong = mpz_get_ui(tempNumer);
+                mpz_clear(tempNumer);
+            }
+
+            Number *result = numNew(NUM_REAL);
+
+            return result;
+        }
+    }
+}
+
 int numSgn(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -463,6 +598,12 @@ Number *numAbs(const Number *num) {
 Number *numPow(const Number *base, const Number *exp) {
     // exp is an integer, keep base's kind the same
     if (numIsInteger(exp)) {
+        // TODO: add exception to fllowing error for zero, one and inf
+        if (!numCanBeLong(exp)) {
+            fprintf(stderr, "Error: Exponent is too long to compute\n");
+            exit(1);
+        }
+
         long expLong = numToLong(exp);
 
         switch (base->kind) {
@@ -620,38 +761,46 @@ bool numIsInteger(const Number *num) {
     }
 }
 
-// requires numIsInteger to be true
-// and imaginary part of complex
-// num to be zero
+bool numCanBeLong(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            if (mpfr_cmp_si(mpc_realref(num->complex), LONG_MAX) > 0)
+                return false;
+            else
+                return true;
+        }
+
+        case NUM_REAL: {
+            if (mpfr_cmp_si(num->real, LONG_MAX) > 0)
+                return false;
+            else
+                return true;
+        }
+
+        case NUM_RATIONAL: {
+            if (mpq_cmp_si(num->rational, LONG_MAX, 1) > 0)
+                return false;
+            else
+                return true;
+        }
+    }
+}
+
+// needs a complex number as input
+bool numCanBeReal(const Number *num) {}
+
+// requires numIsInteger and numCanBeLong to be true
 long numToLong(const Number *num) {
     long numLong;
 
     switch (num->kind) {
         case NUM_COMPLEX: {
-            // TODO: check for limits
-
-            if (mpfr_cmp_si(mpc_realref(num->complex), LONG_MAX) > 0) {
-                fprintf(
-                    stderr,
-                    "Error: Number is greater than LONG_MAX, cannot convert "
-                    "to long\n");
-                exit(1);
-            }
-
             numLong = mpfr_get_si(mpc_realref(num->complex), MPFR_RNDN);
 
             break;
         }
 
         case NUM_REAL: {
-            if (mpfr_cmp_si(num->real, LONG_MAX) > 0) {
-                fprintf(
-                    stderr,
-                    "Error: Number is greater than LONG_MAX, cannot convert "
-                    "to long\n");
-                exit(1);
-            }
-
             numLong = mpfr_get_si(num->real, MPFR_RNDN);
             break;
         }
@@ -665,14 +814,6 @@ long numToLong(const Number *num) {
 
             mpq_get_num(tempMpz, num->rational);
             mpfr_set_z(tempMpfr, tempMpz, MPFR_RNDN);
-
-            if (mpfr_cmp_si(num->real, LONG_MAX) > 0) {
-                fprintf(
-                    stderr,
-                    "Error: Number is greater than LONG_MAX, cannot convert "
-                    "to long\n");
-                exit(1);
-            }
 
             numLong = mpfr_get_si(tempMpfr, MPFR_RNDN);
 
