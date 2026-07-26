@@ -14,7 +14,6 @@
 
 // TODO: before calculaing an equation, check if NUM_RATIONAL can
 // be converted into a NUM_REAL
-// and if NUM_COMPLEX can be changed to NUM_REAL
 
 Number *numNew(NumberKind kind) {
     Number *num = malloc(sizeof(Number));
@@ -494,6 +493,7 @@ Number *numCeil(const Number *num) {
     }
 }
 
+// TODO: this needs gamma function for complex nums
 Number *numFact(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -546,6 +546,201 @@ Number *numFact(const Number *num) {
             Number *result = numNew(NUM_REAL);
 
             return result;
+        }
+    }
+}
+
+// TODO: promote num_rational
+// to num_real for trig
+
+Number *numSin(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_sin(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_sin(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            // TODO
+            break;
+        }
+    }
+}
+
+Number *numSinh(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_sinh(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_sin(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            // TODO
+            break;
+        }
+    }
+}
+
+Number *numCos(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_cos(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_cos(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            // TODO
+            break;
+        }
+    }
+}
+
+Number *numCosh(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_cosh(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_cosh(result->real, num->real, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            // TODO
+            break;
+        }
+    }
+}
+
+Number *numTan(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_tan(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpfr_tan(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            // TODO
+            break;
+        }
+    }
+}
+
+Number *numTanh(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_tanh(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_tanh(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            // TODO
+            break;
+        }
+    }
+}
+
+Number *numCosec(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpc_t tempSin;
+            mpc_init2(tempSin, MPC_RNDNN);
+            mpc_sin(tempSin, num->complex, MPC_RNDNN);
+
+            if (mpc_cmp_si_si(tempSin, 0, 0) == 0) {
+                //  return number of kind error
+            }
+
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_ui_div(result->complex, 1, tempSin, MPC_RNDNN);
+            mpc_clear(tempSin);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            mpfr_t tempSin;
+            mpfr_init2(tempSin, MPFR_RNDN);
+            mpfr_sin(tempSin, num->real, MPFR_RNDN);
+
+            if (mpfr_cmp_si(tempSin, 0) == 0) {
+                //
+            }
+
+            Number *result = numNew(NUM_REAL);
+            mpfr_ui_div(result->real, 1, tempSin, MPC_RNDNN);
+            mpfr_clear(tempSin);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            //
+        }
+    }
+}
+
+Number *numCosech(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpc_t tempSinh;
+            mpc_init2(tempSinh, MPC_RNDNN);
+
+            if (mpc_cmp_si_si(tempSinh, 0, 0)) {
+            }
+
+            mpc_clear(tempSinh);
         }
     }
 }
@@ -787,7 +982,45 @@ bool numCanBeLong(const Number *num) {
 }
 
 // needs a complex number as input
-bool numCanBeReal(const Number *num) {}
+bool numCompCanBeReal(const Number *num) {
+    if (num->kind != NUM_COMPLEX) {
+        fprintf(stderr,
+                "Error: numCompCanBeReal received a non complex number\n");
+        exit(1);
+    }
+
+    if (mpfr_zero_p(mpc_imagref(num->complex)))
+        return true;
+    else
+        return false;
+}
+
+// TODO: check if this is necessary
+// and return converted Number
+// needs a rational number as input
+bool numRatCanBeReal(const Number *num) {
+    if (num->kind != NUM_RATIONAL) {
+        fprintf(stderr,
+                "Error: numRatCanBeReal received a non rational number\n");
+        exit(1);
+    }
+
+    mpq_t tempRat;
+    mpq_init(tempRat);
+    mpq_set(tempRat, num->rational);
+
+    mpq_canonicalize(tempRat);
+    bool result;
+
+    if (mpz_cmp_ui(mpq_denref(tempRat), 0))
+        result = true;
+    else
+        result = false;
+
+    mpq_clear(tempRat);
+
+    return result;
+}
 
 // requires numIsInteger and numCanBeLong to be true
 long numToLong(const Number *num) {
