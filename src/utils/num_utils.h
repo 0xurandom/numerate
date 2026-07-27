@@ -5,10 +5,13 @@
 #include <mpfr.h>
 #include <stdbool.h>
 
+#include "string_view_utils.h"
+
 typedef enum {
     NUM_REAL,
     NUM_COMPLEX,
     NUM_RATIONAL,
+    NUM_ERROR,
 } NumberKind;
 
 // TODO: consider bin and hex nums
@@ -20,6 +23,7 @@ typedef struct {
         mpfr_t real;
         mpc_t complex;
         mpq_t rational;
+        StringView error;
     };
 
 } Number;

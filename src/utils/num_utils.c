@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "string_view_utils.h"
 
 // TODO: allow changing precision
 #define PRECISION 10
@@ -72,6 +75,17 @@ void numSet(Number *dest, const Number *src) {
     }
 
     return;
+}
+
+// needs a Number of kind NUM_ERROR
+void numSetError(Number *num, char *errorString, size_t errorLength) {
+    if (num->kind != NUM_ERROR) {
+        fprintf(stderr,
+                "numSetError received a Number not of kind NUM_ERROR\n");
+        exit(1);
+    }
+
+    setStringView(&num->error, errorString, errorLength);
 }
 
 // inits x and sets x = src with NumberKind kind
@@ -550,9 +564,6 @@ Number *numFact(const Number *num) {
     }
 }
 
-// TODO: promote num_rational
-// to num_real for trig
-
 Number *numSin(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -570,8 +581,11 @@ Number *numSin(const Number *num) {
         }
 
         case NUM_RATIONAL: {
-            // TODO
-            break;
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSin(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -593,8 +607,11 @@ Number *numSinh(const Number *num) {
         }
 
         case NUM_RATIONAL: {
-            // TODO
-            break;
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSinh(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -616,8 +633,11 @@ Number *numCos(const Number *num) {
         }
 
         case NUM_RATIONAL: {
-            // TODO
-            break;
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCos(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -639,8 +659,11 @@ Number *numCosh(const Number *num) {
         }
 
         case NUM_RATIONAL: {
-            // TODO
-            break;
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCosh(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -662,8 +685,11 @@ Number *numTan(const Number *num) {
         }
 
         case NUM_RATIONAL: {
-            // TODO
-            break;
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numTan(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -685,8 +711,11 @@ Number *numTanh(const Number *num) {
         }
 
         case NUM_RATIONAL: {
-            // TODO
-            break;
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numTanh(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -695,11 +724,13 @@ Number *numCosec(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpc_t tempSin;
-            mpc_init2(tempSin, MPC_RNDNN);
+            mpc_init2(tempSin, PRECISION);
             mpc_sin(tempSin, num->complex, MPC_RNDNN);
 
             if (mpc_cmp_si_si(tempSin, 0, 0) == 0) {
-                //  return number of kind error
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Cosec is undefined for this value";
+                numSetError(result, error, strlen(error));
             }
 
             Number *result = numNew(NUM_COMPLEX);
@@ -711,22 +742,28 @@ Number *numCosec(const Number *num) {
 
         case NUM_REAL: {
             mpfr_t tempSin;
-            mpfr_init2(tempSin, MPFR_RNDN);
+            mpfr_init2(tempSin, PRECISION);
             mpfr_sin(tempSin, num->real, MPFR_RNDN);
 
             if (mpfr_cmp_si(tempSin, 0) == 0) {
-                //
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Cosec is undefined for this value";
+                numSetError(result, error, strlen(error));
             }
 
             Number *result = numNew(NUM_REAL);
-            mpfr_ui_div(result->real, 1, tempSin, MPC_RNDNN);
+            mpfr_ui_div(result->real, 1, tempSin, MPFR_RNDN);
             mpfr_clear(tempSin);
 
             return result;
         }
 
         case NUM_RATIONAL: {
-            //
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCosec(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -735,12 +772,233 @@ Number *numCosech(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpc_t tempSinh;
-            mpc_init2(tempSinh, MPC_RNDNN);
+            mpc_init2(tempSinh, PRECISION);
+            mpc_sinh(tempSinh, num->complex, MPC_RNDNN);
 
             if (mpc_cmp_si_si(tempSinh, 0, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Cosech is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+            Number *result = numNew(NUM_REAL);
+            mpc_ui_div(result->complex, 1, tempSinh, MPC_RNDNN);
+            mpc_clear(tempSinh);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            mpfr_t tempSinh;
+            mpfr_init2(tempSinh, PRECISION);
+            mpfr_sinh(tempSinh, num->real, MPFR_RNDN);
+
+            if (mpfr_cmp_si(tempSinh, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Cosec is undefined for this value";
+                numSetError(result, error, strlen(error));
             }
 
-            mpc_clear(tempSinh);
+            Number *result = numNew(NUM_REAL);
+            mpfr_ui_div(result->real, 1, tempSinh, MPFR_RNDN);
+            mpfr_clear(tempSinh);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCosech(realNum);
+            numFree(realNum);
+
+            return result;
+        }
+    }
+}
+
+Number *numSec(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpc_t tempCos;
+            mpc_init2(tempCos, PRECISION);
+            mpc_cos(tempCos, num->complex, MPC_RNDNN);
+
+            if (mpc_cmp_si_si(tempCos, 0, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Sec is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_ui_div(result->complex, 1, tempCos, MPC_RNDNN);
+            mpc_clear(tempCos);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            mpfr_t tempCos;
+            mpfr_init2(tempCos, PRECISION);
+            mpfr_cos(tempCos, num->real, MPFR_RNDN);
+
+            if (mpfr_cmp_si(tempCos, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Sec is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_REAL);
+            mpfr_ui_div(result->real, 1, tempCos, MPFR_RNDN);
+            mpfr_clear(tempCos);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSec(realNum);
+            numFree(realNum);
+
+            return result;
+        }
+    }
+}
+
+Number *numSech(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpc_t tempCosh;
+            mpc_init2(tempCosh, PRECISION);
+            mpc_cosh(tempCosh, num->complex, MPC_RNDNN);
+
+            if (mpc_cmp_si_si(tempCosh, 0, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Sech is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_ui_div(result->complex, 1, tempCosh, MPC_RNDNN);
+            mpc_clear(tempCosh);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            mpfr_t tempCosh;
+            mpfr_init2(tempCosh, PRECISION);
+            mpfr_cosh(tempCosh, num->real, MPFR_RNDN);
+
+            if (mpfr_cmp_si(tempCosh, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Sech is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_RATIONAL);
+            mpfr_ui_div(result->real, 1, tempCosh, MPFR_RNDN);
+            mpfr_clear(tempCosh);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSech(realNum);
+            numFree(realNum);
+
+            return result;
+        }
+    }
+}
+
+Number *numCot(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpc_t tempTan;
+            mpc_init2(tempTan, PRECISION);
+            mpc_tan(tempTan, num->complex, MPC_RNDNN);
+
+            if (mpc_cmp_si_si(tempTan, 0, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Cot is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_ui_div(result->complex, 1, tempTan, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            mpfr_t tempTan;
+            mpfr_init2(tempTan, PRECISION);
+            mpfr_tan(tempTan, num->real, MPFR_RNDN);
+
+            if (mpfr_cmp_si(tempTan, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Cot is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_REAL);
+            mpfr_ui_div(result->real, 1, tempTan, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCot(realNum);
+            numFree(realNum);
+
+            return result;
+        }
+    }
+}
+
+Number *numCoth(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpc_t tempTanh;
+            mpc_init2(tempTanh, PRECISION);
+            mpc_tanh(tempTanh, num->complex, MPC_RNDNN);
+
+            if (mpc_cmp_si_si(tempTanh, 0, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Coth is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_ui_div(result->complex, 1, tempTanh, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            mpfr_t tempTanh;
+            mpfr_init2(tempTanh, PRECISION);
+            mpfr_tanh(tempTanh, num->real, MPFR_RNDN);
+
+            if (mpfr_cmp_si(tempTanh, 0)) {
+                Number *result = numNew(NUM_ERROR);
+                char error[] = "Coth is undefined for this value";
+                numSetError(result, error, strlen(error));
+            }
+
+            Number *result = numNew(NUM_REAL);
+            mpfr_ui_div(result->real, 1, tempTanh, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCoth(realNum);
+            numFree(realNum);
+
+            return result;
         }
     }
 }
@@ -998,7 +1256,7 @@ bool numCompCanBeReal(const Number *num) {
 // TODO: check if this is necessary
 // and return converted Number
 // needs a rational number as input
-bool numRatCanBeReal(const Number *num) {
+bool numRatCanBeReal(const Number *num, Number *result) {
     if (num->kind != NUM_RATIONAL) {
         fprintf(stderr,
                 "Error: numRatCanBeReal received a non rational number\n");
@@ -1010,16 +1268,20 @@ bool numRatCanBeReal(const Number *num) {
     mpq_set(tempRat, num->rational);
 
     mpq_canonicalize(tempRat);
-    bool result;
+    bool canBeReal;
 
-    if (mpz_cmp_ui(mpq_denref(tempRat), 0))
-        result = true;
-    else
-        result = false;
+    if (mpz_cmp_ui(mpq_denref(tempRat), 0)) {
+        canBeReal = true;
+        result->kind = NUM_REAL;
+        mpfr_set_z(result->real, mpq_numref(tempRat), MPFR_RNDN);
+    } else {
+        canBeReal = false;
+        result = NULL;
+    }
 
     mpq_clear(tempRat);
 
-    return result;
+    return canBeReal;
 }
 
 // requires numIsInteger and numCanBeLong to be true
@@ -1074,6 +1336,11 @@ void numFree(Number *num) {
 
         case NUM_RATIONAL: {
             mpq_clear(num->rational);
+            break;
+        }
+
+        case NUM_ERROR: {
+            freeStringView(&num->error);
             break;
         }
     }
