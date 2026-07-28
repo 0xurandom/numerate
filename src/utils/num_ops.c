@@ -1,7 +1,9 @@
 #include "num_ops.h"
 
 #include <mpc.h>
+#include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "num_utils.h"
 
@@ -327,8 +329,14 @@ Number *numFact(const Number *num) {
 
         case NUM_REAL: {
             if (!numCanBeLong(num)) {
-                fprintf(stderr, "Error: Factorial is too large to compute\n");
-                exit(1);
+                Number *result = numNew(NUM_ERROR);
+
+                char errorString[] = "Factorial is too large to compute";
+                size_t errorLength = strlen(errorString);
+
+                numSetError(result, errorString, errorLength);
+
+                return result;
             }
 
             Number *result = numNew(NUM_REAL);
@@ -337,9 +345,14 @@ Number *numFact(const Number *num) {
             mpfr_add_ui(numPlusOne, num->real, 1, MPFR_RNDN);
 
             if (mpfr_integer_p(numPlusOne) && (mpfr_sgn(numPlusOne) <= 0)) {
-                fprintf(stderr,
-                        "Error: Factorial is undefined for this value\n");
-                exit(1);
+                Number *result = numNew(NUM_ERROR);
+
+                char errorString[] = "Factorial is undefined for this value";
+                size_t errorLength = strlen(errorString);
+
+                numSetError(result, errorString, errorLength);
+
+                return result;
             }
 
             mpfr_gamma(result->real, numPlusOne, MPFR_RNDN);
@@ -359,9 +372,14 @@ Number *numFact(const Number *num) {
                 mpz_set(tempNumer, mpq_numref(num->rational));
 
                 if (!mpz_fits_ulong_p) {
-                    fprintf(stderr,
-                            "Error: Factorial is too large to compute\n");
-                    exit(1);
+                    Number *result = numNew(NUM_ERROR);
+
+                    char errorString[] = "Factorial is too large to compute";
+                    size_t errorLength = strlen(errorString);
+
+                    numSetError(result, errorString, errorLength);
+
+                    return result;
                 }
 
                 unsigned long numerLong = mpz_get_ui(tempNumer);
@@ -988,12 +1006,25 @@ Number *numAbs(const Number *num) {
 }
 
 Number *numPow(const Number *base, const Number *exp) {
+    if (base->kind == NUM_ERROR || exp->kind == NUM_ERROR) {
+        Number *result = numNew(NUM_ERROR);
+        numSet(result, (base->kind == NUM_ERROR) ? base : exp);
+
+        return result;
+    }
+
     // exp is an integer, keep base's kind the same
     if (numIsInteger(exp)) {
         // TODO: add exception to fllowing error for zero, one and inf
         if (!numCanBeLong(exp)) {
-            fprintf(stderr, "Error: Exponent is too long to compute\n");
-            exit(1);
+            Number *result = numNew(NUM_ERROR);
+
+            char errorString[] = "Exponent is too long to compute";
+            size_t errorLength = strlen(errorString);
+
+            numSetError(result, errorString, errorLength);
+
+            return result;
         }
 
         long expLong = numToLong(exp);
@@ -1001,9 +1032,14 @@ Number *numPow(const Number *base, const Number *exp) {
         switch (base->kind) {
             case NUM_COMPLEX: {
                 if (mpc_cmp_si(base->complex, 0) == 0 && expLong < 0) {
-                    fprintf(stderr,
-                            "Error: Cannot raise zero to a -ve power\n");
-                    exit(1);
+                    Number *result = numNew(NUM_ERROR);
+
+                    char errorString[] = "Cannot raise zero to a -ve power";
+                    size_t errorLength = strlen(errorString);
+
+                    numSetError(result, errorString, errorLength);
+
+                    return result;
                 }
 
                 Number *result = numNew(NUM_COMPLEX);
@@ -1014,9 +1050,14 @@ Number *numPow(const Number *base, const Number *exp) {
 
             case NUM_REAL: {
                 if (mpfr_zero_p(base->real) && expLong < 0) {
-                    fprintf(stderr,
-                            "Error: Cannot raise zero to a -ve power\n");
-                    exit(1);
+                    Number *result = numNew(NUM_ERROR);
+
+                    char errorString[] = "Cannot raise zero to a -ve power";
+                    size_t errorLength = strlen(errorString);
+
+                    numSetError(result, errorString, errorLength);
+
+                    return result;
                 }
 
                 Number *result = numNew(NUM_REAL);
@@ -1027,9 +1068,14 @@ Number *numPow(const Number *base, const Number *exp) {
 
             case NUM_RATIONAL: {
                 if (mpq_sgn(base->rational) == 0 && expLong < 0) {
-                    fprintf(stderr,
-                            "Error: Cannot raise zero to a -ve power\n");
-                    exit(1);
+                    Number *result = numNew(NUM_ERROR);
+
+                    char errorString[] = "Cannot raise zero to a -ve power";
+                    size_t errorLength = strlen(errorString);
+
+                    numSetError(result, errorString, errorLength);
+
+                    return result;
                 }
 
                 Number *result = numNew(NUM_RATIONAL);
@@ -1055,9 +1101,14 @@ Number *numPow(const Number *base, const Number *exp) {
                     mpq_init(invertedNum);
 
                     if (numSgn(base) == 0) {
-                        fprintf(stderr,
-                                "Error: Cannot raise zero to a -ve power\n");
-                        exit(1);
+                        Number *result = numNew(NUM_ERROR);
+
+                        char errorString[] = "Cannot raise zero to a -ve power";
+                        size_t errorLength = strlen(errorString);
+
+                        numSetError(result, errorString, errorLength);
+
+                        return result;
                     }
 
                     mpq_inv(invertedNum, base->rational);
@@ -1081,6 +1132,10 @@ Number *numPow(const Number *base, const Number *exp) {
                 }
 
                 return result;
+            }
+
+            case NUM_ERROR: {
+                return NULL;
             }
         }
     }

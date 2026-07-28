@@ -118,7 +118,8 @@ Number *numConvertandSet(const Number *src, NumberKind kind) {
 
 void numConvert(Number *num, NumberKind kind) {
     // TODO: result can be replaced here?
-    if (num->kind == kind) return;
+    if (num->kind == kind || num->kind == NUM_ERROR || kind == NUM_ERROR)
+        return;
 
     switch (kind) {
         case NUM_REAL: {
@@ -152,6 +153,10 @@ void numConvert(Number *num, NumberKind kind) {
 
                     break;
                 }
+
+                case NUM_ERROR: {
+                    break;
+                }
             }
 
             numFree(num);
@@ -180,6 +185,10 @@ void numConvert(Number *num, NumberKind kind) {
 
                 case NUM_RATIONAL: {
                     mpfr_set_q(mpc_realref(result), num->rational, MPFR_RNDN);
+                    break;
+                }
+
+                case NUM_ERROR: {
                     break;
                 }
             }
@@ -224,6 +233,10 @@ void numConvert(Number *num, NumberKind kind) {
                     mpfr_clear(tempImag);
                     break;
                 }
+
+                case NUM_ERROR: {
+                    break;
+                }
             }
             numFree(num);
 
@@ -233,6 +246,10 @@ void numConvert(Number *num, NumberKind kind) {
 
             mpq_clear(result);
             break;
+        }
+
+        case NUM_ERROR: {
+            return;
         }
     }
 }
@@ -272,6 +289,10 @@ bool numIsInteger(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            return false;
+        }
     }
 }
 
@@ -296,6 +317,10 @@ bool numCanBeLong(const Number *num) {
                 return false;
             else
                 return true;
+        }
+
+        case NUM_ERROR: {
+            return false;
         }
     }
 }
@@ -377,6 +402,10 @@ long numToLong(const Number *num) {
             mpz_clear(tempMpz);
 
             break;
+        }
+
+        case NUM_ERROR: {
+            return 0;
         }
     }
 
