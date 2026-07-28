@@ -42,6 +42,11 @@ void numInit(Number *num, NumberKind kind) {
             mpq_init(num->rational);
             break;
         }
+
+        case NUM_ERROR: {
+            initStringView(&num->error);
+            break;
+        }
     }
 }
 
@@ -67,6 +72,11 @@ void numSet(Number *dest, const Number *src) {
 
         case NUM_RATIONAL: {
             mpq_set(dest->rational, src->rational);
+            break;
+        }
+
+        case NUM_ERROR: {
+            copyStringView(&dest->error, &src->error);
             break;
         }
     }

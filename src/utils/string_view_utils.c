@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "num_utils.h"
+
 #define DEFAULT_STRING_CAPACITY 10
 
 // TODO: add malloc null checks
@@ -69,6 +71,16 @@ void setStringView(StringView *view, char *string, size_t length) {
     memcpy(view->arr, string, length);
 
     view->length = length;
+}
+
+void copyStringView(StringView *dest, const StringView *src) {
+    dest->capacity = src->capacity;
+    dest->length = src->length;
+
+    dest->arr = malloc(dest->capacity * sizeof(char));
+    memcpy(dest->arr, src->arr, dest->capacity);
+
+    return;
 }
 
 void appendToStringView(StringView *view, char c) {

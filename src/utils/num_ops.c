@@ -1,6 +1,7 @@
 #include "num_ops.h"
 
 #include <mpc.h>
+#include <stdio.h>
 
 #include "num_utils.h"
 
@@ -27,6 +28,11 @@ Number *numAdd(const Number *a, const Number *b) {
         case NUM_RATIONAL: {
             mpq_add(result->rational, tempA->rational, tempB->rational);
             break;
+        }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
+            exit(1);
         }
     }
 
@@ -59,6 +65,11 @@ Number *numSubtract(const Number *a, const Number *b) {
             mpq_sub(result->rational, tempA->rational, tempB->rational);
             break;
         }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
+            exit(1);
+        }
     }
 
     numFree(tempA);
@@ -90,6 +101,11 @@ Number *numMultiply(const Number *a, const Number *b) {
             mpq_mul(result->rational, tempA->rational, tempB->rational);
             break;
         }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
+            exit(1);
+        }
     }
 
     numFree(tempA);
@@ -120,6 +136,11 @@ Number *numDivide(const Number *a, const Number *b) {
         case NUM_RATIONAL: {
             mpq_div(result->rational, tempA->rational, tempB->rational);
             break;
+        }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
+            exit(1);
         }
     }
 
@@ -164,6 +185,11 @@ int numCompare(const Number *a, const Number *b) {
             result = mpq_cmp(tempA->rational, tempB->rational);
             break;
         }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
+            exit(1);
+        }
     }
 
     numFree(tempA);
@@ -191,6 +217,13 @@ Number *numNeg(const Number *num) {
         case NUM_RATIONAL: {
             Number *result = numNew(NUM_RATIONAL);
             mpq_neg(result->rational, num->rational);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
@@ -227,6 +260,13 @@ Number *numFloor(const Number *num) {
             mpfr_set_z(result->real, tempInt, MPFR_RNDN);
 
             mpz_clear(tempInt);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
@@ -267,6 +307,13 @@ Number *numCeil(const Number *num) {
             return result;
 
             break;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
         }
     }
 }
@@ -325,6 +372,13 @@ Number *numFact(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
@@ -348,6 +402,13 @@ Number *numSin(const Number *num) {
             Number *realNum = numConvertandSet(num, NUM_REAL);
             Number *result = numSin(realNum);
             numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
@@ -377,6 +438,13 @@ Number *numSinh(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
@@ -400,6 +468,13 @@ Number *numCos(const Number *num) {
             Number *realNum = numConvertandSet(num, NUM_REAL);
             Number *result = numCos(realNum);
             numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
@@ -429,6 +504,13 @@ Number *numCosh(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
@@ -455,6 +537,13 @@ Number *numTan(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
@@ -478,6 +567,13 @@ Number *numTanh(const Number *num) {
             Number *realNum = numConvertandSet(num, NUM_REAL);
             Number *result = numTanh(realNum);
             numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
@@ -529,6 +625,13 @@ Number *numCosec(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
@@ -573,6 +676,13 @@ Number *numCosech(const Number *num) {
             Number *realNum = numConvertandSet(num, NUM_REAL);
             Number *result = numCosech(realNum);
             numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
@@ -624,6 +734,13 @@ Number *numSec(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
@@ -669,6 +786,13 @@ Number *numSech(const Number *num) {
             Number *realNum = numConvertandSet(num, NUM_REAL);
             Number *result = numSech(realNum);
             numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
@@ -718,6 +842,13 @@ Number *numCot(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
@@ -764,15 +895,22 @@ Number *numCoth(const Number *num) {
 
             return result;
         }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
     }
 }
 
 Number *numSgn(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
-            if (mpc_cmp_si_si(num->complex, 0, 0)) {
+            if (mpc_cmp_si_si(num->complex, 0, 0) == 0) {
                 Number *result = numNew(NUM_REAL);
-                mpfr_set_ui(num->real, 0, MPFR_RNDN);
+                mpfr_set_si(result->real, 0, MPFR_RNDN);
 
                 return result;
             }
@@ -807,7 +945,10 @@ Number *numSgn(const Number *num) {
         }
 
         case NUM_ERROR: {
-            //
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
         }
     }
 }
@@ -833,6 +974,13 @@ Number *numAbs(const Number *num) {
         case NUM_RATIONAL: {
             Number *result = numNew(NUM_RATIONAL);
             mpq_abs(result->rational, num->rational);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
 
             return result;
         }
