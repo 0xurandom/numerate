@@ -7,6 +7,9 @@
 
 #include "string_view_utils.h"
 
+// TODO: allow changing precision
+#define PRECISION 10
+
 typedef enum {
     NUM_REAL,
     NUM_COMPLEX,
@@ -31,25 +34,13 @@ typedef struct {
 Number *numNew(NumberKind kind);
 void numInit(Number *num, NumberKind kind);
 void numSet(Number *dest, const Number *src);
+void numSetError(Number *num, char *errorString, size_t errorLength);
 Number *numConvertandSet(const Number *src, NumberKind kind);
 void numConvert(Number *num, NumberKind kind);
 NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2);
-
-Number *numAdd(const Number *a, const Number *b);
-Number *numSubtract(const Number *a, const Number *b);
-Number *numMultiply(const Number *a, const Number *b);
-Number *numDivide(const Number *a, const Number *b);
-int numCompare(const Number *a, const Number *b);
-Number *numNeg(const Number *num);
-Number *numFloor(const Number *num);
-Number *numCeil(const Number *num);
-int numSgn(const Number *num);
-Number *numAbs(const Number *num);
-Number *numPow(const Number *base, const Number *exp);
-
-bool numCanBeLong(const Number *num);
 bool numIsInteger(const Number *num);
-
+bool numCanBeLong(const Number *num);
+bool numCompCanBeReal(const Number *num);
+bool numRatCanBeReal(const Number *num, Number *result);
 long numToLong(const Number *num);
-
 void numFree(Number *num);
