@@ -1,5 +1,6 @@
 #include "num_ops.h"
 
+#include <gmp-x86_64.h>
 #include <mpc.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -1178,4 +1179,156 @@ Number *numPow(const Number *base, const Number *exp) {
         numFree(realExp);
         return result;
     }
+}
+
+Number *numExp(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_exp(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_exp(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numExp(realNum);
+            numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
+    }
+}
+
+Number *numLn(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_log(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_log(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numLn(realNum);
+            numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
+    }
+}
+
+Number *numLog(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_log10(result->complex, num->complex, MPC_RNDNN);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_log10(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numLog(realNum);
+            numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
+    }
+}
+
+Number *numNpr(const Number *n, const Number *r) {
+    // TODO: fact is undefined for complex nums
+    if (n->kind == NUM_COMPLEX || r->kind == NUM_COMPLEX) {
+    }
+
+    Number *realN = numConvertandSet(n, NUM_REAL);
+    Number *realR = numConvertandSet(r, NUM_REAL);
+    Number *nMinusR = numSubtract(realN, realR);
+
+    numFree(realR);
+
+    Number *nFact = numFact(realN);
+    Number *nMinusrFact = numFact(nMinusR);
+
+    numFree(realN);
+    numFree(nMinusR);
+
+    Number *result = numDivide(nFact, nMinusrFact);
+
+    numFree(nFact);
+    numFree(nMinusrFact);
+
+    return result;
+}
+
+Number *numNcr(const Number *n, const Number *r) {
+    // TODO: fact is undefined for complex nums
+    if (n->kind == NUM_COMPLEX || r->kind == NUM_COMPLEX) {
+    }
+
+    Number *realN = numConvertandSet(n, NUM_REAL);
+    Number *realR = numConvertandSet(r, NUM_REAL);
+    Number *nMinusR = numSubtract(realN, realR);
+
+    Number *nFact = numFact(realN);
+    Number *rFact = numFact(realR);
+    Number *nMinusrFact = numFact(nMinusR);
+
+    numFree(realN);
+    numFree(realR);
+    numFree(nMinusR);
+
+    Number *denom = numMultiply(rFact, nMinusrFact);
+    Number *result = numDivide(nFact, denom);
+
+    numFree(nFact);
+    numFree(rFact);
+    numFree(nMinusrFact);
+    numFree(denom);
+
+    return result;
 }

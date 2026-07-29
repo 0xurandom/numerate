@@ -33,3 +33,8 @@ Number *numCoth(const Number *num);
 Number *numSgn(const Number *num);
 Number *numAbs(const Number *num);
 Number *numPow(const Number *base, const Number *exp);
+Number *numExp(const Number *num);
+Number *numLn(const Number *num);
+Number *numLog(const Number *num);
+Number *numNpr(const Number *n, const Number *r);
+Number *numNcr(const Number *n, const Number *r);
