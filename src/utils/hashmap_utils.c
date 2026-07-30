@@ -46,7 +46,7 @@ void insertVar(HashMap *hashMap, const StringView *stringView,
 }
 
 // func returns status code,
-// result is stored at *result
+// TODO: result is allocated and stored at *result
 int lookupVar(HashMap *hashMap, const StringView *stringView, Number *result) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
     LL_Node *node = hashMap->arr[bucketIndex];

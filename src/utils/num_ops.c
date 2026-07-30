@@ -924,6 +924,37 @@ Number *numCoth(const Number *num) {
     }
 }
 
+int numSgnSi(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            if (mpc_cmp_si_si(num->complex, 0, 0)) {
+                return 0;
+            } else {
+                // complex value for non zero nums
+                fprintf(stderr, "numSgnSi received a nonzero complex number\n");
+                exit(1);
+            }
+        }
+
+        case NUM_REAL: {
+            return mpfr_sgn(num->real);
+        }
+
+        case NUM_RATIONAL: {
+            return mpq_sgn(num->rational);
+        }
+
+        case NUM_BOOL: {
+            return (num->boolean == 1) ? 1 : 0;
+        }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Warning numSgnSi returning 0 for NUM_ERROR\n");
+            return 0;
+        }
+    }
+}
+
 Number *numSgn(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {

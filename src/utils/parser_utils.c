@@ -5,20 +5,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-Node* newLiteralNode(double num) {
+#include "num_utils.h"
+
+Node* newLiteralNode(Number* num) {
     Node* node = malloc(sizeof(Node));
 
     node->kind = NODE_LITERAL;
-    node->literal.value = num;
+
+    numInit(&node->literal.value, num->kind);
+    numSet(&node->literal.value, num);
 
     return node;
 }
 
-Node* newBooleanNode(double num) {
-    Node* node = malloc(sizeof(Node));
+Node* newBooleanNode(Number* num) {
+    if (num->kind != NUM_BOOL) {
+        fprintf(
+            stderr,
+            "Warning: num of kind not NUM_BOOLEAN passed to newBooleanNode\n");
+    }
 
+    Node* node = malloc(sizeof(Node));
     node->kind = NODE_BOOLEAN;
-    node->literal.value = num;
+
+    Number* boolNum = numConvertandSet(num, NUM_BOOL);
+    numSet(&node->literal.value, boolNum);
+
+    numFree(boolNum);
 
     return node;
 }
@@ -74,7 +87,7 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
     return node;
 }
 
-double evaluateString(Lexer* lexer, Parser* parser, char* str) {
+Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
     printf("\n\nevaluating: %s\n", str);
     lexer->string = str;
     lexer->cursor = 0;
@@ -85,10 +98,12 @@ double evaluateString(Lexer* lexer, Parser* parser, char* str) {
     Node* tree = parse(parser, PREC_ASSIGNMENT);
     Node* result = simplifyTree(parser, tree);
 
-    double result_val = result->literal.value;
+    Number* result_val = numNew(result->literal.value.kind);
+    numSet(result_val, &result->literal.value);
+
     freeNode(result);
 
-    result_val = round(result_val * 100.0) / 100.0;
+    // result_val = round(result_val * 100.0) / 100.0;
 
     return result_val;
 }

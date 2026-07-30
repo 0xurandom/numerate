@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "num_ops.h"
 #include "string_view_utils.h"
 
 // TODO: check for functions using MPFR_RNDN instead of MPC_RNDNN
@@ -47,6 +48,10 @@ void numInit(Number *num, NumberKind kind) {
             initStringView(&num->error);
             break;
         }
+
+        case NUM_BOOL: {
+            break;
+        }
     }
 }
 
@@ -79,7 +84,25 @@ void numSet(Number *dest, const Number *src) {
             copyStringView(&dest->error, &src->error);
             break;
         }
+
+        case NUM_BOOL: {
+            if (numSgnSi(src) == 0)
+                dest->boolean = 0;
+            else
+                dest->boolean = 1;
+        }
     }
+
+    return;
+}
+
+void numSetBool(Number *num, bool boolean) {
+    if (num->kind != NUM_BOOL) {
+        fprintf(stderr, "numSetBool received a Number not of kind NUM_ERROR\n");
+        exit(1);
+    }
+
+    num->boolean = boolean;
 
     return;
 }
@@ -116,10 +139,12 @@ Number *numConvertandSet(const Number *src, NumberKind kind) {
     return num;
 }
 
-void numConvert(Number *num, NumberKind kind) {
+// frees input Number and returns a new Number
+Number *numConvert(Number *num, NumberKind kind) {
     // TODO: result can be replaced here?
-    if (num->kind == kind || num->kind == NUM_ERROR || kind == NUM_ERROR)
-        return;
+    if (num->kind == kind || num->kind == NUM_ERROR || kind == NUM_ERROR) {
+        return num;
+    }
 
     switch (kind) {
         case NUM_REAL: {
@@ -128,7 +153,7 @@ void numConvert(Number *num, NumberKind kind) {
 
             switch (num->kind) {
                 case NUM_REAL:
-                    break;
+                    return num;
 
                 case NUM_COMPLEX: {
                     mpfr_t tempImag;
@@ -154,6 +179,15 @@ void numConvert(Number *num, NumberKind kind) {
                     break;
                 }
 
+                case NUM_BOOL: {
+                    if (numSgnSi(num) == 0)
+                        mpfr_set_si(result, 0, MPFR_RNDN);
+                    else
+                        mpfr_set_si(result, 1, MPFR_RNDN);
+
+                    break;
+                }
+
                 case NUM_ERROR: {
                     break;
                 }
@@ -161,12 +195,11 @@ void numConvert(Number *num, NumberKind kind) {
 
             numFree(num);
 
-            num->kind = NUM_REAL;
-            mpfr_init2(num->real, PRECISION);
-            mpfr_set(num->real, result, MPFR_RNDN);
-
+            Number *resultNum = numNew(NUM_REAL);
+            mpfr_set(resultNum->real, result, MPFR_RNDN);
             mpfr_clear(result);
-            break;
+
+            return resultNum;
         }
 
         case NUM_COMPLEX: {
@@ -188,18 +221,26 @@ void numConvert(Number *num, NumberKind kind) {
                     break;
                 }
 
+                case NUM_BOOL: {
+                    if (numSgnSi(num) == 0)
+                        mpz_set_si(mpc_realref(result), 0);
+                    else
+                        mpz_set_si(mpc_realref(result), 1);
+
+                    break;
+                }
+
                 case NUM_ERROR: {
                     break;
                 }
             }
             numFree(num);
 
-            num->kind = NUM_COMPLEX;
-            mpc_init2(num->complex, PRECISION);
-            mpc_set(num->complex, result, MPFR_RNDN);
-
+            Number *resultNum = numNew(NUM_COMPLEX);
+            mpc_set(resultNum->complex, result, MPFR_RNDN);
             mpc_clear(result);
-            break;
+
+            return resultNum;
         }
 
         case NUM_RATIONAL: {
@@ -234,22 +275,39 @@ void numConvert(Number *num, NumberKind kind) {
                     break;
                 }
 
+                case NUM_BOOL: {
+                    if (numSgnSi(num) == 0)
+                        mpq_set_si(result, 0, 1);
+                    else
+                        mpq_set_si(result, 1, 1);
+
+                    break;
+                }
+
                 case NUM_ERROR: {
                     break;
                 }
             }
             numFree(num);
 
-            num->kind = NUM_RATIONAL;
-            mpq_init(num->rational);
-            mpq_set(num->rational, result);
+            Number *resultNum = numNew(NUM_RATIONAL);
 
+            mpq_set(resultNum->rational, result);
             mpq_clear(result);
-            break;
+
+            return resultNum;
+        }
+
+        case NUM_BOOL: {
+            int boolean = numSgnSi(num);
+            Number *resultNum = numNew(NUM_BOOL);
+
+            numSetBool(resultNum, boolean);
+            return resultNum;
         }
 
         case NUM_ERROR: {
-            return;
+            return num;
         }
     }
 }
@@ -290,6 +348,10 @@ bool numIsInteger(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            return true;
+        }
+
         case NUM_ERROR: {
             return false;
         }
@@ -317,6 +379,10 @@ bool numCanBeLong(const Number *num) {
                 return false;
             else
                 return true;
+        }
+
+        case NUM_BOOL: {
+            return true;
         }
 
         case NUM_ERROR: {
@@ -404,14 +470,27 @@ long numToLong(const Number *num) {
             break;
         }
 
+        case NUM_BOOL: {
+            if (num->boolean == 0)
+                numLong = 0;
+            else
+                numLong = 1;
+
+            break;
+        }
+
         case NUM_ERROR: {
-            return 0;
+            numLong = 0;
+
+            break;
         }
     }
 
     return numLong;
 }
 
+// TODO: decide if num itself will
+// need to be freed
 void numFree(Number *num) {
     switch (num->kind) {
         case NUM_REAL: {
@@ -426,6 +505,10 @@ void numFree(Number *num) {
 
         case NUM_RATIONAL: {
             mpq_clear(num->rational);
+            break;
+        }
+
+        case NUM_BOOL: {
             break;
         }
 

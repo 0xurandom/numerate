@@ -14,6 +14,7 @@ typedef enum {
     NUM_REAL,
     NUM_COMPLEX,
     NUM_RATIONAL,
+    NUM_BOOL,
     NUM_ERROR,
 } NumberKind;
 
@@ -23,10 +24,11 @@ typedef struct {
     NumberKind kind;
 
     union {
-        mpfr_t real;
-        mpc_t complex;
-        mpq_t rational;
-        StringView error;
+        mpfr_t real;       // NUM_REAL
+        mpc_t complex;     // NUM_COMPLEX
+        mpq_t rational;    // NUM_RATIONAL
+        bool boolean;      // NUM_BOOL
+        StringView error;  // NUM_ERROR
     };
 
 } Number;
@@ -36,7 +38,7 @@ void numInit(Number *num, NumberKind kind);
 void numSet(Number *dest, const Number *src);
 void numSetError(Number *num, char *errorString, size_t errorLength);
 Number *numConvertandSet(const Number *src, NumberKind kind);
-void numConvert(Number *num, NumberKind kind);
+Number *numConvert(Number *num, NumberKind kind);
 NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2);
 bool numIsInteger(const Number *num);
 bool numCanBeLong(const Number *num);

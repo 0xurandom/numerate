@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "utils/hashmap_utils.h"
+#include "utils/num_utils.h"
 #include "variable_store.h"
 
 typedef struct {
@@ -54,7 +55,7 @@ struct Node {
 
     union {
         struct {
-            double value;
+            Number value;
         } literal;
 
         struct {
@@ -83,7 +84,6 @@ Node* parse(Parser* parser, Precedence precedence);
 Node* simplifyTree(Parser* parser, Node* node);
 Precedence getPrecedence(TokenKind kind);
 void nextToken(Parser* parser);
-double evaluateString(Lexer* lexer, Parser* parser, char* str);
 void freeNode(Node* node);
 bool isArithOp(TokenKind kind);
 bool isComparisonOp(TokenKind kind);

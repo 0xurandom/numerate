@@ -1,8 +1,12 @@
 #include "lexer_utils.h"
 
+#include <ctype.h>
+#include <mpc.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "num_utils.h"
 #include "parser_utils.h"
 
 void lexString(char* string) {
@@ -16,6 +20,7 @@ void lexString(char* string) {
     while (lexer.cursor != lexer.length) {
         printf("%s\n", lookupTokenKind(tokenise(&lexer).kind));
     }
+
     return;
 }
 
@@ -86,6 +91,44 @@ double parseBin(Lexer* lexer) {
     lexer->cursor += offset;
 
     return value;
+}
+
+Number* parseNum(Lexer* lexer) {
+    bool isComplex = false;
+
+    char* endptr;
+    size_t i;
+
+    for (i = lexer->cursor;
+         (isdigit(lexer->string[i]) || lexer->string[i] == 'i' ||
+          lexer->string[i] == '/');
+         i++) {
+        if (lexer->string[i] == 'i') isComplex = true;
+    }
+
+    if (isComplex) {
+        Number* result = numNew(NUM_COMPLEX);
+
+        if (mpc_strtoc(result->complex, &lexer->string[lexer->cursor], &endptr,
+                       10, MPC_RNDNN) == 0) {
+            return result;
+        } else {
+            fprintf(stderr, "Error: Could not parse complex number\n");
+            exit(1);
+        }
+
+        return result;
+    }
+
+    Number* result = numNew(NUM_REAL);
+
+    if (mpfr_strtofr(result->real, &lexer->string[lexer->cursor], &endptr, 10,
+                     MPFR_RNDN)) {
+        return result;
+    } else {
+        fprintf(stderr, "Error: Could not parse real number\n");
+        exit(1);
+    }
 }
 
 int hexToInt(char c) {

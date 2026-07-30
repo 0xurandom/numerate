@@ -9,6 +9,7 @@
 #include "lexer.h"
 #include "utils/hashmap_utils.h"
 #include "utils/math_utils.h"
+#include "utils/num_utils.h"
 #include "utils/parser_utils.h"
 #include "utils/string_view_utils.h"
 
@@ -16,9 +17,6 @@ Node* parse(Parser* parser, Precedence precedence) {
     nextToken(parser);
 
     // TODO: handle spaces for keyword funcs
-
-    // TODO: spinoff helper funcs into
-    // different file
 
     // TODO: handle percent as modulo
     // and as * 0.01
@@ -29,8 +27,7 @@ Node* parse(Parser* parser, Precedence precedence) {
 
     switch (parser->prev.kind) {
         case TOK_NUMBER: {
-            double value = parser->prev.num;
-            left = newLiteralNode(value);
+            left = newLiteralNode(&parser->prev.num);
 
             break;
         }
@@ -201,6 +198,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
         }
 
         case NODE_VAR: {
+            Number *num = numNew(NUM_REAL)
             double result;
 
             if (lookupVar(&parser->varStore, &node->assignment.name.ident,
@@ -241,7 +239,8 @@ Node* simplifyTree(Parser* parser, Node* node) {
         case NODE_PREFIX: {
             node->unary.operand = simplifyTree(parser, node->unary.operand);
 
-            double num = node->unary.operand->literal.value;
+            // double num = node->unary.operand->literal.value;
+            
             double result;
             switch (node->unary.op.kind) {
                 case TOK_BANG: {

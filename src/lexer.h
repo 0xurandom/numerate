@@ -1,7 +1,9 @@
 #pragma once
 #include <stddef.h>
 
+#include "utils/num_utils.h"
 #include "utils/string_view_utils.h"
+
 typedef enum {
     TOK_VAR,
     TOK_NUMBER,
@@ -56,7 +58,7 @@ typedef struct {
     // if zero copy lexing
     union {
         StringView ident;
-        double num;
+        Number num;
     };
     TokenKind kind;
 } Token;
