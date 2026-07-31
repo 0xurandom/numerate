@@ -107,6 +107,18 @@ void numSetBool(Number *num, bool boolean) {
     return;
 }
 
+// needs a NUM_REAL as input
+void numSetRealSi(Number *num, double val) {
+    if (num->kind != NUM_REAL) {
+        fprintf(stderr,
+                "Error: numSetRealSi received a number not of kind NUM_REAL\n");
+        exit(1);
+    }
+    mpfr_set_d(num->real, val, MPFR_RNDN);
+
+    return;
+}
+
 // needs a Number of kind NUM_ERROR
 void numSetError(Number *num, char *errorString, size_t errorLength) {
     if (num->kind != NUM_ERROR) {
@@ -316,7 +328,8 @@ Number *numConvert(Number *num, NumberKind kind) {
 NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2) {
     if (kind1 == NUM_COMPLEX || kind2 == NUM_COMPLEX)
         return NUM_COMPLEX;
-    else if (kind1 == NUM_REAL || kind2 == NUM_REAL)
+    else if (kind1 == NUM_REAL || kind2 == NUM_REAL || kind1 == NUM_BOOL ||
+             kind2 == NUM_BOOL)
         return NUM_REAL;
     else
         return NUM_RATIONAL;

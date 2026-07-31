@@ -198,11 +198,12 @@ Node* simplifyTree(Parser* parser, Node* node) {
         }
 
         case NODE_VAR: {
-            Number *num = numNew(NUM_REAL)
-            double result;
+            Number* num = numNew(NUM_REAL);
+            Number* result = numNew(NUM_REAL);
+            // double result;
 
             if (lookupVar(&parser->varStore, &node->assignment.name.ident,
-                          &result) == 0) {
+                          result) == 0) {
                 Node* newNode = newLiteralNode(result);
                 return newNode;
             } else {
@@ -224,7 +225,8 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            double value = node->assignment.value->literal.value;
+            Number *value = &node->assignment.value->literal.value;
+            // double value = node->assignment.value->literal.value;
 
             insertVar(&parser->varStore, &node->assignment.name.ident, value);
 
@@ -240,14 +242,17 @@ Node* simplifyTree(Parser* parser, Node* node) {
             node->unary.operand = simplifyTree(parser, node->unary.operand);
 
             // double num = node->unary.operand->literal.value;
+            Number *num = &node->unary.operand->literal.value;
+
+            // double result;
+            Number *result;
             
-            double result;
             switch (node->unary.op.kind) {
                 case TOK_BANG: {
                     if (node->unary.operand->kind == NODE_LITERAL) {
                         result = subfactorial(num);
                     } else if (node->unary.operand->kind == NODE_BOOLEAN) {
-                        result = (num == 1 ? 0 : 1);
+                        // result = (num == 1 ? 0 : 1);
                         Node* newNode = newBooleanNode(result);
                         freeNode(node);
                         return newNode;

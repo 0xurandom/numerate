@@ -1,6 +1,7 @@
 #include "num_ops.h"
 
 #include <gmp-x86_64.h>
+#include <math.h>
 #include <mpc.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -33,9 +34,15 @@ Number *numAdd(const Number *a, const Number *b) {
             break;
         }
 
+        // numPromoteKind does not return these values
+        case NUM_BOOL: {
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_BOOL\n");
+            break;
+        }
+
         case NUM_ERROR: {
-            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
-            exit(1);
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_ERROR\n");
+            break;
         }
     }
 
@@ -69,9 +76,15 @@ Number *numSubtract(const Number *a, const Number *b) {
             break;
         }
 
+        // numPromoteKind does not return these values
+        case NUM_BOOL: {
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_BOOL\n");
+            break;
+        }
+
         case NUM_ERROR: {
-            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
-            exit(1);
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_ERROR\n");
+            break;
         }
     }
 
@@ -105,9 +118,15 @@ Number *numMultiply(const Number *a, const Number *b) {
             break;
         }
 
+        // numPromoteKind does not return these values
+        case NUM_BOOL: {
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_BOOL\n");
+            break;
+        }
+
         case NUM_ERROR: {
-            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
-            exit(1);
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_ERROR\n");
+            break;
         }
     }
 
@@ -141,9 +160,15 @@ Number *numDivide(const Number *a, const Number *b) {
             break;
         }
 
+        // numPromoteKind does not return these values
+        case NUM_BOOL: {
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_BOOL\n");
+            break;
+        }
+
         case NUM_ERROR: {
-            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
-            exit(1);
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_ERROR\n");
+            break;
         }
     }
 
@@ -189,9 +214,15 @@ int numCompare(const Number *a, const Number *b) {
             break;
         }
 
+        // numPromoteKind does not return these values
+        case NUM_BOOL: {
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_BOOL\n");
+            break;
+        }
+
         case NUM_ERROR: {
-            fprintf(stderr, "Error: numPromoteKind returned NUM_ERROR\n");
-            exit(1);
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_ERROR\n");
+            break;
         }
     }
 
@@ -220,6 +251,14 @@ Number *numNeg(const Number *num) {
         case NUM_RATIONAL: {
             Number *result = numNew(NUM_RATIONAL);
             mpq_neg(result->rational, num->rational);
+
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numNeg(realNum);
+            numFree(realNum);
 
             return result;
         }
@@ -267,6 +306,13 @@ Number *numFloor(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_set_si(result->real, (num->boolean == 0) ? 0 : 1, MPFR_RNDN);
+
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -310,6 +356,13 @@ Number *numCeil(const Number *num) {
             return result;
 
             break;
+        }
+
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_set_si(result->real, (num->boolean == 0) ? 0 : 1, MPFR_RNDN);
+
+            return result;
         }
 
         case NUM_ERROR: {
@@ -392,6 +445,13 @@ Number *numFact(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_ERROR);
+            mpfr_set_si(result->real, 1, MPFR_RNDN);
+
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -422,6 +482,14 @@ Number *numSin(const Number *num) {
             Number *result = numSin(realNum);
             numFree(realNum);
 
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSin(realNum);
+
+            numFree(realNum);
             return result;
         }
 
@@ -458,6 +526,14 @@ Number *numSinh(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSinh(realNum);
+
+            numFree(realNum);
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -488,6 +564,14 @@ Number *numCos(const Number *num) {
             Number *result = numCos(realNum);
             numFree(realNum);
 
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCos(realNum);
+
+            numFree(realNum);
             return result;
         }
 
@@ -524,6 +608,14 @@ Number *numCosh(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCosh(realNum);
+
+            numFree(realNum);
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -557,6 +649,14 @@ Number *numTan(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numTan(realNum);
+
+            numFree(realNum);
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -587,6 +687,14 @@ Number *numTanh(const Number *num) {
             Number *result = numTanh(realNum);
             numFree(realNum);
 
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numTanh(realNum);
+
+            numFree(realNum);
             return result;
         }
 
@@ -645,6 +753,14 @@ Number *numCosec(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCosec(realNum);
+
+            numFree(realNum);
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -696,6 +812,14 @@ Number *numCosech(const Number *num) {
             Number *result = numCosech(realNum);
             numFree(realNum);
 
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCosech(realNum);
+
+            numFree(realNum);
             return result;
         }
 
@@ -754,6 +878,14 @@ Number *numSec(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSec(realNum);
+
+            numFree(realNum);
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -806,6 +938,14 @@ Number *numSech(const Number *num) {
             Number *result = numSech(realNum);
             numFree(realNum);
 
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numSech(realNum);
+
+            numFree(realNum);
             return result;
         }
 
@@ -862,6 +1002,14 @@ Number *numCot(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCot(realNum);
+
+            numFree(realNum);
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -912,6 +1060,14 @@ Number *numCoth(const Number *num) {
             Number *result = numCoth(realNum);
             numFree(realNum);
 
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numCoth(realNum);
+
+            numFree(realNum);
             return result;
         }
 
@@ -994,6 +1150,13 @@ Number *numSgn(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_set_ui(result->real, (num->boolean == 0) ? 0 : 1, MPFR_RNDN);
+
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -1028,6 +1191,12 @@ Number *numAbs(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *result = numConvertandSet(num, NUM_REAL);
+
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -1041,6 +1210,20 @@ Number *numPow(const Number *base, const Number *exp) {
     if (base->kind == NUM_ERROR || exp->kind == NUM_ERROR) {
         Number *result = numNew(NUM_ERROR);
         numSet(result, (base->kind == NUM_ERROR) ? base : exp);
+
+        return result;
+    }
+
+    if (base->kind == NUM_BOOL || exp->kind == NUM_BOOL) {
+        NumberKind promotedKind = numPromoteKind(base->kind, exp->kind);
+
+        Number *promotedBase = numConvertandSet(base, promotedKind);
+        Number *promotedExp = numConvertandSet(exp, promotedKind);
+
+        Number *result = numPow(promotedBase, promotedExp);
+
+        numFree(promotedBase);
+        numFree(promotedExp);
 
         return result;
     }
@@ -1166,7 +1349,15 @@ Number *numPow(const Number *base, const Number *exp) {
                 return result;
             }
 
+            case NUM_BOOL: {
+                // a num of kind NUM_ERROR will
+                //  not reach this case block
+                return NULL;
+            }
+
             case NUM_ERROR: {
+                // a num of kind NUM_ERROR will
+                //  not reach this case block
                 return NULL;
             }
         }
@@ -1236,6 +1427,13 @@ Number *numExp(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_set_ui(result->real, (num->boolean == 0) ? 1 : M_E, MPFR_RNDN);
+
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -1246,6 +1444,15 @@ Number *numExp(const Number *num) {
 }
 
 Number *numLn(const Number *num) {
+    if (numSgnSi(num) == 0) {
+        Number *num = numNew(NUM_ERROR);
+
+        char error[] = "Log is undefined for 0";
+        numSetError(num, error, strlen(error));
+
+        return num;
+    }
+
     switch (num->kind) {
         case NUM_COMPLEX: {
             Number *result = numNew(NUM_COMPLEX);
@@ -1269,6 +1476,14 @@ Number *numLn(const Number *num) {
             return result;
         }
 
+        case NUM_BOOL: {
+            // a bool == 0 will not reach this case
+            Number *result = numNew(NUM_REAL);
+            mpfr_set_si(result->real, 0, MPFR_RNDN);
+
+            return result;
+        }
+
         case NUM_ERROR: {
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
@@ -1279,6 +1494,15 @@ Number *numLn(const Number *num) {
 }
 
 Number *numLog(const Number *num) {
+    if (numSgnSi(num) == 0) {
+        Number *num = numNew(NUM_ERROR);
+
+        char error[] = "Log is undefined for 0";
+        numSetError(num, error, strlen(error));
+
+        return num;
+    }
+
     switch (num->kind) {
         case NUM_COMPLEX: {
             Number *result = numNew(NUM_COMPLEX);
@@ -1298,6 +1522,14 @@ Number *numLog(const Number *num) {
             Number *realNum = numConvertandSet(num, NUM_REAL);
             Number *result = numLog(realNum);
             numFree(realNum);
+
+            return result;
+        }
+
+        case NUM_BOOL: {
+            // a bool == 0 will not reach this case
+            Number *result = numNew(NUM_REAL);
+            mpfr_set_ui(result->real, 0, MPFR_RNDN);
 
             return result;
         }
