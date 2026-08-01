@@ -32,6 +32,7 @@ Number *numCoth(const Number *num);
 
 int numSgnSi(const Number *num);
 Number *numSgn(const Number *num);
+bool numIsUnity(const Number *num);
 Number *numAbs(const Number *num);
 Number *numPow(const Number *base, const Number *exp);
 Number *numExp(const Number *num);

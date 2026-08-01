@@ -120,7 +120,7 @@ void numSetRealSi(Number *num, double val) {
 }
 
 // needs a Number of kind NUM_ERROR
-void numSetError(Number *num, char *errorString, size_t errorLength) {
+void numSetError(Number *num, const char *errorString, size_t errorLength) {
     if (num->kind != NUM_ERROR) {
         fprintf(stderr,
                 "numSetError received a Number not of kind NUM_ERROR\n");

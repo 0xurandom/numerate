@@ -461,6 +461,108 @@ Number *numFact(const Number *num) {
     }
 }
 
+Number *numSubfact(const Number *num) {
+    if (numSgnSi(num) == 0) {
+        Number *result = numNew(NUM_REAL);
+        numSetRealSi(result, 1);
+
+        return result;
+    }
+
+    if (numIsUnity(num)) {
+        Number *result = numNew(NUM_REAL);
+        numSetRealSi(result, 0);
+
+        return result;
+    }
+
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+        }
+
+        case NUM_REAL: {
+        }
+    }
+}
+
+Number *numGamma(const Number *num) {
+
+    if (numSgnSi(num) == 0) {
+        Number *result = numNew(NUM_ERROR);
+        
+        const char error[] = "Gamma is undefined for zero";
+        numSetError(result, error, strlen(error));
+
+        return result;
+    }
+    
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_REAL);
+            
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_gamma(result->real, num->real, MPFR_RNDN);
+
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *realNum = numConvertandSet(num, NUM_REAL);
+            Number *result = numGamma(realNum);
+
+            numFree(realNum);
+            return result;
+        }
+
+        case NUM_BOOL: {
+            // bool == 0 will not reach this case
+            Number *result = numNew(NUM_REAL);
+            numSetRealSi(result, 1);
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            
+            Number *result = numNew(NUM_ERROR);
+            numSet(result, num);
+
+            return result;
+        }
+    }
+}
+
+// needs a complex num
+Number *SpougeApprox(const Number *num) {
+
+    if (num->kind != NUM_COMPLEX) {
+        fprintf(stderr, "Error: SpougeApprox received a non NUM_COMPLEX\n");
+        exit(1);
+    }
+    
+    Number *result = numNew(NUM_COMPLEX);
+
+    mpfr_prec_t prec = mpc_get_prec(num->complex);
+
+    int a = (int)ceil(0.3772 * (double)prec) + 3;
+
+    mpfr_t c_k[a];
+
+    for (size_t k = 1; k < a; k++) {
+       mpfr_init2(c_k[k], PRECISION);
+      
+       mpfr_set_si(c_k[k], pow(-1, k-1), MPFR_RNDN);
+       
+    }
+
+    for (size_t k = 1; k < a; k++) {
+       mpfr_clear(c_k[k]); 
+    }
+}
+
 Number *numSin(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -1162,6 +1264,47 @@ Number *numSgn(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+    }
+}
+
+// checks if real part of num is 1
+// returns false if num has complex part
+bool numIsUnity(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            if (!mpfr_zero_p(mpc_imagref(num->complex))) return false;
+
+            if (mpfr_cmp_si(mpc_realref(num->complex), 1))
+                return true;
+            else
+                return false;
+        }
+
+        case NUM_REAL: {
+            if (mpfr_cmp_si(num->real, 1))
+                return true;
+            else
+                return false;
+        }
+
+        case NUM_RATIONAL: {
+            if (mpz_cmp_si(mpq_numref(num->rational), 1) &&
+                mpz_cmp_si(mpq_denref(num->rational), 1))
+                return true;
+            else
+                return false;
+        }
+
+        case NUM_BOOL: {
+            if (num->boolean == 1)
+                return true;
+            else
+                return false;
+        }
+
+        case NUM_ERROR: {
+            return false;
         }
     }
 }

@@ -62,7 +62,7 @@ StringView *newStringView(char *string, size_t length) {
 }
 
 // change the string of an existing string view
-void setStringView(StringView *view, char *string, size_t length) {
+void setStringView(StringView *view, const char *string, size_t length) {
     if (length > view->capacity) {
         view->arr = realloc(view->arr, length * sizeof(char));
         view->capacity = length;

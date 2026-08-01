@@ -19,7 +19,6 @@ typedef enum {
 } NumberKind;
 
 // TODO: consider bin and hex nums
-// consider storing integers as mpz_t
 typedef struct {
     NumberKind kind;
 
@@ -35,14 +34,22 @@ typedef struct {
 
 Number *numNew(NumberKind kind);
 void numInit(Number *num, NumberKind kind);
+
 void numSet(Number *dest, const Number *src);
-void numSetError(Number *num, char *errorString, size_t errorLength);
+void numSetBool(Number *num, bool boolean);
+void numSetRealSi(Number *num, double val);
+void numSetError(Number *num, const char *errorString, size_t errorLength);
+
 Number *numConvertandSet(const Number *src, NumberKind kind);
 Number *numConvert(Number *num, NumberKind kind);
+
 NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2);
+
 bool numIsInteger(const Number *num);
 bool numCanBeLong(const Number *num);
 bool numCompCanBeReal(const Number *num);
 bool numRatCanBeReal(const Number *num, Number *result);
+
 long numToLong(const Number *num);
+
 void numFree(Number *num);
