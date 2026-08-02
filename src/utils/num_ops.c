@@ -4,6 +4,7 @@
 #include <math.h>
 #include <mpc.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -486,20 +487,18 @@ Number *numSubfact(const Number *num) {
 }
 
 Number *numGamma(const Number *num) {
-
     if (numSgnSi(num) == 0) {
         Number *result = numNew(NUM_ERROR);
-        
+
         const char error[] = "Gamma is undefined for zero";
         numSetError(result, error, strlen(error));
 
         return result;
     }
-    
+
     switch (num->kind) {
         case NUM_COMPLEX: {
             Number *result = numNew(NUM_REAL);
-            
         }
 
         case NUM_REAL: {
@@ -526,7 +525,6 @@ Number *numGamma(const Number *num) {
         }
 
         case NUM_ERROR: {
-            
             Number *result = numNew(NUM_ERROR);
             numSet(result, num);
 
@@ -537,30 +535,118 @@ Number *numGamma(const Number *num) {
 
 // needs a complex num
 Number *SpougeApprox(const Number *num) {
+    // only for real part of num is greater than 0.5
 
     if (num->kind != NUM_COMPLEX) {
         fprintf(stderr, "Error: SpougeApprox received a non NUM_COMPLEX\n");
         exit(1);
     }
-    
-    Number *result = numNew(NUM_COMPLEX);
+
+    // const double double_pi_sqrt = 2.50662827463;
+    mpc_t double_pi_sqrt;
+    mpc_init2(double_pi_sqrt, MPFR_RNDN);
+    mpfr_const_pi(mpc_realref(double_pi_sqrt), MPFR_RNDN);
+    mpfr_set_si(mpc_imagref(double_pi_sqrt), 0, MPFR_RNDN);
+    mpfr_mul_si(double_pi_sqrt, double_pi_sqrt, 2, MPFR_RNDN);
 
     mpfr_prec_t prec = mpc_get_prec(num->complex);
 
     int a = (int)ceil(0.3772 * (double)prec) + 3;
 
     mpfr_t c_k[a];
+    int sign = 1;
+    mpfr_t k_fact;
+    mpfr_init2(k_fact, PRECISION);
+    mpfr_set_si(k_fact, 1, MPFR_RNDN);
 
     for (size_t k = 1; k < a; k++) {
-       mpfr_init2(c_k[k], PRECISION);
-      
-       mpfr_set_si(c_k[k], pow(-1, k-1), MPFR_RNDN);
-       
+        mpfr_init2(c_k[k], PRECISION);
+
+        mpfr_set_si(c_k[k], sign, MPFR_RNDN);
+
+        mpfr_t tempAminusK;
+        mpfr_init2(tempAminusK, MPFR_RNDN);
+        mpfr_set_si(tempAminusK, a - k, MPFR_RNDN);
+
+        // todo: change pow and exp to mpfr
+        mpfr_mul_si(c_k[k], c_k[k], pow((a - k), k - 0.5), MPFR_RNDN);
+        mpfr_mul_si(c_k[k], c_k[k], exp(a - k), MPFR_RNDN);
+
+        mpfr_clear(tempAminusK);
+
+        mpfr_div(c_k[k], c_k[k], k_fact, MPFR_RNDN);
+
+        mpfr_mul_si(k_fact, k_fact, k, MPFR_RNDN);
+        sign = -sign;
     }
 
+    mpc_t sum;
+    mpc_init2(sum, PRECISION);
+    mpc_set_ui_ui(sum, 0, 0, MPFR_RNDN);
+
     for (size_t k = 1; k < a; k++) {
-       mpfr_clear(c_k[k]); 
+        mpc_t tempC_k;
+        mpc_init2(tempC_k, PRECISION);
+        mpc_set_si_si(tempC_k, 0, 0, MPFR_RNDN);
+        mpfr_set(mpc_realref(tempC_k), c_k[k], MPFR_RNDN);
+
+        mpc_t tempZplusK;
+        mpc_init2(tempZplusK, PRECISION);
+        mpc_set_si_si(tempZplusK, k, 0, MPC_RNDNN);
+        mpc_add(tempZplusK, tempZplusK, num->complex, MPC_RNDNN);
+
+        mpc_div(tempC_k, tempC_k, tempZplusK, MPC_RNDNN);
+
+        mpc_add(sum, sum, tempC_k, MPC_RNDNN);
+
+        mpc_clear(tempZplusK);
+        mpc_clear(tempC_k);
+
+        mpfr_clear(c_k[k]);
     }
+
+    mpc_add(sum, sum, double_pi_sqrt, MPC_RNDNN);
+    mpc_clear(double_pi_sqrt);
+
+    mpc_t tempZPlusA;
+    mpc_init2(tempZPlusA, PRECISION);
+
+    mpc_t tempBase;
+    mpc_init2(tempBase, PRECISION);
+    mpc_set(tempBase, num->complex, MPC_RNDNN);
+    mpc_add_si(tempBase, tempBase, a, MPC_RNDNN);
+
+    mpc_t tempExp;
+    mpc_init2(tempExp, PRECISION);
+    mpc_set_d(tempExp, 0.5, MPC_RNDNN);
+    mpc_add(tempExp, tempExp, num->complex, MPC_RNDNN);
+
+    mpc_pow(tempZPlusA, tempBase, tempExp, MPC_RNDNN);
+
+    mpc_clear(tempExp);
+    mpc_clear(tempBase);
+
+    mpc_t tempEtoZplusA;
+    mpc_init2(tempEtoZplusA, PRECISION);
+
+    mpc_neg(tempBase, tempBase, MPC_RNDNN);
+    mpc_exp(tempEtoZplusA, tempBase, MPC_RNDNN);
+
+    mpc_mul(sum, sum, tempZPlusA, MPC_RNDNN);
+    mpc_mul(sum, sum, tempEtoZplusA, MPC_RNDNN);
+    mpc_div(sum, sum, num->complex, MPC_RNDNN);
+
+    mpc_clear(tempEtoZplusA);
+    mpc_clear(tempZPlusA);
+    mpfr_clear(k_fact);
+
+    Number *result = numNew(NUM_COMPLEX);
+
+    mpc_set(result->complex, sum, MPC_RNDNN);
+
+    mpc_clear(sum);
+
+    return result;
 }
 
 Number *numSin(const Number *num) {
