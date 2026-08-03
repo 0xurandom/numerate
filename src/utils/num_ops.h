@@ -16,6 +16,11 @@ Number *numNeg(const Number *num);
 Number *numFloor(const Number *num);
 Number *numCeil(const Number *num);
 Number *numFact(const Number *num);
+Number *numSubfact(const Number *num);
+Number *numGamma(const Number *num);
+static Number *complexGamma(const Number *num);
+static Number *SpougeApprox(const Number *num);
+static Number *eulerReflection(const Number *num);
 
 Number *numSin(const Number *num);
 Number *numSinh(const Number *num);

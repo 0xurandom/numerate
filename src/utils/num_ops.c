@@ -533,21 +533,29 @@ Number *numGamma(const Number *num) {
     }
 }
 
-// needs a complex num
-Number *SpougeApprox(const Number *num) {
-    // only for real part of num is greater than 0.5
-
+static Number *complexGamma(const Number *num) {
     if (num->kind != NUM_COMPLEX) {
-        fprintf(stderr, "Error: SpougeApprox received a non NUM_COMPLEX\n");
+        fprintf(stderr, "Error: complexGamma received a non NUM_COMPLEX\n");
         exit(1);
     }
 
-    // const double double_pi_sqrt = 2.50662827463;
+    if (mpfr_cmp_d(mpc_realref(num->complex), 0.5) < 0)
+        return eulerReflection(num);
+    else
+        return SpougeApprox(num);
+}
+
+// needs a complex num and for the real
+// part of the number to be greater than 0.5
+static Number *SpougeApprox(const Number *num) {
+    // TODO: instead of using sum as the base result, use result->complex
+
     mpc_t double_pi_sqrt;
-    mpc_init2(double_pi_sqrt, MPFR_RNDN);
+    mpc_init2(double_pi_sqrt, PRECISION);
     mpfr_const_pi(mpc_realref(double_pi_sqrt), MPFR_RNDN);
     mpfr_set_si(mpc_imagref(double_pi_sqrt), 0, MPFR_RNDN);
-    mpfr_mul_si(double_pi_sqrt, double_pi_sqrt, 2, MPFR_RNDN);
+    mpc_mul_si(double_pi_sqrt, double_pi_sqrt, 2, MPC_RNDNN);
+    mpc_sqrt(double_pi_sqrt, double_pi_sqrt, MPC_RNDNN);
 
     mpfr_prec_t prec = mpc_get_prec(num->complex);
 
@@ -559,51 +567,55 @@ Number *SpougeApprox(const Number *num) {
     mpfr_init2(k_fact, PRECISION);
     mpfr_set_si(k_fact, 1, MPFR_RNDN);
 
+    mpfr_t tempAminusK, tempExpAminusK, tempKminushalf, tempPowAminusK;
+    mpfr_inits2(PRECISION, tempAminusK, tempExpAminusK, tempKminushalf,
+                tempPowAminusK, (mpfr_ptr)NULL);
+
     for (size_t k = 1; k < a; k++) {
         mpfr_init2(c_k[k], PRECISION);
-
         mpfr_set_si(c_k[k], sign, MPFR_RNDN);
-
-        mpfr_t tempAminusK;
-        mpfr_init2(tempAminusK, MPFR_RNDN);
         mpfr_set_si(tempAminusK, a - k, MPFR_RNDN);
+        mpfr_exp(tempExpAminusK, tempAminusK, MPFR_RNDN);
+        mpfr_set_d(tempKminushalf, k - 0.5, MPFR_RNDN);
+        mpfr_pow(tempPowAminusK, tempAminusK, tempKminushalf, MPFR_RNDN);
 
-        // todo: change pow and exp to mpfr
-        mpfr_mul_si(c_k[k], c_k[k], pow((a - k), k - 0.5), MPFR_RNDN);
-        mpfr_mul_si(c_k[k], c_k[k], exp(a - k), MPFR_RNDN);
-
-        mpfr_clear(tempAminusK);
+        mpfr_mul(c_k[k], c_k[k], tempPowAminusK, MPFR_RNDN);
+        mpfr_mul(c_k[k], c_k[k], tempExpAminusK, MPFR_RNDN);
 
         mpfr_div(c_k[k], c_k[k], k_fact, MPFR_RNDN);
 
-        mpfr_mul_si(k_fact, k_fact, k, MPFR_RNDN);
+        mpfr_mul_ui(k_fact, k_fact, k, MPFR_RNDN);
+
         sign = -sign;
     }
 
+    mpfr_clears(tempAminusK, tempExpAminusK, tempKminushalf, tempPowAminusK,
+                (mpfr_ptr)NULL);
+
     mpc_t sum;
     mpc_init2(sum, PRECISION);
-    mpc_set_ui_ui(sum, 0, 0, MPFR_RNDN);
+    mpc_set_ui_ui(sum, 0, 0, MPC_RNDNN);
+
+    mpc_t tempC_k, tempZplusK;
+    mpc_init2(tempC_k, PRECISION);
+    mpc_init2(tempZplusK, PRECISION);
 
     for (size_t k = 1; k < a; k++) {
-        mpc_t tempC_k;
-        mpc_init2(tempC_k, PRECISION);
-        mpc_set_si_si(tempC_k, 0, 0, MPFR_RNDN);
+        mpc_set_si_si(tempC_k, 0, 0, MPC_RNDNN);
         mpfr_set(mpc_realref(tempC_k), c_k[k], MPFR_RNDN);
 
-        mpc_t tempZplusK;
-        mpc_init2(tempZplusK, PRECISION);
-        mpc_set_si_si(tempZplusK, k, 0, MPC_RNDNN);
+        mpc_set_ui_ui(tempZplusK, k, 0, MPC_RNDNN);
         mpc_add(tempZplusK, tempZplusK, num->complex, MPC_RNDNN);
 
         mpc_div(tempC_k, tempC_k, tempZplusK, MPC_RNDNN);
 
         mpc_add(sum, sum, tempC_k, MPC_RNDNN);
 
-        mpc_clear(tempZplusK);
-        mpc_clear(tempC_k);
-
         mpfr_clear(c_k[k]);
     }
+
+    mpc_clear(tempZplusK);
+    mpc_clear(tempC_k);
 
     mpc_add(sum, sum, double_pi_sqrt, MPC_RNDNN);
     mpc_clear(double_pi_sqrt);
@@ -624,7 +636,6 @@ Number *SpougeApprox(const Number *num) {
     mpc_pow(tempZPlusA, tempBase, tempExp, MPC_RNDNN);
 
     mpc_clear(tempExp);
-    mpc_clear(tempBase);
 
     mpc_t tempEtoZplusA;
     mpc_init2(tempEtoZplusA, PRECISION);
@@ -636,6 +647,7 @@ Number *SpougeApprox(const Number *num) {
     mpc_mul(sum, sum, tempEtoZplusA, MPC_RNDNN);
     mpc_div(sum, sum, num->complex, MPC_RNDNN);
 
+    mpc_clear(tempBase);
     mpc_clear(tempEtoZplusA);
     mpc_clear(tempZPlusA);
     mpfr_clear(k_fact);
@@ -645,6 +657,42 @@ Number *SpougeApprox(const Number *num) {
     mpc_set(result->complex, sum, MPC_RNDNN);
 
     mpc_clear(sum);
+
+    return result;
+}
+
+static Number *eulerReflection(const Number *num) {
+    Number *oneMinusZ = numNew(NUM_COMPLEX);
+    mpc_ui_sub(oneMinusZ->complex, 1, num->complex, MPC_RNDNN);
+
+    Number *gammaOneMinusZ = SpougeApprox(oneMinusZ);
+
+    mpfr_t pi;
+    mpfr_init2(pi, PRECISION);
+    mpfr_const_pi(pi, MPFR_RNDN);
+
+    mpc_t piTimesZ;
+    mpc_init2(piTimesZ, PRECISION);
+    mpc_mul_fr(piTimesZ, num->complex, pi, MPC_RNDNN);
+
+    mpc_t sinPiZ;
+    mpc_init2(sinPiZ, PRECISION);
+    mpc_sin(sinPiZ, piTimesZ, MPC_RNDNN);
+
+    mpc_t denom;
+    mpc_init2(denom, PRECISION);
+    mpc_mul(denom, sinPiZ, gammaOneMinusZ->complex, MPC_RNDNN);
+
+    Number *result = numNew(NUM_COMPLEX);
+    mpc_set_fr(result->complex, pi, MPC_RNDNN);
+    mpc_div(result->complex, result->complex, denom, MPC_RNDNN);
+
+    mpc_clear(denom);
+    mpc_clear(sinPiZ);
+    mpc_clear(piTimesZ);
+    mpfr_clear(pi);
+    numFree(gammaOneMinusZ);
+    numFree(oneMinusZ);
 
     return result;
 }
