@@ -1,6 +1,7 @@
 #include "num_ops.h"
 
 #include <gmp-x86_64.h>
+#include <iso646.h>
 #include <math.h>
 #include <mpc.h>
 #include <stddef.h>
@@ -463,27 +464,120 @@ Number *numFact(const Number *num) {
 }
 
 Number *numSubfact(const Number *num) {
-    if (numSgnSi(num) == 0) {
-        Number *result = numNew(NUM_REAL);
-        numSetRealSi(result, 1);
+    if (num->kind == NUM_ERROR) {
+        Number *result = numNew(NUM_ERROR);
+        numSet(result, num);
 
         return result;
     }
 
-    if (numIsUnity(num)) {
-        Number *result = numNew(NUM_REAL);
-        numSetRealSi(result, 0);
+    int sgn = numSgnSi(num);
+
+    if (sgn < 0) {
+        Number *result = numNew(NUM_ERROR);
+
+        char error[] = "Subfactorial is undefined for negative numbers";
+        numSetError(result, error, strlen(error));
 
         return result;
     }
+
+    mpc_t z;
+    mpc_init2(z, PRECISION);
 
     switch (num->kind) {
         case NUM_COMPLEX: {
+            mpc_set(z, num->complex, MPC_RNDNN);
+            break;
         }
 
         case NUM_REAL: {
+            mpc_set_fr(z, num->real, MPC_RNDNN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpfr_t tempReal;
+            mpfr_init2(tempReal, PRECISION);
+
+            mpfr_set_q(tempReal, num->rational, MPFR_RNDN);
+            mpc_set_fr(z, tempReal, MPC_RNDNN);
+
+            mpfr_clear(tempReal);
+            break;
+        }
+
+        case NUM_BOOL: {
+            // NUM_BOOL does not reach this case
+            break;
+        }
+
+        case NUM_ERROR: {
+            // NUM_ERROR does not reach this case
+            break;
         }
     }
+
+    Number *zPlusOne = numNew(NUM_COMPLEX);
+    mpc_add_ui(zPlusOne->complex, z, 1, MPC_RNDNN);
+
+    Number *gammaZplusOne = complexGamma(zPlusOne);
+
+    mpfr_t eConst;
+    mpfr_init2(eConst, PRECISION);
+    mpfr_set_ui(eConst, 1, MPFR_RNDN);
+    mpfr_exp(eConst, eConst, MPFR_RNDN);
+
+    mpc_div_fr(gammaZplusOne->complex, gammaZplusOne->complex, eConst,
+               MPC_RNDNN);
+
+    mpfr_round(mpc_realref(gammaZplusOne->complex),
+               mpc_realref(gammaZplusOne->complex));
+    mpfr_round(mpc_imagref(gammaZplusOne->complex),
+               mpc_imagref(gammaZplusOne->complex));
+
+    Number *result = numNew(num->kind);
+
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpc_set(result->complex, gammaZplusOne->complex, MPC_RNDNN);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_set(result->real, mpc_realref(gammaZplusOne->complex),
+                     MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpz_t tempInt;
+            mpz_init(tempInt);
+            mpfr_get_z(tempInt, mpc_realref(gammaZplusOne->complex), MPFR_RNDN);
+            mpq_set_z(result->rational, tempInt);
+            mpz_clear(tempInt);
+
+            break;
+        }
+
+        case NUM_BOOL: {
+            result->boolean =
+                (mpfr_cmp_ui(mpc_realref(gammaZplusOne->complex), 0) != 0);
+
+            break;
+        }
+
+        case NUM_ERROR: {
+            // NUM_ERROR will not reach this case
+        }
+    }
+
+    mpc_clear(z);
+    mpfr_clear(eConst);
+    numFree(zPlusOne);
+    numFree(gammaZplusOne);
+
+    return result;
 }
 
 Number *numGamma(const Number *num) {
@@ -498,7 +592,9 @@ Number *numGamma(const Number *num) {
 
     switch (num->kind) {
         case NUM_COMPLEX: {
-            Number *result = numNew(NUM_REAL);
+            Number *result = complexGamma(num);
+
+            return result;
         }
 
         case NUM_REAL: {

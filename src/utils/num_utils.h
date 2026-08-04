@@ -10,6 +10,8 @@
 // TODO: allow changing precision
 #define PRECISION 10
 
+// TODO: consider storing integers
+// as rationals
 typedef enum {
     NUM_REAL,
     NUM_COMPLEX,
