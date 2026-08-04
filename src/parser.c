@@ -9,6 +9,7 @@
 #include "lexer.h"
 #include "utils/hashmap_utils.h"
 #include "utils/math_utils.h"
+#include "utils/num_ops.h"
 #include "utils/num_utils.h"
 #include "utils/parser_utils.h"
 #include "utils/string_view_utils.h"
@@ -198,17 +199,19 @@ Node* simplifyTree(Parser* parser, Node* node) {
         }
 
         case NODE_VAR: {
-            Number* num = numNew(NUM_REAL);
             Number* result = numNew(NUM_REAL);
-            // double result;
 
             if (lookupVar(&parser->varStore, &node->assignment.name.ident,
                           result) == 0) {
                 Node* newNode = newLiteralNode(result);
                 return newNode;
             } else {
+                char* cString = getCstring(&node->var.name.ident);
+
                 fprintf(stderr, "Error: Invalid variable referenced: %s\n",
-                        getCstring(&node->var.name.ident));
+                        cString);
+
+                free(cString);
                 exit(1);
             }
         }
@@ -225,8 +228,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            Number *value = &node->assignment.value->literal.value;
-            // double value = node->assignment.value->literal.value;
+            Number* value = &node->assignment.value->literal.value;
 
             insertVar(&parser->varStore, &node->assignment.name.ident, value);
 
@@ -242,18 +244,21 @@ Node* simplifyTree(Parser* parser, Node* node) {
             node->unary.operand = simplifyTree(parser, node->unary.operand);
 
             // double num = node->unary.operand->literal.value;
-            Number *num = &node->unary.operand->literal.value;
+            Number* num = &node->unary.operand->literal.value;
 
             // double result;
-            Number *result;
-            
+            Number* result;
+
             switch (node->unary.op.kind) {
                 case TOK_BANG: {
                     if (node->unary.operand->kind == NODE_LITERAL) {
-                        result = subfactorial(num);
+                        result = numSubfact(num);
+
                     } else if (node->unary.operand->kind == NODE_BOOLEAN) {
-                        // result = (num == 1 ? 0 : 1);
                         Node* newNode = newBooleanNode(result);
+
+                        result->boolean = (num->boolean == 0) ? 1 : 0;
+
                         freeNode(node);
                         return newNode;
                     } else {
@@ -265,101 +270,81 @@ Node* simplifyTree(Parser* parser, Node* node) {
                     break;
                 }
                 case TOK_MINUS: {
-                    result = -num;
+                    result = numNeg(num);
                     break;
                 }
                 case TOK_SIN: {
-                    result = sin(num);
+                    result = numSin(num);
                     break;
                 }
                 case TOK_COS: {
-                    result = cos(num);
+                    result = numCos(num);
                     break;
                 }
                 case TOK_TAN: {
-                    result = tan(num);
+                    result = numTan(num);
                     break;
                 }
-                // TODO: handle division by zero case
                 case TOK_COSEC: {
-                    if (sin(num) == 0) {
-                        fprintf(
-                            stderr,
-                            "Error: Cosec is undefined for multiples of pi\n");
-                        exit(1);
-                    }
-
-                    result = 1 / sin(num);
+                    result = numCosec(num);
                     break;
                 }
                 case TOK_SEC: {
-                    if (cos(num) == 0) {
-                        fprintf(stderr,
-                                "Error: Sec is undefined for odd multiples of "
-                                "pi/2\n");
-                        exit(1);
-                    }
-
-                    result = 1 / cos(num);
+                    result = numSec(num);
                     break;
                 }
                 case TOK_COT: {
-                    if (tan(num) == 0) {
-                        fprintf(
-                            stderr,
-                            "Error: Cot is undefined for multiples of pi\n");
-                        exit(1);
-                    }
-
-                    result = 1 / tan(num);
+                    result = numCot(num);
                     break;
                 }
 
                 case TOK_SGN: {
-                    result = signum(num);
+                    result = numSgn(num);
                     break;
                 }
 
                 case TOK_TWOS: {
-                    result = twosComplement(num);
+                    // TODO
+                    // result = twosComplement(num);
                     break;
                 }
 
                 // TODO: does not work correctly
                 // when used without ()
                 case TOK_ABS: {
-                    result = fabs(num);
+                    result = numAbs(num);
                     break;
                 }
 
                 case TOK_SQRT: {
-                    // TODO: assrt num isnt negative
-                    result = sqrt(num);
+                    // TODO
                     break;
                 }
 
                 case TOK_CBRT: {
-                    result = cbrt(num);
+                    // TODO
+                    // result = cbrt(num);
                     break;
                 }
 
                 case TOK_EXP: {
-                    double e;
-                    StringView* eVar = newStringView("e", 1);
-                    lookupVar(&parser->varStore, eVar, &e);
-                    freeStringView(eVar);
-
-                    result = pow(e, num);
+                    // TODO
+                    // double e;
+                    // StringView* eVar = newStringView("e", 1);
+                    // lookupVar(&parser->varStore, eVar, &e);
+                    // freeStringView(eVar);
+                    //
+                    // result = pow(e, num);
                     break;
                 }
 
                 case TOK_LN: {
-                    result = log(num);
+                    result = numLn(num);
                     break;
                 }
 
                 case TOK_LOG: {
-                    result = log10(num);
+                    result = numLog(num);
                     break;
                 }
 
@@ -383,11 +368,11 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            double num = node->unary.operand->literal.value;
-            double result;
+            Number* num = &node->unary.operand->literal.value;
+            Number *result = NULL;
             switch (node->unary.op.kind) {
                 case TOK_BANG: {
-                    result = factorial(num);
+                    result = numFact(num);
                     break;
                 }
 
@@ -439,20 +424,22 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            double left = node->binary.left->literal.value;
-            double right = node->binary.right->literal.value;
+            Number *left = &node->binary.left->literal.value;
+            Number *right = &node->binary.right->literal.value;
 
             Node* newNode;
             double result;
 
             switch (node->binary.op.kind) {
                 case TOK_AND: {
-                    newNode = newBooleanNode(left && right);
+                    // TODO
+                    // newNode = newBooleanNode(left && right);
                     break;
                 }
 
                 case TOK_OR: {
-                    newNode = newBooleanNode(left || right);
+                    // TODO
+                    // newNode = newBooleanNode(left || right);
                     break;
                 }
 
@@ -464,7 +451,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_EQUALS_EQUALS: {
-                    newNode = newBooleanNode(left == right);
+                    newNode = newBooleanNode(numCompare(left, right) == 0);
                     break;
                 }
 

@@ -46,17 +46,19 @@ Token tokenise(Lexer* lexer) {
             if (lexer->string[lexer->cursor] == '0') {
                 char nextChar = peekNext(lexer);
 
-                if (nextChar == 'x' || nextChar == 'X') {
-                    token.num = parseHex(lexer);
-                    break;
+                // TODO
 
-                } else if (nextChar == 'b' || nextChar == 'B') {
-                    token.num = parseBin(lexer);
-                    break;
-                }
+                // if (nextChar == 'x' || nextChar == 'X') {
+                //     token.num = parseHex(lexer);
+                //     break;
+                //
+                // } else if (nextChar == 'b' || nextChar == 'B') {
+                //     token.num = parseBin(lexer);
+                //     break;
+                // }
             }
 
-            token.num = parseDec(lexer);
+            token.num = *parseNum(lexer);
 
             break;
         }

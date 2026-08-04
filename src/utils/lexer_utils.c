@@ -1,9 +1,11 @@
 #include "lexer_utils.h"
 
 #include <ctype.h>
+#include <gmp-x86_64.h>
 #include <mpc.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "num_utils.h"
@@ -93,42 +95,82 @@ double parseBin(Lexer* lexer) {
     return value;
 }
 
+// TODO: parse bools and complex as a + ib
 Number* parseNum(Lexer* lexer) {
     bool isComplex = false;
+    bool isRational = false;
 
-    char* endptr;
-    size_t i;
+    const char* startPtr = &lexer->string[lexer->cursor];
+    char* endPtr = &lexer->string[lexer->cursor];
 
-    for (i = lexer->cursor;
-         (isdigit(lexer->string[i]) || lexer->string[i] == 'i' ||
-          lexer->string[i] == '/');
-         i++) {
-        if (lexer->string[i] == 'i') isComplex = true;
+    size_t i = lexer->cursor;
+
+    while (lexer->string[i] != '\0') {
+        char c = lexer->string[i];
+
+        if (isdigit(c)) {
+        } else if (c == 'i' || c == 'I') {
+            isComplex = true;
+            i++;
+
+        } else if (c == '/') {
+            isRational = true;
+            i++;
+        }
     }
 
     if (isComplex) {
         Number* result = numNew(NUM_COMPLEX);
 
-        if (mpc_strtoc(result->complex, &lexer->string[lexer->cursor], &endptr,
-                       10, MPC_RNDNN) == 0) {
-            return result;
-        } else {
+        mpc_strtoc(result->complex, startPtr, &endPtr, 10, MPC_RNDNN);
+
+        if (endPtr == startPtr) {
             fprintf(stderr, "Error: Could not parse complex number\n");
+            numFree(result);
             exit(1);
         }
 
+        lexer->cursor = endPtr - lexer->string;
         return result;
     }
 
-    Number* result = numNew(NUM_REAL);
+    if (isRational) {
+        Number* result = numNew(NUM_RATIONAL);
 
-    if (mpfr_strtofr(result->real, &lexer->string[lexer->cursor], &endptr, 10,
-                     MPFR_RNDN)) {
+        size_t len = i - lexer->cursor;
+        char* rationalString = malloc(len + 1);
+
+        memcpy(rationalString, startPtr, len);
+        rationalString[len] = '\0';
+
+        if (mpq_set_str(result->rational, rationalString, 10) != 0) {
+            fprintf(stderr, "Error: Could not parse rational number\n");
+            free(rationalString);
+            numFree(result);
+
+            exit(1);
+        }
+
+        mpq_canonicalize(result->rational);
+
+        lexer->cursor = i;
+
+        free(rationalString);
         return result;
-    } else {
+    }
+
+    // parse real numbers
+    Number* result = numNew(NUM_REAL);
+    mpfr_strtofr(result->real, startPtr, &endPtr, 10, MPFR_RNDN);
+
+    if (endPtr == startPtr) {
         fprintf(stderr, "Error: Could not parse real number\n");
+        numFree(result);
         exit(1);
     }
+
+    lexer->cursor = endPtr - lexer->string;
+    return result;
 }
 
 int hexToInt(char c) {
