@@ -369,7 +369,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
             }
 
             Number* num = &node->unary.operand->literal.value;
-            Number *result = NULL;
+            Number* result = NULL;
             switch (node->unary.op.kind) {
                 case TOK_BANG: {
                     result = numFact(num);
@@ -424,11 +424,11 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            Number *left = &node->binary.left->literal.value;
-            Number *right = &node->binary.right->literal.value;
+            Number* left = &node->binary.left->literal.value;
+            Number* right = &node->binary.right->literal.value;
 
-            Node* newNode;
-            double result;
+            Node* newNode = NULL;
+            Number* result = NULL;
 
             switch (node->binary.op.kind) {
                 case TOK_AND: {
@@ -451,66 +451,79 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_EQUALS_EQUALS: {
-                    newNode = newBooleanNode(numCompare(left, right) == 0);
+                    Number* boolean = numNew(NUM_REAL);
+                    numSetRealSi(boolean, numCompare(left, right) == 0);
+
+                    newNode = newBooleanNode(boolean);
                     break;
                 }
 
                 case TOK_NOT_EQUALS: {
-                    newNode = newBooleanNode(left != right);
+                    Number* boolean = numNew(NUM_REAL);
+                    numSetRealSi(boolean, numCompare(left, right) != 0);
+
+                    newNode = newBooleanNode(boolean);
                     break;
                 }
 
                 case TOK_LESS: {
-                    newNode = newBooleanNode(left < right);
+                    Number* boolean = numNew(NUM_REAL);
+                    numSetRealSi(boolean, numCompare(left, right) < 0);
+
+                    newNode = newBooleanNode(boolean);
                     break;
                 }
 
                 case TOK_GREATER: {
-                    newNode = newBooleanNode(left > right);
+                    Number* boolean = numNew(NUM_REAL);
+                    numSetRealSi(boolean, numCompare(left, right) > 0);
+
+                    newNode = newBooleanNode(boolean);
                     break;
                 }
 
                 case TOK_LESS_EQUALS: {
-                    newNode = newBooleanNode(left <= right);
+                    Number* boolean = numNew(NUM_REAL);
+                    numSetRealSi(boolean, numCompare(left, right) <= 0);
+
+                    newNode = newBooleanNode(boolean);
                     break;
                 }
 
                 case TOK_GREATER_EQUALS: {
-                    newNode = newBooleanNode(left >= right);
+                    Number* boolean = numNew(NUM_REAL);
+                    numSetRealSi(boolean, numCompare(left, right) >= 0);
+
+                    newNode = newBooleanNode(boolean);
                     break;
                 }
 
                 case TOK_PLUS: {
-                    result = left + right;
+                    result = numAdd(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_MINUS: {
-                    result = left - right;
+                    result = numSubtract(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_ASTERISK: {
-                    result = left * right;
+                    result = numMultiply(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_SLASH: {
-                    if (right == 0) {
-                        fprintf(stderr, "Warning: cannot divide by zero\n");
-                        // TODO: handle divisions by zero gracefully
-                        exit(1);
-                    }
-                    result = left / right;
+                    result = numDivide(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_CARET: {
-                    result = pow(left, right);
+                    result = numPow(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }

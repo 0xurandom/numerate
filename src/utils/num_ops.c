@@ -234,6 +234,50 @@ int numCompare(const Number *a, const Number *b) {
     return result;
 }
 
+int numCompareSi(const Number *a, long b) {
+    int result;
+
+    switch (a->kind) {
+        case NUM_COMPLEX: {
+            Number *realA = numNew(NUM_REAL);
+            mpc_abs(realA->real, a->complex, MPFR_RNDN);
+            result = mpfr_cmp_si(realA, b);
+            numFree(realA);
+
+            return result;
+        }
+
+        case NUM_REAL: {
+            result = mpfr_cmp_si(a, b);
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *RealA = numConvertandSet(a, NUM_REAL);
+            result = mpfr_cmp_si(RealA->real, b);
+            numFree(RealA);
+
+            return result;
+        }
+
+        case NUM_BOOL: {
+            if ((int)a->boolean == b)
+                result = 0;
+            else if ((int)a->boolean > b)
+                result = 1;
+            else
+                result = -1;
+
+            return result;
+        }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Error: numCompareSi received a NUM_ERROR\n");
+            exit(1);
+        }
+    }
+}
+
 Number *numNeg(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -1967,4 +2011,71 @@ Number *numNcr(const Number *n, const Number *r) {
     numFree(denom);
 
     return result;
+}
+
+Number *numBitwiseAnd(const Number *a, const Number *b) {
+    // numIsInteger returns false for NUM_COMPLEX
+    // with complex parts
+    if (!(numIsInteger(a)) || !(numIsInteger(b))) {
+        Number *result = numNew(NUM_ERROR);
+        char error[] = "'Bitwise and' is undefined for non integers";
+        numSetError(result, error, strlen(error));
+
+        return result;
+    }
+
+    mpz_t intA;
+    mpz_t intB;
+    mpz_t resultInt;
+
+    mpz_inits(intA, intB, resultInt, (mpz_srcptr)NULL);
+
+    numToInt(intA, a);
+    numToInt(intB, b);
+
+    mpz_and(resultInt, intA, intB);
+
+    Number *result = numNew(NUM_REAL);
+    mpfr_set_z(result->real, resultInt, MPFR_RNDN);
+
+    mpz_clears(intA, intB, resultInt, (mpz_srcptr)NULL);
+
+    return result;
+}
+
+Number *numBitwiseOr(const Number *a, const Number *b) {
+    if (!(numIsInteger(a)) || !(numIsInteger(b))) {
+        Number *result = numNew(NUM_ERROR);
+        char error[] = "'Bitwise or' is undefined for non integers";
+        numSetError(result, error, strlen(error));
+
+        return result;
+    }
+
+    mpz_t intA;
+    mpz_t intB;
+    mpz_t resultInt;
+
+    mpz_inits(intA, intB, resultInt, (mpz_srcptr)NULL);
+
+    numToInt(intA, a);
+    numToInt(intB, b);
+
+    mpz_ior(resultInt, intA, intB);
+
+    Number *result = numNew(NUM_REAL);
+    mpfr_set_z(result->real, resultInt, MPFR_RNDN);
+
+    mpz_clears(intA, intB, resultInt, (mpz_srcptr)NULL);
+
+    return result;
+}
+
+Number *numShiftRight(const Number *num, const Number *bits) {
+    NumberKind promotedKind = numPromoteKind(num->kind, bits->kind);
+    Number *promotedNum = numConvertandSet(num, promotedKind);
+
+    switch (promotedKind) {
+        case
+    }
 }

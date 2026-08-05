@@ -339,13 +339,13 @@ NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2) {
 // and if the complex part is zero
 bool numIsInteger(const Number *num) {
     switch (num->kind) {
-        case NUM_REAL: {
-            return mpfr_integer_p(num->real);
-        }
-
         case NUM_COMPLEX: {
             return (mpfr_integer_p(mpc_realref(num->complex))) &&
                    (mpfr_zero_p(mpc_imagref(num->complex)));
+        }
+
+        case NUM_REAL: {
+            return mpfr_integer_p(num->real);
         }
 
         case NUM_RATIONAL: {
@@ -367,6 +367,35 @@ bool numIsInteger(const Number *num) {
 
         case NUM_ERROR: {
             return false;
+        }
+    }
+}
+
+// requires numIsInteger to be true
+void numToInt(mpz_t result, const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpfr_get_z(result, mpc_realref(num->complex), MPFR_RNDN);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_get_z(result, num->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpz_set(result, mpq_numref(num->rational));
+            break;
+        }
+
+        case NUM_BOOL: {
+            mpz_set_ui(result, (num->boolean == 0) ? 0 : 1);
+            break;
+        }
+
+        case NUM_ERROR: {
+            // NUM_ERROR will not reach this case
         }
     }
 }
@@ -500,6 +529,39 @@ long numToLong(const Number *num) {
     }
 
     return numLong;
+}
+
+void numPrint(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpfr_printf("%R + %Ri", mpc_realref(num->complex),
+                        mpc_imagref(num->complex));
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_printf("%R", num->real);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpfr_printf("%Z/%Z", mpq_numref(num->rational),
+                        mpq_denref(num->rational));
+            break;
+        }
+
+        case NUM_BOOL: {
+            char trueString[] = "true";
+            char falseString[] = "false";
+            printf("%s", num->boolean ? trueString : falseString);
+            break;
+        }
+
+        case NUM_ERROR: {
+            printStringView(&num->error);
+            break;
+        }
+    }
 }
 
 // TODO: decide if num itself will

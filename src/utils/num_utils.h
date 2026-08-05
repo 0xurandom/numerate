@@ -48,10 +48,13 @@ Number *numConvert(Number *num, NumberKind kind);
 NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2);
 
 bool numIsInteger(const Number *num);
+void numToInt(mpz_t result, const Number *num);
 bool numCanBeLong(const Number *num);
 bool numCompCanBeReal(const Number *num);
 bool numRatCanBeReal(const Number *num, Number *result);
 
 long numToLong(const Number *num);
+
+void numPrint(const Number *num);
 
 void numFree(Number *num);

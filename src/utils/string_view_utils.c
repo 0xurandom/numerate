@@ -13,6 +13,8 @@
 // TODO: add malloc null checks
 // and const parameters
 
+// TODO: set max string length to int max
+
 void initStringView(StringView *view) {
     view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
     view->length = 0;
@@ -89,9 +91,13 @@ void appendToStringView(StringView *view, char c) {
     view->arr[view->length] = c;
 }
 
+void printStringView(const StringView *view) {
+    printf("%.*s", (int)view->length, view->arr);
+}
+
 // get a c string from the string view
 // this string must be freed manually
-char *getCstring(StringView *view) {
+char *getCstring(const StringView *view) {
     char *cstring = malloc((view->length + 1) * sizeof(char));
     memcpy(cstring, view->arr, view->length);
     cstring[view->length] = '\0';
