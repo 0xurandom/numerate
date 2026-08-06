@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "num_utils.h"
+#include "string_view_utils.h"
 
 // inits a number and sets it to the sum
 Number *numAdd(const Number *a, const Number *b) {
@@ -2072,10 +2073,69 @@ Number *numBitwiseOr(const Number *a, const Number *b) {
 }
 
 Number *numShiftRight(const Number *num, const Number *bits) {
-    NumberKind promotedKind = numPromoteKind(num->kind, bits->kind);
-    Number *promotedNum = numConvertandSet(num, promotedKind);
+    if (!numIsInteger(bits)) {
+        Number *result = numNew(NUM_ERROR);
+        char error[] = "Number of bits to be shifted must be an integer";
+        numSetError(result, error, strlen(error));
+        return result;
+    }
 
-    switch (promotedKind) {
-        case
+    if (num->kind == NUM_ERROR) {
+        Number *result = numNew(NUM_ERROR);
+        setStringView(&result->error, num->error.arr, num->error.length);
+        return result;
+    }
+
+    unsigned long bitsUlong = 0;
+    int unsignedLongresult = numCanBeUnsignedLong(bits);
+
+    if (unsignedLongresult == 0) {
+        bitsUlong = numToUnsignedLong(bits);
+    } else if (unsignedLongresult == 1) {
+        // bit shift left
+    } else {
+        Number *result = numNew(NUM_ERROR);
+        // TODO: change LONG_MAX depending upon the system
+        char error[] =
+            "Maximum number of bits that can be shifted is ULONG_MAX";
+        numSetError(result, error, strlen(error));
+        return result;
+    }
+
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_div_2ui(result->complex, num->complex, bitsUlong, MPC_RNDNN);
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_div_2ui(result->real, num->real, bitsUlong, MPFR_RNDN);
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *result = numNew(NUM_RATIONAL);
+            mpq_div_2exp(result->rational, num->rational, bitsUlong);
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_t temp;
+            mpfr_init2(temp, PRECISION);
+
+            mpfr_set_ui(temp, num->boolean == 0 ? 0 : 1, MPFR_RNDN);
+            mpfr_div_2exp(result->real, temp, bitsUlong, MPFR_RNDN);
+
+            mpfr_clear(temp);
+            return result;
+        }
+
+        case NUM_ERROR: {
+            // NUM_ERROR does not reach this case
+            return NULL;
+        }
     }
 }

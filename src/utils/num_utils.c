@@ -403,21 +403,28 @@ void numToInt(mpz_t result, const Number *num) {
 bool numCanBeLong(const Number *num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
-            if (mpfr_cmp_si(mpc_realref(num->complex), LONG_MAX) > 0)
+            if (mpfr_cmp_ui(mpc_imagref(num->complex), 0) != 0) return false;
+
+            if (mpfr_cmp_si(mpc_realref(num->complex), LONG_MAX) > 0 ||
+                mpfr_cmp_si(mpc_realref(num->complex), LONG_MIN) < 0)
                 return false;
             else
                 return true;
         }
 
         case NUM_REAL: {
-            if (mpfr_cmp_si(num->real, LONG_MAX) > 0)
+            if (mpfr_cmp_si(num->real, LONG_MAX) > 0 ||
+                mpfr_cmp_si(num->real, LONG_MAX) < 0)
                 return false;
             else
                 return true;
         }
 
         case NUM_RATIONAL: {
-            if (mpq_cmp_si(num->rational, LONG_MAX, 1) > 0)
+            if (mpz_cmp_ui(mpq_denref(num->rational), 1) != 0) return false;
+
+            if (mpq_cmp_si(num->rational, LONG_MAX, 1) > 0 ||
+                mpq_cmp_si(num->rational, LONG_MIN, 1) < 0)
                 return false;
             else
                 return true;
@@ -429,6 +436,50 @@ bool numCanBeLong(const Number *num) {
 
         case NUM_ERROR: {
             return false;
+        }
+    }
+}
+
+// if result == 0, true;
+// 1, can be unsigned long but is negative;
+// -1, cannot be unsigned long
+int numCanBeUnsignedLong(const Number *num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            if (mpfr_cmp_ui(mpc_imagref(num->complex), 0) != 0) return -1;
+
+            if (mpfr_cmp_ui(mpc_realref(num->complex), ULONG_MAX) > 0)
+                return -1;
+
+            if (mpfr_cmp_ui(mpc_realref(num->complex), 0) < 0) return 1;
+
+            return 0;
+        }
+
+        case NUM_REAL: {
+            if (mpfr_cmp_ui(num->real, ULONG_MAX) > 0) return -1;
+
+            if (mpfr_cmp_ui(num->real, 0) < 0) return 1;
+
+            return 0;
+        }
+
+        case NUM_RATIONAL: {
+            if (mpz_cmp_ui(mpq_denref(num->rational), 1) != 0) return -1;
+
+            if (mpq_cmp_ui(num->rational, ULONG_MAX, 1) > 0) return -1;
+
+            if ((mpq_sgn(num->rational) < 0)) return 1;
+
+            return 0;
+        }
+
+        case NUM_BOOL: {
+            return 0;
+        }
+
+        case NUM_ERROR: {
+            return -1;
         }
     }
 }
@@ -529,6 +580,39 @@ long numToLong(const Number *num) {
     }
 
     return numLong;
+}
+
+// requires numIsInteger and numCanBeLong to be true
+unsigned long numToUnsignedLong(const Number *num) {
+    unsigned long numUnsignedLong;
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            numUnsignedLong = mpfr_get_ui(mpc_realref(num->complex), MPFR_RNDN);
+            break;
+        }
+
+        case NUM_REAL: {
+            numUnsignedLong = mpfr_get_ui(num->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            numUnsignedLong = mpz_get_ui(mpq_numref(num->rational));
+            break;
+        }
+
+        case NUM_BOOL: {
+            numUnsignedLong = num->boolean == 0 ? 0 : 1;
+            break;
+        }
+
+        case NUM_ERROR: {
+            numUnsignedLong = 0;
+            break;
+        }
+    }
+
+    return numUnsignedLong;
 }
 
 void numPrint(const Number *num) {
