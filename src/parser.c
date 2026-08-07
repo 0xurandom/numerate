@@ -438,15 +438,14 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_OR: {
-                    // TODO
-                    // newNode = newBooleanNode(left || right);
+                    Number* result = numBitwiseOr(left, right);
+                    newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_BITWISE_AND: {
-                    // TODO: bitwise operators cannot be used with doubles
-                    // newNode = newLiteralNode(left )
-                    exit(1);
+                    Number* result = numNew(NUM_REAL);
+                    newNode = newLiteralNode(result);
                     break;
                 }
 

@@ -242,14 +242,14 @@ int numCompareSi(const Number *a, long b) {
         case NUM_COMPLEX: {
             Number *realA = numNew(NUM_REAL);
             mpc_abs(realA->real, a->complex, MPFR_RNDN);
-            result = mpfr_cmp_si(realA, b);
+            result = mpfr_cmp_si(realA->real, b);
             numFree(realA);
 
             return result;
         }
 
         case NUM_REAL: {
-            result = mpfr_cmp_si(a, b);
+            result = mpfr_cmp_si(a->real, b);
             return result;
         }
 
@@ -466,13 +466,13 @@ Number *numFact(const Number *num) {
             // TODO: this may be redundant if NUM_RATIONAL is
             // automatically promoted to NUM_REAL
 
-            if (numIsInteger(num) && numSgn(num) >= 0) {
+            if (numIsInteger(num) && numSgnSi(num) >= 0) {
                 mpz_t tempNumer;
                 mpz_init(tempNumer);
 
                 mpz_set(tempNumer, mpq_numref(num->rational));
 
-                if (!mpz_fits_ulong_p) {
+                if (!mpz_fits_ulong_p(mpq_numref(num->rational))) {
                     Number *result = numNew(NUM_ERROR);
 
                     char errorString[] = "Factorial is too large to compute";
@@ -712,7 +712,7 @@ static Number *SpougeApprox(const Number *num) {
     mpfr_inits2(PRECISION, tempAminusK, tempExpAminusK, tempKminushalf,
                 tempPowAminusK, (mpfr_ptr)NULL);
 
-    for (size_t k = 1; k < a; k++) {
+    for (int k = 1; k < a; k++) {
         mpfr_init2(c_k[k], PRECISION);
         mpfr_set_si(c_k[k], sign, MPFR_RNDN);
         mpfr_set_si(tempAminusK, a - k, MPFR_RNDN);
@@ -1622,6 +1622,7 @@ Number *numAbs(const Number *num) {
             return result;
         }
     }
+    return NULL;
 }
 
 Number *numPow(const Number *base, const Number *exp) {
@@ -1794,7 +1795,7 @@ Number *numPow(const Number *base, const Number *exp) {
     }
 
     // base is less than zero, result can be complex
-    if (numSgn(base) < 0) {
+    if (numSgnSi(base) < 0) {
         Number *complexBase = numConvertandSet(base, NUM_COMPLEX);
         Number *complexExp = numConvertandSet(exp, NUM_COMPLEX);
 
@@ -2072,6 +2073,86 @@ Number *numBitwiseOr(const Number *a, const Number *b) {
     return result;
 }
 
+// must be called from numShiftRight or numShiftLeft
+static Number *numShiftRightSi(const Number *num, unsigned long bits) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_div_2ui(result->complex, num->complex, bits, MPC_RNDNN);
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_div_2ui(result->real, num->real, bits, MPFR_RNDN);
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *result = numNew(NUM_RATIONAL);
+            mpq_div_2exp(result->rational, num->rational, bits);
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_t temp;
+            mpfr_init2(temp, PRECISION);
+
+            mpfr_set_ui(temp, num->boolean == 0 ? 0 : 1, MPFR_RNDN);
+            mpfr_div_2exp(result->real, temp, bits, MPFR_RNDN);
+
+            mpfr_clear(temp);
+            return result;
+        }
+
+        case NUM_ERROR: {
+            // NUM_ERROR does not reach this case
+            return NULL;
+        }
+    }
+}
+
+// must be called from numShiftRight or numShiftLeft
+static Number *numShiftLeftSi(const Number *num, unsigned long bits) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number *result = numNew(NUM_COMPLEX);
+            mpc_mul_2ui(result->complex, num->complex, bits, MPC_RNDNN);
+            return result;
+        }
+
+        case NUM_REAL: {
+            Number *result = numNew(NUM_REAL);
+            mpfr_mul_2ui(result->real, num->real, bits, MPC_RNDNN);
+            return result;
+        }
+
+        case NUM_RATIONAL: {
+            Number *result = numNew(NUM_RATIONAL);
+            mpq_mul_2exp(result->rational, num->rational, bits);
+            return result;
+        }
+
+        case NUM_BOOL: {
+            Number *result = numNew(NUM_BOOL);
+            mpfr_t temp;
+            mpfr_init2(temp, PRECISION);
+
+            mpfr_set_ui(temp, num->boolean == 0 ? 0 : 1, MPFR_RNDN);
+            mpfr_mul_2exp(result->real, temp, bits, MPFR_RNDN);
+
+            mpfr_clear(temp);
+            return result;
+        }
+
+        case NUM_ERROR: {
+            // NUM_ERROR does not reach this case
+            return NULL;
+        }
+    }
+}
+
 Number *numShiftRight(const Number *num, const Number *bits) {
     if (!numIsInteger(bits)) {
         Number *result = numNew(NUM_ERROR);
@@ -2093,6 +2174,7 @@ Number *numShiftRight(const Number *num, const Number *bits) {
         bitsUlong = numToUnsignedLong(bits);
     } else if (unsignedLongresult == 1) {
         // bit shift left
+        return numShiftLeftSi(num, bitsUlong);
     } else {
         Number *result = numNew(NUM_ERROR);
         // TODO: change LONG_MAX depending upon the system
@@ -2102,40 +2184,38 @@ Number *numShiftRight(const Number *num, const Number *bits) {
         return result;
     }
 
-    switch (num->kind) {
-        case NUM_COMPLEX: {
-            Number *result = numNew(NUM_COMPLEX);
-            mpc_div_2ui(result->complex, num->complex, bitsUlong, MPC_RNDNN);
-            return result;
-        }
+    return numShiftRightSi(num, bitsUlong);
+}
 
-        case NUM_REAL: {
-            Number *result = numNew(NUM_REAL);
-            mpfr_div_2ui(result->real, num->real, bitsUlong, MPFR_RNDN);
-            return result;
-        }
-
-        case NUM_RATIONAL: {
-            Number *result = numNew(NUM_RATIONAL);
-            mpq_div_2exp(result->rational, num->rational, bitsUlong);
-            return result;
-        }
-
-        case NUM_BOOL: {
-            Number *result = numNew(NUM_REAL);
-            mpfr_t temp;
-            mpfr_init2(temp, PRECISION);
-
-            mpfr_set_ui(temp, num->boolean == 0 ? 0 : 1, MPFR_RNDN);
-            mpfr_div_2exp(result->real, temp, bitsUlong, MPFR_RNDN);
-
-            mpfr_clear(temp);
-            return result;
-        }
-
-        case NUM_ERROR: {
-            // NUM_ERROR does not reach this case
-            return NULL;
-        }
+Number *numShiftLeft(const Number *num, const Number *bits) {
+    if (!numIsInteger(bits)) {
+        Number *result = numNew(NUM_ERROR);
+        char error[] = "Number of bits to be shifted must be an integer";
+        numSetError(result, error, strlen(error));
+        return result;
     }
+
+    if (num->kind == NUM_ERROR) {
+        Number *result = numNew(NUM_ERROR);
+        setStringView(&result->error, num->error.arr, num->error.length);
+        return result;
+    }
+
+    unsigned long bitsUlong = 0;
+    int unsignedLongresult = numCanBeUnsignedLong(bits);
+
+    if (unsignedLongresult == 0) {
+        bitsUlong = numToUnsignedLong(bits);
+    } else if (unsignedLongresult == 1) {
+        return numShiftRightSi(num, bitsUlong);
+    } else {
+        Number *result = numNew(NUM_ERROR);
+        // TODO: change LONG_MAX depending upon the system
+        char error[] =
+            "Maximum number of bits that can be shifted is ULONG_MAX";
+        numSetError(result, error, strlen(error));
+        return result;
+    }
+
+    return numShiftLeftSi(num, bitsUlong);
 }

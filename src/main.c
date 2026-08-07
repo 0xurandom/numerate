@@ -6,6 +6,8 @@
 #include "parser.h"
 #include "utils/hashmap_utils.h"
 #include "utils/lexer_utils.h"
+#include "utils/num_utils.h"
+#include "utils/parser_utils.h"
 #include "variable_store.h"
 
 #define INPUT_STRING_CAP 10
@@ -37,7 +39,7 @@ void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
     // TODO: change scanf to fgets
 
     scanf("%99[^\n]%*c", stringView.arr);
-    // lexString(stringView.arr);
-
+    lexString(stringView.arr);
+    numPrint(evaluateString(lexer, parser, stringView.arr));
     // printf("= %.3f\n\n", evaluateString(lexer, parser, stringView.arr));
 }

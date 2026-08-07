@@ -48,3 +48,7 @@ Number *numNpr(const Number *n, const Number *r);
 Number *numNcr(const Number *n, const Number *r);
 
 Number *numBitwiseAnd(const Number *a, const Number *b);
+Number *numBitwiseOr(const Number *a, const Number *b);
+
+Number *numShiftRight(const Number *num, const Number *bits);
+Number *numShiftLeft(const Number *num, const Number *bits);

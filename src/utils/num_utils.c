@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "num_ops.h"
+#include "set_utils.h"
 #include "string_view_utils.h"
 
 // TODO: check for functions using MPFR_RNDN instead of MPC_RNDNN
@@ -235,9 +236,9 @@ Number *numConvert(Number *num, NumberKind kind) {
 
                 case NUM_BOOL: {
                     if (numSgnSi(num) == 0)
-                        mpz_set_si(mpc_realref(result), 0);
+                        mpfr_set_si(mpc_realref(result), 0, MPFR_RNDN);
                     else
-                        mpz_set_si(mpc_realref(result), 1);
+                        mpfr_set_si(mpc_realref(result), 1, MPFR_RNDN);
 
                     break;
                 }
@@ -616,34 +617,39 @@ unsigned long numToUnsignedLong(const Number *num) {
 }
 
 void numPrint(const Number *num) {
+    if (num == NULL) {
+        printf("numPrint received a null pointer\n");
+        return;
+    }
+    printf("test\n");
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpfr_printf("%R + %Ri", mpc_realref(num->complex),
                         mpc_imagref(num->complex));
-            break;
+            return;
         }
 
         case NUM_REAL: {
             mpfr_printf("%R", num->real);
-            break;
+            return;
         }
 
         case NUM_RATIONAL: {
             mpfr_printf("%Z/%Z", mpq_numref(num->rational),
                         mpq_denref(num->rational));
-            break;
+            return;
         }
 
         case NUM_BOOL: {
             char trueString[] = "true";
             char falseString[] = "false";
             printf("%s", num->boolean ? trueString : falseString);
-            break;
+            return;
         }
 
         case NUM_ERROR: {
             printStringView(&num->error);
-            break;
+            return;
         }
     }
 }

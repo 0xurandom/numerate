@@ -96,6 +96,12 @@ Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
     parser->cur = tokenise(lexer);
 
     Node* tree = parse(parser, PREC_ASSIGNMENT);
+
+    if (tree == NULL) {
+        fprintf(stderr, "Error: parse function returned nullptr\n");
+        exit(1);
+    }
+
     Node* result = simplifyTree(parser, tree);
 
     Number* result_val = numNew(result->literal.value.kind);
