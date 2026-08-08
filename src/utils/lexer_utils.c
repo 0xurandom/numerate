@@ -151,6 +151,9 @@ void parseNum(Lexer* lexer, Token* token) {
         return;
     }
 
+    numInit(&token->num, NUM_REAL);
+    mpfr_set(token->num.real, num1, MPFR_RNDN);
+    lexer->cursor = endPtr - lexer->string;
     mpfr_clear(num1);
 }
 

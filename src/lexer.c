@@ -59,8 +59,9 @@ Token tokenise(Lexer* lexer) {
             }
 
             parseNum(lexer, &token);
-
-            // numPrint(&token.num);
+            if (token.kind == TOK_NUMBER) {
+                numPrint(&token.num);
+            }
 
             break;
         }

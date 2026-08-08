@@ -109,6 +109,10 @@ Node* parse(Parser* parser, Precedence precedence) {
 
     // while the next token has a higher precedence
     while (precedence <= getPrecedence(parser->cur.kind)) {
+        if (getPrecedence(parser->cur.kind) == PREC_NONE) {
+            break;
+        }
+
         // go to next token so the infix operator is prev
         nextToken(parser);
         Token op = parser->prev;
@@ -181,6 +185,7 @@ Node* parse(Parser* parser, Precedence precedence) {
             default: {
                 fprintf(stderr, "Unexpected postfix/infix token: %s\n",
                         lookupTokenKind(op.kind));
+                exit(1);
             }
         }
     }
