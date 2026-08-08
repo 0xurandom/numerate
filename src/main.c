@@ -40,6 +40,8 @@ void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
 
     scanf("%99[^\n]%*c", stringView.arr);
     lexString(stringView.arr);
-    numPrint(evaluateString(lexer, parser, stringView.arr));
+    Number *result = evaluateString(lexer, parser, stringView.arr);
+    numPrint(result);
+    numFree(result);
     // printf("= %.3f\n\n", evaluateString(lexer, parser, stringView.arr));
 }

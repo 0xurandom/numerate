@@ -14,6 +14,6 @@ void checkAllocation(void* ptr);
 double parseDec(Lexer* lexer);
 double parseHex(Lexer* lexer);
 double parseBin(Lexer* lexer);
-Number* parseNum(Lexer* lexer);
+void parseNum(Lexer* lexer, Token* token);
 int hexToInt(char c);
 char peekNext(Lexer* lexer);

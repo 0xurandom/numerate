@@ -483,7 +483,7 @@ Number *numFact(const Number *num) {
                     return result;
                 }
 
-                unsigned long numerLong = mpz_get_ui(tempNumer);
+                // unsigned long numerLong = mpz_get_ui(tempNumer);
                 mpz_clear(tempNumer);
             }
 
@@ -741,7 +741,7 @@ static Number *SpougeApprox(const Number *num) {
     mpc_init2(tempC_k, PRECISION);
     mpc_init2(tempZplusK, PRECISION);
 
-    for (size_t k = 1; k < a; k++) {
+    for (int k = 1; k < a; k++) {
         mpc_set_si_si(tempC_k, 0, 0, MPC_RNDNN);
         mpfr_set(mpc_realref(tempC_k), c_k[k], MPFR_RNDN);
 

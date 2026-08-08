@@ -58,8 +58,9 @@ Token tokenise(Lexer* lexer) {
                 // }
             }
 
-            token.num = *parseNum(lexer);
-            numPrint(&token.num);
+            parseNum(lexer, &token);
+
+            // numPrint(&token.num);
 
             break;
         }

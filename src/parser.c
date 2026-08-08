@@ -1,6 +1,5 @@
 #include "parser.h"
 
-#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -255,6 +254,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                         result = numSubfact(num);
 
                     } else if (node->unary.operand->kind == NODE_BOOLEAN) {
+                        result = numNew(NUM_BOOL);
                         Node* newNode = newBooleanNode(result);
 
                         result->boolean = (num->boolean == 0) ? 1 : 0;
@@ -450,50 +450,50 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_EQUALS_EQUALS: {
-                    Number* boolean = numNew(NUM_REAL);
-                    numSetRealSi(boolean, numCompare(left, right) == 0);
+                    Number* result = numNew(NUM_BOOL);
+                    result->boolean = (numCompare(left, right) == 0);
 
-                    newNode = newBooleanNode(boolean);
+                    newNode = newBooleanNode(result);
                     break;
                 }
 
                 case TOK_NOT_EQUALS: {
-                    Number* boolean = numNew(NUM_REAL);
-                    numSetRealSi(boolean, numCompare(left, right) != 0);
+                    Number* result = numNew(NUM_BOOL);
+                    result->boolean = (numCompare(left, right) != 0);
 
-                    newNode = newBooleanNode(boolean);
+                    newNode = newBooleanNode(result);
                     break;
                 }
 
                 case TOK_LESS: {
-                    Number* boolean = numNew(NUM_REAL);
-                    numSetRealSi(boolean, numCompare(left, right) < 0);
+                    Number* result = numNew(NUM_BOOL);
+                    result->boolean = (numCompare(left, right) < 0);
 
-                    newNode = newBooleanNode(boolean);
+                    newNode = newBooleanNode(result);
                     break;
                 }
 
                 case TOK_GREATER: {
-                    Number* boolean = numNew(NUM_REAL);
-                    numSetRealSi(boolean, numCompare(left, right) > 0);
+                    Number* result = numNew(NUM_BOOL);
+                    result->boolean = (numCompare(left, right) > 0);
 
-                    newNode = newBooleanNode(boolean);
+                    newNode = newBooleanNode(result);
                     break;
                 }
 
                 case TOK_LESS_EQUALS: {
-                    Number* boolean = numNew(NUM_REAL);
-                    numSetRealSi(boolean, numCompare(left, right) <= 0);
+                    Number* result = numNew(NUM_BOOL);
+                    result->boolean = (numCompare(left, right) <= 0);
 
-                    newNode = newBooleanNode(boolean);
+                    newNode = newBooleanNode(result);
                     break;
                 }
 
                 case TOK_GREATER_EQUALS: {
-                    Number* boolean = numNew(NUM_REAL);
-                    numSetRealSi(boolean, numCompare(left, right) >= 0);
+                    Number* result = numNew(NUM_BOOL);
+                    result->boolean = (numCompare(left, right) >= 0);
 
-                    newNode = newBooleanNode(boolean);
+                    newNode = newBooleanNode(result);
                     break;
                 }
 
@@ -582,6 +582,9 @@ Precedence getPrecedence(TokenKind kind) {
         case TOK_MINUS:
             return PREC_TERM;
 
+        case TOK_NUMBER:
+        case TOK_VAR:
+        case TOK_LPAREN:
         case TOK_RPAREN:
         case TOK_END:
             return PREC_NONE;

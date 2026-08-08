@@ -109,8 +109,6 @@ Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
 
     freeNode(result);
 
-    // result_val = round(result_val * 100.0) / 100.0;
-
     return result_val;
 }
 

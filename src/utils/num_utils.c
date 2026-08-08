@@ -45,12 +45,13 @@ void numInit(Number *num, NumberKind kind) {
             break;
         }
 
-        case NUM_ERROR: {
-            initStringView(&num->error);
+        case NUM_BOOL: {
+            num->boolean = 0;
             break;
         }
 
-        case NUM_BOOL: {
+        case NUM_ERROR: {
+            initStringView(&num->error);
             break;
         }
     }
@@ -621,34 +622,34 @@ void numPrint(const Number *num) {
         printf("numPrint received a null pointer\n");
         return;
     }
-    printf("test\n");
+
     switch (num->kind) {
         case NUM_COMPLEX: {
-            mpfr_printf("%R + %Ri", mpc_realref(num->complex),
+            mpfr_printf("%Rg + %Rgi\n", mpc_realref(num->complex),
                         mpc_imagref(num->complex));
             return;
         }
 
         case NUM_REAL: {
-            mpfr_printf("%R", num->real);
+            mpfr_printf("real: %Rg\n", num->real);
             return;
         }
 
         case NUM_RATIONAL: {
-            mpfr_printf("%Z/%Z", mpq_numref(num->rational),
-                        mpq_denref(num->rational));
+            mpfr_printf("%Qd\n", num->rational);
             return;
         }
 
         case NUM_BOOL: {
             char trueString[] = "true";
             char falseString[] = "false";
-            printf("%s", num->boolean ? trueString : falseString);
+            printf("%s\n", num->boolean ? trueString : falseString);
             return;
         }
 
         case NUM_ERROR: {
             printStringView(&num->error);
+            printf("\n");
             return;
         }
     }
