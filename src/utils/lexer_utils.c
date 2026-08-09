@@ -110,6 +110,10 @@ void parseNum(Lexer* lexer, Token* token) {
         exit(1);
     }
 
+    while (*endPtr == ' ') {
+        endPtr++;
+    }
+
     // is complex
     if (*endPtr == 'i' || *endPtr == 'I') {
         numInit(&token->num, NUM_COMPLEX);
@@ -118,12 +122,14 @@ void parseNum(Lexer* lexer, Token* token) {
         mpfr_set(mpc_imagref(token->num.complex), num1, MPFR_RNDN);
 
         mpfr_clear(num1);
+        lexer->cursor = endPtr - lexer->string + 1;
         return;
     }
 
     // is rational
     if (*endPtr == '/') {
-        char* denomEnd = endPtr++;
+        char* denomStart = endPtr + 1;
+        char* denomEnd = denomStart;
 
         while (isdigit(*denomEnd)) {
             denomEnd++;
@@ -147,7 +153,7 @@ void parseNum(Lexer* lexer, Token* token) {
         free(rationalStr);
         mpfr_clear(num1);
 
-        lexer->cursor = endPtr - lexer->string;
+        lexer->cursor = denomEnd - lexer->string;
         return;
     }
 

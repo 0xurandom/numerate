@@ -1,6 +1,7 @@
 #include "lexer.h"
 
 #include <ctype.h>
+#include <mpc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,11 +30,18 @@ Token tokenise(Lexer* lexer) {
             char* keyword = &lexer->string[start];
             size_t keyword_len = lexer->cursor - start;
 
-            token.kind = lookupKeyword(keyword, keyword_len);
+            // check for lone 'i's that dont start with a number
+            if (keyword_len == 1 && (keyword[0] == 'i' || keyword[0] == 'I')) {
+                numInit(&token.num, NUM_COMPLEX);
+                mpc_set_ui_ui(token.num.complex, 0, 1, MPC_RNDNN);
+                token.kind = TOK_NUMBER;
+            } else {
+                token.kind = lookupKeyword(keyword, keyword_len);
 
-            if (token.kind == TOK_VAR) {
-                StringView* view = newStringView(keyword, keyword_len);
-                token.ident = *view;
+                if (token.kind == TOK_VAR) {
+                    StringView* view = newStringView(keyword, keyword_len);
+                    token.ident = *view;
+                }
             }
 
             break;

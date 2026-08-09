@@ -134,7 +134,7 @@ void numSetError(Number *num, const char *errorString, size_t errorLength) {
 
 // inits x and sets x = src with NumberKind kind
 Number *numConvertandSet(const Number *src, NumberKind kind) {
-    Number *num = numNew(src->kind);
+    Number *num = numNew(kind);
 
     if (src->kind == kind) {
         numSet(num, src);
@@ -143,7 +143,7 @@ Number *numConvertandSet(const Number *src, NumberKind kind) {
         Number *temp = numNew(src->kind);
         numSet(temp, src);
 
-        numConvert(temp, kind);
+        temp = numConvert(temp, kind);
 
         numSet(num, temp);
 
@@ -219,6 +219,7 @@ Number *numConvert(Number *num, NumberKind kind) {
         case NUM_COMPLEX: {
             mpc_t result;
             mpc_init2(result, PRECISION);
+            mpfr_set_ui(mpc_imagref(result), 0, MPFR_RNDN);
 
             switch (num->kind) {
                 case NUM_COMPLEX:
@@ -323,6 +324,10 @@ Number *numConvert(Number *num, NumberKind kind) {
         case NUM_ERROR: {
             return num;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -356,7 +361,7 @@ bool numIsInteger(const Number *num) {
 
             mpq_get_den(tempDeno, num->rational);
 
-            int result = (mpz_cmp_ui(tempDeno, 1));
+            int result = (mpz_cmp_ui(tempDeno, 1) == 0);
 
             mpz_clear(tempDeno);
 
@@ -369,6 +374,10 @@ bool numIsInteger(const Number *num) {
 
         case NUM_ERROR: {
             return false;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -416,7 +425,7 @@ bool numCanBeLong(const Number *num) {
 
         case NUM_REAL: {
             if (mpfr_cmp_si(num->real, LONG_MAX) > 0 ||
-                mpfr_cmp_si(num->real, LONG_MAX) < 0)
+                mpfr_cmp_si(num->real, LONG_MIN) < 0)
                 return false;
             else
                 return true;
@@ -483,6 +492,10 @@ int numCanBeUnsignedLong(const Number *num) {
         case NUM_ERROR: {
             return -1;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -500,9 +513,8 @@ bool numCompCanBeReal(const Number *num) {
         return false;
 }
 
-// TODO: check if this is necessary
-// and return converted Number
 // needs a rational number as input
+// and result to be a NUM_REAL from newNew
 bool numRatCanBeReal(const Number *num, Number *result) {
     if (num->kind != NUM_RATIONAL) {
         fprintf(stderr,
@@ -515,15 +527,16 @@ bool numRatCanBeReal(const Number *num, Number *result) {
     mpq_set(tempRat, num->rational);
 
     mpq_canonicalize(tempRat);
-    bool canBeReal;
+    bool canBeReal = (mpz_cmp_ui(mpq_denref(tempRat), 1) == 0);
 
-    if (mpz_cmp_ui(mpq_denref(tempRat), 0)) {
-        canBeReal = true;
-        result->kind = NUM_REAL;
+    if (canBeReal) {
+        if (result->kind != NUM_REAL) {
+            fprintf(stderr,
+                    "Error: numRatCanBeReal received a non real number\n");
+            exit(1);
+        }
+
         mpfr_set_z(result->real, mpq_numref(tempRat), MPFR_RNDN);
-    } else {
-        canBeReal = false;
-        result = NULL;
     }
 
     mpq_clear(tempRat);
@@ -625,7 +638,7 @@ void numPrint(const Number *num) {
 
     switch (num->kind) {
         case NUM_COMPLEX: {
-            mpfr_printf("%Rg + %Rgi\n", mpc_realref(num->complex),
+            mpfr_printf("complex: %Rg + %Rgi\n", mpc_realref(num->complex),
                         mpc_imagref(num->complex));
             return;
         }
@@ -636,7 +649,8 @@ void numPrint(const Number *num) {
         }
 
         case NUM_RATIONAL: {
-            mpfr_printf("%Qd\n", num->rational);
+            gmp_printf("rational: %Zd/%Zd\n", mpq_numref(num->rational),
+                       mpq_denref(num->rational));
             return;
         }
 
@@ -683,4 +697,6 @@ void numFree(Number *num) {
             break;
         }
     }
+
+    free(num);
 }

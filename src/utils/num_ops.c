@@ -197,7 +197,7 @@ int numCompare(const Number *a, const Number *b) {
             Number *tempBmagnitude = numNew(NUM_REAL);
 
             mpc_abs(tempAmagnitude->real, tempA->complex, MPFR_RNDN);
-            mpc_abs(tempBmagnitude->real, tempA->complex, MPFR_RNDN);
+            mpc_abs(tempBmagnitude->real, tempB->complex, MPFR_RNDN);
 
             result = mpfr_cmp(tempAmagnitude->real, tempBmagnitude->real);
 
@@ -276,6 +276,10 @@ int numCompareSi(const Number *a, long b) {
             fprintf(stderr, "Error: numCompareSi received a NUM_ERROR\n");
             exit(1);
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -315,6 +319,10 @@ Number *numNeg(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -365,6 +373,10 @@ Number *numFloor(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -417,6 +429,10 @@ Number *numCeil(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -504,6 +520,10 @@ Number *numFact(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -670,6 +690,10 @@ Number *numGamma(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -876,6 +900,10 @@ Number *numSin(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -916,6 +944,10 @@ Number *numSinh(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -958,6 +990,10 @@ Number *numCos(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -999,6 +1035,10 @@ Number *numCosh(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1012,7 +1052,7 @@ Number *numTan(const Number *num) {
         }
 
         case NUM_REAL: {
-            Number *result = numNew(NUM_COMPLEX);
+            Number *result = numNew(NUM_REAL);
             mpfr_tan(result->real, num->real, MPFR_RNDN);
 
             return result;
@@ -1039,6 +1079,10 @@ Number *numTan(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -1081,6 +1125,10 @@ Number *numTanh(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1095,6 +1143,7 @@ Number *numCosec(const Number *num) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Cosec is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_COMPLEX);
@@ -1113,6 +1162,7 @@ Number *numCosec(const Number *num) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Cosec is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_REAL);
@@ -1144,6 +1194,10 @@ Number *numCosec(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1154,12 +1208,13 @@ Number *numCosech(const Number *num) {
             mpc_init2(tempSinh, PRECISION);
             mpc_sinh(tempSinh, num->complex, MPC_RNDNN);
 
-            if (mpc_cmp_si_si(tempSinh, 0, 0)) {
+            if (mpc_cmp_si_si(tempSinh, 0, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Cosech is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
-            Number *result = numNew(NUM_REAL);
+            Number *result = numNew(NUM_COMPLEX);
             mpc_ui_div(result->complex, 1, tempSinh, MPC_RNDNN);
             mpc_clear(tempSinh);
 
@@ -1171,10 +1226,11 @@ Number *numCosech(const Number *num) {
             mpfr_init2(tempSinh, PRECISION);
             mpfr_sinh(tempSinh, num->real, MPFR_RNDN);
 
-            if (mpfr_cmp_si(tempSinh, 0)) {
+            if (mpfr_cmp_si(tempSinh, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Cosec is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_REAL);
@@ -1206,6 +1262,10 @@ Number *numCosech(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1216,10 +1276,11 @@ Number *numSec(const Number *num) {
             mpc_init2(tempCos, PRECISION);
             mpc_cos(tempCos, num->complex, MPC_RNDNN);
 
-            if (mpc_cmp_si_si(tempCos, 0, 0)) {
+            if (mpc_cmp_si_si(tempCos, 0, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Sec is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_COMPLEX);
@@ -1234,10 +1295,11 @@ Number *numSec(const Number *num) {
             mpfr_init2(tempCos, PRECISION);
             mpfr_cos(tempCos, num->real, MPFR_RNDN);
 
-            if (mpfr_cmp_si(tempCos, 0)) {
+            if (mpfr_cmp_si(tempCos, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Sec is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_REAL);
@@ -1269,6 +1331,10 @@ Number *numSec(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1279,10 +1345,11 @@ Number *numSech(const Number *num) {
             mpc_init2(tempCosh, PRECISION);
             mpc_cosh(tempCosh, num->complex, MPC_RNDNN);
 
-            if (mpc_cmp_si_si(tempCosh, 0, 0)) {
+            if (mpc_cmp_si_si(tempCosh, 0, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Sech is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_COMPLEX);
@@ -1297,13 +1364,14 @@ Number *numSech(const Number *num) {
             mpfr_init2(tempCosh, PRECISION);
             mpfr_cosh(tempCosh, num->real, MPFR_RNDN);
 
-            if (mpfr_cmp_si(tempCosh, 0)) {
+            if (mpfr_cmp_si(tempCosh, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Sech is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
-            Number *result = numNew(NUM_RATIONAL);
+            Number *result = numNew(NUM_REAL);
             mpfr_ui_div(result->real, 1, tempCosh, MPFR_RNDN);
             mpfr_clear(tempCosh);
 
@@ -1332,6 +1400,10 @@ Number *numSech(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1342,15 +1414,16 @@ Number *numCot(const Number *num) {
             mpc_init2(tempTan, PRECISION);
             mpc_tan(tempTan, num->complex, MPC_RNDNN);
 
-            if (mpc_cmp_si_si(tempTan, 0, 0)) {
+            if (mpc_cmp_si_si(tempTan, 0, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Cot is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_COMPLEX);
             mpc_ui_div(result->complex, 1, tempTan, MPC_RNDNN);
-
+            mpc_clear(tempTan);
             return result;
         }
 
@@ -1359,15 +1432,16 @@ Number *numCot(const Number *num) {
             mpfr_init2(tempTan, PRECISION);
             mpfr_tan(tempTan, num->real, MPFR_RNDN);
 
-            if (mpfr_cmp_si(tempTan, 0)) {
+            if (mpfr_cmp_si(tempTan, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Cot is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_REAL);
             mpfr_ui_div(result->real, 1, tempTan, MPFR_RNDN);
-
+            mpfr_clear(tempTan);
             return result;
         }
 
@@ -1392,6 +1466,10 @@ Number *numCot(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -1403,15 +1481,16 @@ Number *numCoth(const Number *num) {
             mpc_init2(tempTanh, PRECISION);
             mpc_tanh(tempTanh, num->complex, MPC_RNDNN);
 
-            if (mpc_cmp_si_si(tempTanh, 0, 0)) {
+            if (mpc_cmp_si_si(tempTanh, 0, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Coth is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_COMPLEX);
             mpc_ui_div(result->complex, 1, tempTanh, MPC_RNDNN);
-
+            mpc_clear(tempTanh);
             return result;
         }
 
@@ -1420,15 +1499,16 @@ Number *numCoth(const Number *num) {
             mpfr_init2(tempTanh, PRECISION);
             mpfr_tanh(tempTanh, num->real, MPFR_RNDN);
 
-            if (mpfr_cmp_si(tempTanh, 0)) {
+            if (mpfr_cmp_si(tempTanh, 0) == 0) {
                 Number *result = numNew(NUM_ERROR);
                 char error[] = "Coth is undefined for this value";
                 numSetError(result, error, strlen(error));
+                return result;
             }
 
             Number *result = numNew(NUM_REAL);
             mpfr_ui_div(result->real, 1, tempTanh, MPFR_RNDN);
-
+            mpfr_clear(tempTanh);
             return result;
         }
 
@@ -1453,6 +1533,10 @@ Number *numCoth(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -1484,6 +1568,10 @@ int numSgnSi(const Number *num) {
         case NUM_ERROR: {
             fprintf(stderr, "Warning numSgnSi returning 0 for NUM_ERROR\n");
             return 0;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -1540,6 +1628,10 @@ Number *numSgn(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1581,6 +1673,10 @@ bool numIsUnity(const Number *num) {
         case NUM_ERROR: {
             return false;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1621,8 +1717,11 @@ Number *numAbs(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
-    return NULL;
 }
 
 Number *numPow(const Number *base, const Number *exp) {
@@ -1859,6 +1958,10 @@ Number *numExp(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1909,6 +2012,10 @@ Number *numLn(const Number *num) {
 
             return result;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -1958,6 +2065,10 @@ Number *numLog(const Number *num) {
             numSet(result, num);
 
             return result;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
@@ -2110,6 +2221,10 @@ static Number *numShiftRightSi(const Number *num, unsigned long bits) {
             // NUM_ERROR does not reach this case
             return NULL;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 
@@ -2149,6 +2264,10 @@ static Number *numShiftLeftSi(const Number *num, unsigned long bits) {
         case NUM_ERROR: {
             // NUM_ERROR does not reach this case
             return NULL;
+        }
+
+        default: {
+            exit(1);
         }
     }
 }
