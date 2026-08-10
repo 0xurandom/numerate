@@ -17,6 +17,5 @@ void getMatrixTranspose(Matrix *matrix, Matrix *result);
 Number *getDeterminant(Matrix *matrix);
 Matrix *getMinorMatrix(Matrix *matrix, unsigned short row,
                        unsigned short column);
-void getCofactor(Matrix *matrix, unsigned short row, unsigned short column,
-                 Matrix *result);
+Matrix *getCofactor(Matrix *matrix, unsigned short row, unsigned short column);
 void freeMatrix(Matrix *matrix);

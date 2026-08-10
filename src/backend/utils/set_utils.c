@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "num_ops.h"
+#include "num_utils.h"
+
 #define DEFAULT_SET_CAP 10
 
 Set *newSet() {
@@ -18,7 +21,7 @@ Set *newSet() {
     }
 
     for (size_t i = 0; i < set->capacity; i++) {
-        mpfr_init_set_d(set->elements[i], (double)0, MPFR_RNDN);
+        numInit(&set->elements[i], NUM_REAL);
     }
 
     set->count = 0;
@@ -43,9 +46,9 @@ Set *allocateSet(unsigned long mem) {
     return set;
 }
 
-bool isElement(Set *set, mpfr_t val) { return binarySearch(set, val, NULL); }
+bool isElement(Set *set, Number *val) { return binarySearch(set, val, NULL); }
 
-void insertElement(Set *set, mpfr_t val) {
+void insertElement(Set *set, Number *val) {
     size_t index;
 
     if (binarySearch(set, val, &index)) return;
@@ -55,16 +58,15 @@ void insertElement(Set *set, mpfr_t val) {
     }
 
     for (size_t i = 0; i < index; i++) {
-        mpfr_set(set->elements[set->count - i + 1],
-                 set->elements[set->count - i], MPFR_RNDN);
+        numSet(&set->elements[set->capacity - i + 1],
+               &set->elements[set->capacity - i]);
     }
-
-    mpfr_set(set->elements[index], val, MPFR_RNDN);
+    numSet(&set->elements[index], val);
 }
 
 // returns true if element was successfully removed,
 // false if element was not in the set
-bool removeElement(Set *set, mpfr_t val) {
+bool removeElement(Set *set, Number *val) {
     size_t index;
 
     bool valExists = binarySearch(set, val, &index);
@@ -72,7 +74,7 @@ bool removeElement(Set *set, mpfr_t val) {
     if (valExists == false) return false;
 
     for (size_t i = index; i < set->count - 1; i++) {
-        mpfr_set(set->elements[i], set->elements[i + 1], MPFR_RNDN);
+        numSet(&set->elements[i], &set->elements[i + 1]);
     }
 
     set->count--;
@@ -89,16 +91,17 @@ Set *getUnion(Set *set1, Set *set2) {
     size_t j = 0;
 
     while (i < set1->count && j < set2->count) {
-        if (set1->elements[i] < set2->elements[j]) {
-            appendToSet(result, set1->elements[i]);
+        int compResult = numCompare(&set1->elements[i], &set2->elements[i]);
+        if (compResult == -1) {
+            appendToSet(result, &set1->elements[i]);
             i++;
 
-        } else if (set1->elements[i] > set2->elements[i]) {
-            appendToSet(result, set2->elements[i]);
+        } else if (compResult == 1) {
+            appendToSet(result, &set2->elements[i]);
             j++;
 
         } else {
-            appendToSet(result, set1->elements[i]);
+            appendToSet(result, &set1->elements[i]);
             i++;
             j++;
         }
@@ -116,14 +119,15 @@ Set *getIntersection(Set *set1, Set *set2) {
     size_t j = 0;
 
     while (i < set1->count && j < set2->count) {
-        if (set1->elements[i] < set2->elements[j]) {
+        int compResult = numCompare(&set1->elements[i], &set2->elements[i]);
+        if (compResult == -1) {
             i++;
 
-        } else if (set1->elements[i] > set2->elements[j]) {
+        } else if (compResult == 1) {
             j++;
 
         } else {
-            appendToSet(result, set1->elements[i]);
+            appendToSet(result, &set1->elements[i]);
 
             i++;
             j++;
@@ -140,9 +144,12 @@ bool isSubset(Set *subset, Set *superset) {
     size_t j = 0;
 
     while (i < subset->count && j < superset->count) {
-        if (subset->elements[i] < superset->elements[j]) {
+        int compResult =
+            numCompare(&subset->elements[i], &superset->elements[j]);
+
+        if (compResult == -1) {
             return false;
-        } else if (subset->elements[i] > superset->elements[j]) {
+        } else if (compResult == 1) {
             j++;
         } else {
             i++;
@@ -166,12 +173,13 @@ Set *getSymmetricDifference(Set *set1, Set *set2) {
     size_t j = 0;
 
     while (i < set1->count && j < set2->count) {
-        if (set1->elements[i] < set2->elements[j]) {
-            appendToSet(result, set1->elements[i]);
+        int compResult = numCompare(&set1->elements[i], &set2->elements[j]);
+        if (compResult == -1) {
+            appendToSet(result, &set1->elements[i]);
             i++;
 
-        } else if (set1->elements[i] > set2->elements[j]) {
-            appendToSet(result, set2->elements[j]);
+        } else if (compResult == 1) {
+            appendToSet(result, &set2->elements[j]);
             j++;
 
         } else {
@@ -181,12 +189,12 @@ Set *getSymmetricDifference(Set *set1, Set *set2) {
     }
 
     while (i < set1->count) {
-        appendToSet(result, set1->elements[i]);
+        appendToSet(result, &set1->elements[i]);
         i++;
     }
 
     while (j < set2->count) {
-        appendToSet(result, set2->elements[j]);
+        appendToSet(result, &set2->elements[j]);
         j++;
     }
 
@@ -202,11 +210,12 @@ Set *subtractSets(Set *set1, Set *set2) {
     size_t j = 0;
 
     while (i < set1->count && j < set2->count) {
-        if (set1->elements[i] < set2->elements[j]) {
-            appendToSet(result, set1->elements[i]);
+        int compResult = numCompare(&set1->elements[i], &set2->elements[j]);
+        if (compResult == -1) {
+            appendToSet(result, &set1->elements[i]);
             i++;
 
-        } else if (set1->elements[i] > set2->elements[i]) {
+        } else if (compResult == 1) {
             j++;
 
         } else {
@@ -220,29 +229,28 @@ Set *subtractSets(Set *set1, Set *set2) {
 
 // only use if it is known that the
 // element will be added to the end
-void appendToSet(Set *set, mpfr_t element) {
+void appendToSet(Set *set, Number *element) {
     // TODO: check capacity
-
-    mpfr_set(set->elements[set->count], element, MPFR_RNDN);
+    numSet(&set->elements[set->count], element);
     set->count++;
 }
 
 // returns true is val is found
 // and sets result to index where it is/should be
-bool binarySearch(Set *set, mpfr_t val, size_t *result) {
+bool binarySearch(Set *set, Number *val, size_t *result) {
     size_t low = 0;
     size_t high = set->count - 1;
 
     while (low <= high) {
         int mid = low + (high - low) / 2;
 
-        if (mpfr_cmp(set->elements[mid], val) == 0) {
+        if (numCompare(&set->elements[mid], val) == 0) {
             *result = mid;
 
             return true;
         }
 
-        if (mpfr_cmp(set->elements[mid], val) < 0)
+        if (numCompare(&set->elements[mid], val) < 0)
             low = mid + 1;
         else
             high = mid - 1;
@@ -265,7 +273,7 @@ void reallocSet(Set *set) {
 
 void freeSet(Set *set) {
     for (size_t i = 0; i < set->capacity; i++) {
-        mpfr_clear(set->elements[i]);
+        numFree(&set->elements[i]);
     }
 
     free(set->elements);

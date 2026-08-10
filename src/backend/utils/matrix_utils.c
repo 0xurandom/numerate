@@ -7,6 +7,12 @@
 #include "num_ops.h"
 #include "num_utils.h"
 
+Matrix *newMatrix(unsigned short rows, unsigned short columns) {
+    Matrix *matrix = malloc(sizeof(Matrix));
+    initMatrix(matrix, rows, columns);
+    return matrix;
+}
+
 void initMatrix(Matrix *matrix, unsigned short rows, unsigned short columns) {
     if (rows == 0 || columns == 0) {
         fprintf(stderr, "Error: Cannot allocate matrix with order 0\n");
@@ -121,8 +127,31 @@ Number *getDeterminant(Matrix *matrix) {
 Matrix *getMinorMatrix(Matrix *matrix, unsigned short row,
                        unsigned short column) {}
 
-void getCofactor(Matrix *matrix, unsigned short row, unsigned short column,
-                 Matrix *result) {}
+Matrix *getCofactor(Matrix *matrix, unsigned short row, unsigned short column) {
+
+}
+
+Matrix *getSubmatrix(Matrix *matrix, unsigned short row,
+                     unsigned short column) {
+    Matrix *subMat = newMatrix(matrix->rows - 1, matrix->columns - 1);
+
+    int subI = 0;
+    for (int i = 0; i < matrix->columns; i++) {
+        if (i == row) continue;
+        int subJ = 0;
+
+        for (int j = 0; j < matrix->columns; j++) {
+            if (j == column) continue;
+
+            numSet(&subMat->arr[subI][subJ], &matrix->arr[i][j]);
+
+            subJ++;
+        }
+        subI++;
+    }
+
+    return subMat;
+}
 
 void freeMatrix(Matrix *matrix) {
     for (size_t i = 0; i < matrix->columns; i++) {
