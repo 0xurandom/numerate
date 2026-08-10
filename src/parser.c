@@ -542,6 +542,10 @@ Node* simplifyTree(Parser* parser, Node* node) {
             freeNode(node);
             return newNode;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 

@@ -448,6 +448,10 @@ bool numCanBeLong(const Number *num) {
         case NUM_ERROR: {
             return false;
         }
+
+        default: {
+            exit(1);
+        }
     }
 }
 

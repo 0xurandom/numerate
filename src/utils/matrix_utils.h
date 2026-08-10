@@ -1,9 +1,11 @@
 #pragma once
 
+#include "num_utils.h"
+
 typedef struct {
     unsigned short rows;
     unsigned short columns;
-    double **arr;
+    Number **arr;
 } Matrix;
 
 void initMatrix(Matrix *matrix, unsigned short rows, unsigned short columns);
@@ -12,9 +14,9 @@ int addMatrices(Matrix *mat1, Matrix *mat2, Matrix *result);
 int subtractMatrices(Matrix *mat1, Matrix *mat2, Matrix *result);
 int multiplyMatrices(Matrix *mat1, Matrix *mat2, Matrix *result);
 void getMatrixTranspose(Matrix *matrix, Matrix *result);
-double getDeterminant(Matrix *matrix);
-void getMinorMatrix(Matrix *matrix, unsigned short row, unsigned short column,
-                    Matrix *result);
+Number *getDeterminant(Matrix *matrix);
+Matrix *getMinorMatrix(Matrix *matrix, unsigned short row,
+                       unsigned short column);
 void getCofactor(Matrix *matrix, unsigned short row, unsigned short column,
                  Matrix *result);
 void freeMatrix(Matrix *matrix);

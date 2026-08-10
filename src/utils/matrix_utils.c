@@ -2,6 +2,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "num_ops.h"
+#include "num_utils.h"
 
 void initMatrix(Matrix *matrix, unsigned short rows, unsigned short columns) {
     if (rows == 0 || columns == 0) {
@@ -9,12 +13,16 @@ void initMatrix(Matrix *matrix, unsigned short rows, unsigned short columns) {
         exit(1);
     }
 
-    // TODO: set an upper limit for matrix dimensions
+    matrix->rows = rows;
+    matrix->columns = columns;
 
-    matrix->arr = malloc(rows * sizeof(double *));
+    matrix->arr = malloc(rows * sizeof(Number *));
 
     for (size_t i = 0; i < columns; i++) {
-        matrix->arr[i] = malloc(sizeof(double));
+        matrix->arr[i] = malloc(sizeof(Number));
+        for (size_t j = 0; j < columns; j++) {
+            numInit(&matrix->arr[i][j], NUM_REAL);
+        }
     }
 }
 
@@ -24,9 +32,9 @@ void initIdentityMatrix(Matrix *matrix, unsigned short order) {
     for (size_t i = 0; i < matrix->rows; i++) {
         for (size_t j = 0; j < matrix->columns; j++) {
             if (i == j)
-                matrix->arr[i][j] = 1;
+                numSetRealSi(&matrix->arr[i][j], 1);
             else
-                matrix->arr[i][j] = 0;
+                numSetRealSi(&matrix->arr[i][j], 0);
         }
     }
 }
@@ -40,7 +48,10 @@ int addMatrices(Matrix *mat1, Matrix *mat2, Matrix *result) {
 
     for (size_t i = 0; i < result->rows; i++) {
         for (size_t j = 0; j < result->columns; j++) {
-            result->arr[i][j] = mat1->arr[i][j] + mat2->arr[i][j];
+            Number *tempResult = numAdd(&mat1->arr[i][j], &mat2->arr[i][j]);
+            result->arr[i][j].kind = tempResult->kind;
+            numSet(&result->arr[i][j], tempResult);
+            numFree(tempResult);
         }
     }
 
@@ -55,7 +66,11 @@ int subtractMatrices(Matrix *mat1, Matrix *mat2, Matrix *result) {
 
     for (size_t i = 0; i < result->rows; i++) {
         for (size_t j = 0; j < result->columns; j++) {
-            result->arr[i][j] = mat1->arr[i][j] - mat2->arr[i][j];
+            Number *tempResult =
+                numSubtract(&mat1->arr[i][j], &mat2->arr[i][j]);
+            result->arr[i][j].kind = tempResult->kind;
+            numSet(&result->arr[i][j], tempResult);
+            numFree(tempResult);
         }
     }
 
@@ -74,6 +89,7 @@ int multiplyMatrices(Matrix *mat1, Matrix *mat2, Matrix *result) {
             // TODO
             for (size_t k = 0; k < mat1->columns; k++) {
                 // multiply ith row and jth col
+
                 sum += mat1->arr[i][k] * mat2->arr[k][j];
             }
             result->arr[i][j] = sum;
@@ -93,12 +109,17 @@ void getMatrixTranspose(Matrix *matrix, Matrix *result) {
     }
 }
 
-double getDeterminant(Matrix *matrix) {}
-
-void getMinorMatrix(Matrix *matrix, unsigned short row, unsigned short column,
-                    Matrix *result) {
-    initMatrix(result, row - 1, column - 1);
+Number *getDeterminant(Matrix *matrix) {
+    if (matrix->rows != matrix->columns) {
+        Number *result = numNew(NUM_ERROR);
+        char error[] = "Determinant is undefined for non square matrices";
+        numSetError(result, error, strlen(error));
+        return result;
+    }
 }
+
+Matrix *getMinorMatrix(Matrix *matrix, unsigned short row,
+                       unsigned short column) {}
 
 void getCofactor(Matrix *matrix, unsigned short row, unsigned short column,
                  Matrix *result) {}
