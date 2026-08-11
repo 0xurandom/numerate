@@ -14,7 +14,7 @@
 
 // inits out to the required kind
 // preferably use NUM_BOOL
-void numAddInto(const Number* a, const Number* b, Number* out) {
+void numAddInto(Number* out, const Number* a, const Number* b) {
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
     Number* tempA = numConvertandSet(a, promotedKind);
@@ -60,11 +60,11 @@ void numAddInto(const Number* a, const Number* b, Number* out) {
 // inits a number and sets it to the sum
 Number* numAdd(const Number* a, const Number* b) {
     Number* result = numNew(NUM_BOOL);
-    numAddInto(a, b, result);
+    numAddInto(result, a, b);
     return result;
 }
 
-void numSubtractInto(const Number* a, const Number* b, Number* out) {
+void numSubtractInto(Number* out, const Number* a, const Number* b) {
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
     Number* tempA = numConvertandSet(a, promotedKind);
@@ -109,11 +109,11 @@ void numSubtractInto(const Number* a, const Number* b, Number* out) {
 
 Number* numSubtract(const Number* a, const Number* b) {
     Number* result = numNew(NUM_BOOL);
-    numSubtractInto(a, b, result);
+    numSubtractInto(result, a, b);
     return result;
 }
 
-void numMultiplyInto(const Number* a, const Number* b, Number* out) {
+void numMultiplyInto(Number* out, const Number* a, const Number* b) {
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
     Number* tempA = numConvertandSet(a, promotedKind);
@@ -158,11 +158,11 @@ void numMultiplyInto(const Number* a, const Number* b, Number* out) {
 
 Number* numMultiply(const Number* a, const Number* b) {
     Number* result = numNew(NUM_BOOL);
-    numMultiplyInto(a, b, result);
+    numMultiplyInto(result, a, b);
     return result;
 }
 
-void numDivideInto(const Number* a, const Number* b, Number* out) {
+void numDivideInto(Number* out, const Number* a, const Number* b) {
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
     Number* tempA = numConvertandSet(a, promotedKind);
@@ -207,7 +207,7 @@ void numDivideInto(const Number* a, const Number* b, Number* out) {
 
 Number* numDivide(const Number* a, const Number* b) {
     Number* result = numNew(NUM_BOOL);
-    numDivideInto(a, b, result);
+    numDivideInto(result, a, b);
     return result;
 }
 
@@ -313,7 +313,7 @@ int numCompareSi(const Number* a, long b) {
     }
 }
 
-void numNegInto(const Number* num, Number* out) {
+void numNegInto(Number* out, const Number* num) {
     numClear(out);
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -359,11 +359,11 @@ void numNegInto(const Number* num, Number* out) {
 
 Number* numNeg(const Number* num) {
     Number* result = numNew(NUM_BOOL);
-    numNegInto(num, result);
+    numNegInto(result, num);
     return result;
 }
 
-void numFloorInto(const Number* num, Number* out) {
+void numFloorInto(Number* out, const Number* num) {
     numClear(out);
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -421,11 +421,11 @@ void numFloorInto(const Number* num, Number* out) {
 
 Number* numFloor(const Number* num) {
     Number* result = numNew(NUM_BOOL);
-    numFloorInto(num, result);
+    numFloorInto(result, num);
     return result;
 }
 
-void numCeilInto(const Number* num, Number* out) {
+void numCeilInto(Number* out, const Number* num) {
     numClear(out);
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -482,7 +482,7 @@ void numCeilInto(const Number* num, Number* out) {
 
 Number* numCeil(const Number* num) {
     Number* result = numNew(NUM_BOOL);
-    numCeilInto(num, result);
+    numCeilInto(result, num);
     return result;
 }
 
@@ -577,7 +577,7 @@ Number* numFact(const Number* num) {
     }
 }
 
-void numSubfactInto(const Number* num, Number* out) {
+void numSubfactInto(Number* out, const Number* num) {
     numClear(out);
 
     if (num->kind == NUM_ERROR) {
@@ -697,11 +697,11 @@ void numSubfactInto(const Number* num, Number* out) {
 
 Number* numSubfact(const Number* num) {
     Number* result = numNew(NUM_BOOL);
-    numSubfactInto(num, result);
+    numSubfactInto(result, num);
     return result;
 }
 
-void numGammaInto(const Number* num, Number* out) {
+void numGammaInto(Number* out, const Number* num) {
     numClear(out);
     if (numSgnSi(num) == 0) {
         numInit(out, NUM_ERROR);
@@ -755,7 +755,11 @@ void numGammaInto(const Number* num, Number* out) {
     }
 }
 
-Number* numGamma(const Number* num) {}
+Number* numGamma(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numGammaInto(result, num);
+    return result;
+}
 
 static Number* complexGamma(const Number* num) {
     if (num->kind != NUM_COMPLEX) {
@@ -2122,42 +2126,111 @@ Number* numPow(const Number* base, const Number* exp) {
     return result;
 }
 
-Number* numExp(const Number* num) {
+void numExpInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_exp(result->complex, num->complex, MPC_RNDNN);
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_exp(out->complex, num->complex, MPC_RNDNN);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_exp(result->real, num->real, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_exp(out->real, num->real, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numExp(realNum);
+            numExpInto(out, realNum);
             numFree(realNum);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_set_ui(result->real, (num->boolean == 0) ? 1 : M_E, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_set_ui(out->real, (num->boolean == 0) ? 1 : M_E, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
+        }
+
+        default: {
+            exit(1);
+        }
+    }
+}
+
+Number* numExp(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numExpInto(result, num);
+    return result;
+}
+
+void numLnInto(Number* out, const Number* num) {
+    if (numSgnSi(num) == 0) {
+        numClear(out);
+        numInit(out, NUM_ERROR);
+
+        char error[] = "Log is undefined for 0";
+        numSetError(out, error, strlen(error));
+
+        return out;
+    }
+
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_log(out->complex, num->complex, MPC_RNDNN);
+
+            return;
+        }
+
+        case NUM_REAL: {
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_log(out->real, num->real, MPFR_RNDN);
+
+            return;
+        }
+
+        case NUM_RATIONAL: {
+            Number* realNum = numConvertandSet(num, NUM_REAL);
+            numLnInto(out, realNum);
+            numFree(realNum);
+
+            return;
+        }
+
+        case NUM_BOOL: {
+            // a bool == 0 will not reach this case
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_set_si(out->real, 0, MPFR_RNDN);
+
+            return;
+        }
+
+        case NUM_ERROR: {
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
+
+            return;
         }
 
         default: {
@@ -2167,51 +2240,62 @@ Number* numExp(const Number* num) {
 }
 
 Number* numLn(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numLnInto(result, num);
+    return result;
+}
+
+void numLogInto(Number* out, const Number* num) {
     if (numSgnSi(num) == 0) {
-        Number* num = numNew(NUM_ERROR);
+        numClear(out);
+        numInit(out, NUM_ERROR);
 
         char error[] = "Log is undefined for 0";
-        numSetError(num, error, strlen(error));
+        numSetError(out, error, strlen(error));
 
-        return num;
+        return;
     }
 
     switch (num->kind) {
         case NUM_COMPLEX: {
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_log(result->complex, num->complex, MPC_RNDNN);
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_log10(out->complex, num->complex, MPC_RNDNN);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_log(result->real, num->real, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_log10(out->real, num->real, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numLn(realNum);
+            numLogInto(out, realNum);
             numFree(realNum);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
             // a bool == 0 will not reach this case
-            Number* result = numNew(NUM_REAL);
-            mpfr_set_si(result->real, 0, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_set_ui(out->real, 0, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return out;
         }
 
         default: {
@@ -2221,60 +2305,12 @@ Number* numLn(const Number* num) {
 }
 
 Number* numLog(const Number* num) {
-    if (numSgnSi(num) == 0) {
-        Number* num = numNew(NUM_ERROR);
-
-        char error[] = "Log is undefined for 0";
-        numSetError(num, error, strlen(error));
-
-        return num;
-    }
-
-    switch (num->kind) {
-        case NUM_COMPLEX: {
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_log10(result->complex, num->complex, MPC_RNDNN);
-
-            return result;
-        }
-
-        case NUM_REAL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_log10(result->real, num->real, MPFR_RNDN);
-
-            return result;
-        }
-
-        case NUM_RATIONAL: {
-            Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numLog(realNum);
-            numFree(realNum);
-
-            return result;
-        }
-
-        case NUM_BOOL: {
-            // a bool == 0 will not reach this case
-            Number* result = numNew(NUM_REAL);
-            mpfr_set_ui(result->real, 0, MPFR_RNDN);
-
-            return result;
-        }
-
-        case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
-
-            return result;
-        }
-
-        default: {
-            exit(1);
-        }
-    }
+    Number* result = numNew(NUM_BOOL);
+    numLogInto(result, num);
+    return result;
 }
 
-Number* numNpr(const Number* n, const Number* r) {
+void numNprInto(Number* out, const Number* n, const Number* r) {
     // TODO: fact is undefined for complex nums
     if (n->kind == NUM_COMPLEX || r->kind == NUM_COMPLEX) {
     }
@@ -2291,15 +2327,21 @@ Number* numNpr(const Number* n, const Number* r) {
     numFree(realN);
     numFree(nMinusR);
 
-    Number* result = numDivide(nFact, nMinusrFact);
+    numDivideInto(out, nFact, nMinusrFact);
 
     numFree(nFact);
     numFree(nMinusrFact);
 
+    return;
+}
+
+Number* numNpr(const Number* n, const Number* r) {
+    Number* result = numNew(NUM_BOOL);
+    numNprInto(result, n, r);
     return result;
 }
 
-Number* numNcr(const Number* n, const Number* r) {
+void numNcrInto(Number* out, const Number* n, const Number* r) {
     // TODO: fact is undefined for complex nums
     if (n->kind == NUM_COMPLEX || r->kind == NUM_COMPLEX) {
     }
@@ -2317,25 +2359,32 @@ Number* numNcr(const Number* n, const Number* r) {
     numFree(nMinusR);
 
     Number* denom = numMultiply(rFact, nMinusrFact);
-    Number* result = numDivide(nFact, denom);
+    numDivideInto(out, nFact, denom);
 
     numFree(nFact);
     numFree(rFact);
     numFree(nMinusrFact);
     numFree(denom);
 
+    return;
+}
+
+Number* numNcr(const Number* n, const Number* r) {
+    Number* result = numNew(NUM_BOOL);
+    numNcrInto(result, n, r);
     return result;
 }
 
-Number* numBitwiseAnd(const Number* a, const Number* b) {
+void numBitwiseAndInto(Number* out, const Number* a, const Number* b) {
+    numClear(out);
     // numIsInteger returns false for NUM_COMPLEX
     // with complex parts
     if (!(numIsInteger(a)) || !(numIsInteger(b))) {
-        Number* result = numNew(NUM_ERROR);
+        numInit(out, NUM_ERROR);
         char error[] = "'Bitwise and' is undefined for non integers";
-        numSetError(result, error, strlen(error));
+        numSetError(out, error, strlen(error));
 
-        return result;
+        return;
     }
 
     mpz_t intA;
@@ -2349,21 +2398,28 @@ Number* numBitwiseAnd(const Number* a, const Number* b) {
 
     mpz_and(resultInt, intA, intB);
 
-    Number* result = numNew(NUM_REAL);
-    mpfr_set_z(result->real, resultInt, MPFR_RNDN);
+    numInit(out, NUM_REAL);
+    mpfr_set_z(out->real, resultInt, MPFR_RNDN);
 
     mpz_clears(intA, intB, resultInt, (mpz_srcptr)NULL);
 
+    return;
+}
+
+Number* numBitwiseAnd(const Number* a, const Number* b) {
+    Number* result = numNew(NUM_BOOL);
+    numBitwiseAndInto(result, a, b);
     return result;
 }
 
-Number* numBitwiseOr(const Number* a, const Number* b) {
+void numBitwiseOrInto(Number* out, const Number* a, const Number* b) {
+    numClear(out);
     if (!(numIsInteger(a)) || !(numIsInteger(b))) {
-        Number* result = numNew(NUM_ERROR);
+        numInit(out, NUM_ERROR);
         char error[] = "'Bitwise or' is undefined for non integers";
-        numSetError(result, error, strlen(error));
+        numSetError(out, error, strlen(error));
 
-        return result;
+        return;
     }
 
     mpz_t intA;
@@ -2377,45 +2433,104 @@ Number* numBitwiseOr(const Number* a, const Number* b) {
 
     mpz_ior(resultInt, intA, intB);
 
-    Number* result = numNew(NUM_REAL);
-    mpfr_set_z(result->real, resultInt, MPFR_RNDN);
+    numInit(out, NUM_REAL);
+    mpfr_set_z(out->real, resultInt, MPFR_RNDN);
 
     mpz_clears(intA, intB, resultInt, (mpz_srcptr)NULL);
 
+    return;
+}
+
+Number* numBitwiseOr(const Number* a, const Number* b) {
+    Number* result = numNew(NUM_BOOL);
+    numBitwiseOrInto(result, a, b);
     return result;
 }
 
-// must be called from numShiftRight or numShiftLeft
-static Number* numShiftRightSi(const Number* num, unsigned long bits) {
+static void numShiftRightSiInto(Number* out, const Number* num,
+                                unsigned long bits) {
+    numClear(out);
     switch (num->kind) {
         case NUM_COMPLEX: {
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_div_2ui(result->complex, num->complex, bits, MPC_RNDNN);
-            return result;
+            numInit(out, NUM_COMPLEX);
+            mpc_div_2ui(out->complex, num->complex, bits, MPC_RNDNN);
+            return;
         }
 
         case NUM_REAL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_div_2ui(result->real, num->real, bits, MPFR_RNDN);
-            return result;
+            numInit(NUM_REAL);
+            mpfr_div_2ui(out->real, num->real, bits, MPFR_RNDN);
+            return;
         }
 
         case NUM_RATIONAL: {
-            Number* result = numNew(NUM_RATIONAL);
-            mpq_div_2exp(result->rational, num->rational, bits);
-            return result;
+            numInit(NUM_RATIONAL);
+            mpq_div_2exp(out->rational, num->rational, bits);
+            return;
         }
 
         case NUM_BOOL: {
-            Number* result = numNew(NUM_REAL);
+            numInit(out, NUM_REAL);
             mpfr_t temp;
             mpfr_init2(temp, PRECISION);
 
             mpfr_set_ui(temp, num->boolean == 0 ? 0 : 1, MPFR_RNDN);
-            mpfr_div_2exp(result->real, temp, bits, MPFR_RNDN);
+            mpfr_div_2exp(out->real, temp, bits, MPFR_RNDN);
 
             mpfr_clear(temp);
-            return result;
+            return;
+        }
+
+        case NUM_ERROR: {
+            // NUM_ERROR does not reach this case
+            return NULL;
+        }
+
+        default: {
+            exit(1);
+        }
+    }
+}
+
+// must be called from numShiftRight or numShiftLeft
+static Number* numShiftRightSi(const Number* num, unsigned long bits) {
+    Number* result = numNew(NUM_BOOL);
+    numShiftRightSiInto(result, num, bits);
+    return result;
+}
+
+static void numShiftLeftSiInto(Number* out, const Number* num,
+                               unsigned long bits) {
+    numClear(out);
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            numInit(out, NUM_COMPLEX);
+            mpc_mul_2ui(out->complex, num->complex, bits, MPC_RNDNN);
+            return;
+        }
+
+        case NUM_REAL: {
+            numInit(out, NUM_REAL);
+            mpfr_mul_2ui(out->real, num->real, bits, MPC_RNDNN);
+            return;
+        }
+
+        case NUM_RATIONAL: {
+            numInit(out, NUM_RATIONAL);
+            mpq_mul_2exp(out->rational, num->rational, bits);
+            return;
+        }
+
+        case NUM_BOOL: {
+            numInit(out, NUM_BOOL);
+            mpfr_t temp;
+            mpfr_init2(temp, PRECISION);
+
+            mpfr_set_ui(temp, num->boolean == 0 ? 0 : 1, MPFR_RNDN);
+            mpfr_mul_2exp(out->real, temp, bits, MPFR_RNDN);
+
+            mpfr_clear(temp);
+            return;
         }
 
         case NUM_ERROR: {
@@ -2431,60 +2546,24 @@ static Number* numShiftRightSi(const Number* num, unsigned long bits) {
 
 // must be called from numShiftRight or numShiftLeft
 static Number* numShiftLeftSi(const Number* num, unsigned long bits) {
-    switch (num->kind) {
-        case NUM_COMPLEX: {
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_mul_2ui(result->complex, num->complex, bits, MPC_RNDNN);
-            return result;
-        }
-
-        case NUM_REAL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_mul_2ui(result->real, num->real, bits, MPC_RNDNN);
-            return result;
-        }
-
-        case NUM_RATIONAL: {
-            Number* result = numNew(NUM_RATIONAL);
-            mpq_mul_2exp(result->rational, num->rational, bits);
-            return result;
-        }
-
-        case NUM_BOOL: {
-            Number* result = numNew(NUM_BOOL);
-            mpfr_t temp;
-            mpfr_init2(temp, PRECISION);
-
-            mpfr_set_ui(temp, num->boolean == 0 ? 0 : 1, MPFR_RNDN);
-            mpfr_mul_2exp(result->real, temp, bits, MPFR_RNDN);
-
-            mpfr_clear(temp);
-            return result;
-        }
-
-        case NUM_ERROR: {
-            // NUM_ERROR does not reach this case
-            return NULL;
-        }
-
-        default: {
-            exit(1);
-        }
-    }
+    Number* result = numNew(NUM_BOOL);
+    numShiftLeftSiInto(result, num, bits);
+    return result;
 }
 
-Number* numShiftRight(const Number* num, const Number* bits) {
+void numShiftRightInto(Number* out, const Number* num, const Number* bits) {
+    numClear(out);
     if (!numIsInteger(bits)) {
-        Number* result = numNew(NUM_ERROR);
+        numInit(out, NUM_ERROR);
         char error[] = "Number of bits to be shifted must be an integer";
-        numSetError(result, error, strlen(error));
-        return result;
+        numSetError(out, error, strlen(error));
+        return;
     }
 
     if (num->kind == NUM_ERROR) {
-        Number* result = numNew(NUM_ERROR);
-        setStringView(&result->error, num->error.arr, num->error.length);
-        return result;
+        numInit(out, NUM_ERROR);
+        setStringView(&out->error, num->error.arr, num->error.length);
+        return;
     }
 
     unsigned long bitsUlong = 0;
@@ -2494,31 +2573,40 @@ Number* numShiftRight(const Number* num, const Number* bits) {
         bitsUlong = numToUnsignedLong(bits);
     } else if (unsignedLongresult == 1) {
         // bit shift left
-        return numShiftLeftSi(num, bitsUlong);
+        numShiftLeftSiInto(out, num, bitsUlong);
+        return;
     } else {
-        Number* result = numNew(NUM_ERROR);
+        numInit(out, NUM_ERROR);
         // TODO: change LONG_MAX depending upon the system
         char error[] =
             "Maximum number of bits that can be shifted is ULONG_MAX";
-        numSetError(result, error, strlen(error));
-        return result;
+        numSetError(out, error, strlen(error));
+        return;
     }
 
-    return numShiftRightSi(num, bitsUlong);
+    numShiftRightSiInto(out, num, bitsUlong);
+    return;
 }
 
-Number* numShiftLeft(const Number* num, const Number* bits) {
+Number* numShiftRight(const Number* num, const Number* bits) {
+    Number* result = numNew(NUM_BOOL);
+    numShiftRightInto(result, num, bits);
+    return result;
+}
+
+void numShiftLeftInto(Number* out, const Number* num, const Number* bits) {
+    numClear(out);
     if (!numIsInteger(bits)) {
-        Number* result = numNew(NUM_ERROR);
+        numInit(out, NUM_ERROR);
         char error[] = "Number of bits to be shifted must be an integer";
-        numSetError(result, error, strlen(error));
-        return result;
+        numSetError(out, error, strlen(error));
+        return;
     }
 
     if (num->kind == NUM_ERROR) {
-        Number* result = numNew(NUM_ERROR);
-        setStringView(&result->error, num->error.arr, num->error.length);
-        return result;
+        numInit(out, NUM_ERROR);
+        setStringView(&out->error, num->error.arr, num->error.length);
+        return;
     }
 
     unsigned long bitsUlong = 0;
@@ -2527,15 +2615,23 @@ Number* numShiftLeft(const Number* num, const Number* bits) {
     if (unsignedLongresult == 0) {
         bitsUlong = numToUnsignedLong(bits);
     } else if (unsignedLongresult == 1) {
-        return numShiftRightSi(num, bitsUlong);
+        numShiftRightSiInto(out, num, bitsUlong);
+        return;
     } else {
-        Number* result = numNew(NUM_ERROR);
+        numInit(out, NUM_ERROR);
         // TODO: change LONG_MAX depending upon the system
         char error[] =
             "Maximum number of bits that can be shifted is ULONG_MAX";
-        numSetError(result, error, strlen(error));
-        return result;
+        numSetError(out, error, strlen(error));
+        return;
     }
 
-    return numShiftLeftSi(num, bitsUlong);
+    numShiftLeftSiInto(out, num, bitsUlong);
+    return;
+}
+
+Number* numShiftLeft(const Number* num, const Number* bits) {
+    Number* result = numNew(NUM_BOOL);
+    numShiftLeftSiInto(result, num, bits);
+    return result;
 }
