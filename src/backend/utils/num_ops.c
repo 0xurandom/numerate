@@ -1326,7 +1326,7 @@ Number* numCosec(const Number* num) {
     return result;
 }
 
-Number* numCosech(const Number* num) {
+void numCosechInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpc_t tempSinh;
@@ -1339,11 +1339,12 @@ Number* numCosech(const Number* num) {
                 numSetError(result, error, strlen(error));
                 return result;
             }
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_ui_div(result->complex, 1, tempSinh, MPC_RNDNN);
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_ui_div(out->complex, 1, tempSinh, MPC_RNDNN);
             mpc_clear(tempSinh);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
@@ -1357,35 +1358,36 @@ Number* numCosech(const Number* num) {
                 numSetError(result, error, strlen(error));
                 return result;
             }
-
-            Number* result = numNew(NUM_REAL);
-            mpfr_ui_div(result->real, 1, tempSinh, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_ui_div(out->real, 1, tempSinh, MPFR_RNDN);
             mpfr_clear(tempSinh);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numCosech(realNum);
+            numCosechInto(out, realNum);
             numFree(realNum);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numCosech(realNum);
-
+            numCosechInto(out, realNum);
             numFree(realNum);
-            return result;
+
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
         }
 
         default: {
@@ -1394,7 +1396,13 @@ Number* numCosech(const Number* num) {
     }
 }
 
-Number* numSec(const Number* num) {
+Number* numCosech(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numCosechInto(result, num);
+    return result;
+}
+
+void numSecInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpc_t tempCos;
@@ -1408,11 +1416,12 @@ Number* numSec(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_ui_div(result->complex, 1, tempCos, MPC_RNDNN);
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_ui_div(out->complex, 1, tempCos, MPC_RNDNN);
             mpc_clear(tempCos);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
@@ -1427,34 +1436,36 @@ Number* numSec(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_REAL);
-            mpfr_ui_div(result->real, 1, tempCos, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_ui_div(out->real, 1, tempCos, MPFR_RNDN);
             mpfr_clear(tempCos);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numSec(realNum);
+            numSecInto(out, realNum);
             numFree(realNum);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numSec(realNum);
+            numSecInto(out, realNum);
 
             numFree(realNum);
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
         }
 
         default: {
@@ -1463,7 +1474,13 @@ Number* numSec(const Number* num) {
     }
 }
 
-Number* numSech(const Number* num) {
+Number* numSec(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numSecInto(result, num);
+    return result;
+}
+
+void numSechInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpc_t tempCosh;
@@ -1477,11 +1494,12 @@ Number* numSech(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_ui_div(result->complex, 1, tempCosh, MPC_RNDNN);
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_ui_div(out->complex, 1, tempCosh, MPC_RNDNN);
             mpc_clear(tempCosh);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
@@ -1496,34 +1514,36 @@ Number* numSech(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_REAL);
-            mpfr_ui_div(result->real, 1, tempCosh, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_ui_div(out->real, 1, tempCosh, MPFR_RNDN);
             mpfr_clear(tempCosh);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numSech(realNum);
+            numSechInto(out, realNum);
             numFree(realNum);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numSech(realNum);
+            numSechInto(out, realNum);
 
             numFree(realNum);
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
         }
 
         default: {
@@ -1532,7 +1552,13 @@ Number* numSech(const Number* num) {
     }
 }
 
-Number* numCot(const Number* num) {
+Number* numSech(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numSechInto(result, num);
+    return result;
+}
+
+void numCotInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpc_t tempTan;
@@ -1546,10 +1572,12 @@ Number* numCot(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_ui_div(result->complex, 1, tempTan, MPC_RNDNN);
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_ui_div(out->complex, 1, tempTan, MPC_RNDNN);
             mpc_clear(tempTan);
-            return result;
+
+            return;
         }
 
         case NUM_REAL: {
@@ -1564,33 +1592,36 @@ Number* numCot(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_REAL);
-            mpfr_ui_div(result->real, 1, tempTan, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_ui_div(out->real, 1, tempTan, MPFR_RNDN);
             mpfr_clear(tempTan);
-            return result;
+
+            return;
         }
 
         case NUM_RATIONAL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numCot(realNum);
+            numCotInto(out, realNum);
             numFree(realNum);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numCot(realNum);
-
+            numCotInto(out, realNum);
             numFree(realNum);
-            return result;
+
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
         }
 
         default: {
@@ -1599,7 +1630,13 @@ Number* numCot(const Number* num) {
     }
 }
 
-Number* numCoth(const Number* num) {
+Number* numCot(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numCotInto(result, num);
+    return result;
+}
+
+void numCothInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpc_t tempTanh;
@@ -1613,10 +1650,11 @@ Number* numCoth(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_COMPLEX);
-            mpc_ui_div(result->complex, 1, tempTanh, MPC_RNDNN);
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_ui_div(out->complex, 1, tempTanh, MPC_RNDNN);
             mpc_clear(tempTanh);
-            return result;
+            return;
         }
 
         case NUM_REAL: {
@@ -1631,39 +1669,47 @@ Number* numCoth(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_REAL);
-            mpfr_ui_div(result->real, 1, tempTanh, MPFR_RNDN);
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_ui_div(out->real, 1, tempTanh, MPFR_RNDN);
             mpfr_clear(tempTanh);
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numCoth(realNum);
+            numCothInto(out, realNum);
             numFree(realNum);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
             Number* realNum = numConvertandSet(num, NUM_REAL);
-            Number* result = numCoth(realNum);
-
+            numCothInto(out, realNum);
             numFree(realNum);
-            return result;
+
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
         }
 
         default: {
             exit(1);
         }
     }
+}
+
+Number* numCoth(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numCothInto(result, num);
+    return result;
 }
 
 int numSgnSi(const Number* num) {
@@ -1701,7 +1747,9 @@ int numSgnSi(const Number* num) {
     }
 }
 
-Number* numSgn(const Number* num) {
+void numSgnInto(Number* out, const Number* num) {
+    numClear(out);
+
     switch (num->kind) {
         case NUM_COMPLEX: {
             if (mpc_cmp_si_si(num->complex, 0, 0) == 0) {
@@ -1711,53 +1759,59 @@ Number* numSgn(const Number* num) {
                 return result;
             }
 
-            Number* result = numNew(NUM_COMPLEX);
+            numInit(out, NUM_COMPLEX);
 
             mpfr_t tempMagnitude;
             mpfr_init2(tempMagnitude, PRECISION);
 
             mpc_abs(tempMagnitude, num->complex, MPFR_RNDN);
-            mpc_div_fr(result->complex, num->complex, tempMagnitude, MPC_RNDNN);
+            mpc_div_fr(out->complex, num->complex, tempMagnitude, MPC_RNDNN);
 
             mpfr_clear(tempMagnitude);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
-            Number* result = numNew(NUM_REAL);
+            numInit(out, NUM_REAL);
             int sgnInt = mpfr_sgn(num->real);
-            mpfr_set_ui(result->real, sgnInt, MPFR_RNDN);
+            mpfr_set_ui(out->real, sgnInt, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
-            Number* result = numNew(NUM_REAL);
+            numInit(out, NUM_REAL);
             int sgnInt = mpq_sgn(num->rational);
-            mpfr_set_ui(result->real, sgnInt, MPFR_RNDN);
+            mpfr_set_ui(out->real, sgnInt, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_set_ui(result->real, (num->boolean == 0) ? 0 : 1, MPFR_RNDN);
+            numInit(out, NUM_REAL);
+            mpfr_set_ui(out->real, (num->boolean == 0) ? 0 : 1, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
         }
 
         default: {
             exit(1);
         }
     }
+}
+
+Number* numSgn(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numSgnInto(result, num);
+    return result;
 }
 
 // checks if real part of num is 1
@@ -1805,42 +1859,42 @@ bool numIsUnity(const Number* num) {
     }
 }
 
-// returns modulus of complex num
-// and abs for others
-Number* numAbs(const Number* num) {
+void numAbsInto(Number* out, const Number* num) {
+    numClear(out);
     switch (num->kind) {
         case NUM_COMPLEX: {
-            Number* result = numNew(NUM_REAL);
-            mpc_abs(result->real, num->complex, MPFR_RNDN);
+            numInit(out, NUM_REAL);
+            mpc_abs(out->real, num->complex, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
-            Number* result = numNew(NUM_REAL);
-            mpfr_abs(result->real, num->real, MPFR_RNDN);
+            numInit(out, NUM_REAL);
+            mpfr_abs(out->real, num->real, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
-            Number* result = numNew(NUM_RATIONAL);
-            mpq_abs(result->rational, num->rational);
+            numInit(out, NUM_RATIONAL);
+            mpq_abs(out->rational, num->rational);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
-            Number* result = numConvertandSet(num, NUM_REAL);
+            numInit(out, NUM_REAL);
+            numSetRealSi(out, (num->boolean == 0 ? 0 : 1));
 
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
-            Number* result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
         }
 
         default: {
@@ -1849,12 +1903,21 @@ Number* numAbs(const Number* num) {
     }
 }
 
-Number* numPow(const Number* base, const Number* exp) {
-    if (base->kind == NUM_ERROR || exp->kind == NUM_ERROR) {
-        Number* result = numNew(NUM_ERROR);
-        numSet(result, (base->kind == NUM_ERROR) ? base : exp);
+// returns modulus of complex num
+// and abs for others
+Number* numAbs(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numAbsInto(result, num);
+    return result;
+}
 
-        return result;
+void numPowInto(Number* out, const Number* base, const Number* exp) {
+    if (base->kind == NUM_ERROR || exp->kind == NUM_ERROR) {
+        numClear(out);
+        numInit(out, NUM_ERROR);
+        numSet(out, (base->kind == NUM_ERROR) ? base : exp);
+
+        return;
     }
 
     if (base->kind == NUM_BOOL || exp->kind == NUM_BOOL) {
@@ -1863,26 +1926,27 @@ Number* numPow(const Number* base, const Number* exp) {
         Number* promotedBase = numConvertandSet(base, promotedKind);
         Number* promotedExp = numConvertandSet(exp, promotedKind);
 
-        Number* result = numPow(promotedBase, promotedExp);
+        numPowInto(out, promotedBase, promotedExp);
 
         numFree(promotedBase);
         numFree(promotedExp);
 
-        return result;
+        return;
     }
 
     // exp is an integer, keep base's kind the same
     if (numIsInteger(exp)) {
         // TODO: add exception to fllowing error for zero, one and inf
         if (!numCanBeLong(exp)) {
-            Number* result = numNew(NUM_ERROR);
+            numClear(out);
+            numInit(out, NUM_ERROR);
 
             char errorString[] = "Exponent is too long to compute";
             size_t errorLength = strlen(errorString);
 
-            numSetError(result, errorString, errorLength);
+            numSetError(out, errorString, errorLength);
 
-            return result;
+            return;
         }
 
         long expLong = numToLong(exp);
@@ -1890,53 +1954,56 @@ Number* numPow(const Number* base, const Number* exp) {
         switch (base->kind) {
             case NUM_COMPLEX: {
                 if (mpc_cmp_si(base->complex, 0) == 0 && expLong < 0) {
-                    Number* result = numNew(NUM_ERROR);
+                    numClear(out);
+                    numInit(out, NUM_ERROR);
 
                     char errorString[] = "Cannot raise zero to a -ve power";
                     size_t errorLength = strlen(errorString);
 
-                    numSetError(result, errorString, errorLength);
+                    numSetError(out, errorString, errorLength);
 
-                    return result;
+                    return;
                 }
+                numClear(out);
+                numInit(out, NUM_COMPLEX);
+                mpc_pow_si(out->complex, base->complex, expLong, MPC_RNDNN);
 
-                Number* result = numNew(NUM_COMPLEX);
-                mpc_pow_si(result->complex, base->complex, expLong, MPC_RNDNN);
-
-                return result;
+                return;
             }
 
             case NUM_REAL: {
                 if (mpfr_zero_p(base->real) && expLong < 0) {
-                    Number* result = numNew(NUM_ERROR);
+                    numClear(out);
+                    numInit(out, NUM_ERROR);
 
                     char errorString[] = "Cannot raise zero to a -ve power";
                     size_t errorLength = strlen(errorString);
 
-                    numSetError(result, errorString, errorLength);
+                    numSetError(out, errorString, errorLength);
 
-                    return result;
+                    return;
                 }
+                numClear(out);
+                numInit(out, NUM_REAL);
+                mpfr_pow_si(out->real, base->real, expLong, MPFR_RNDN);
 
-                Number* result = numNew(NUM_REAL);
-                mpfr_pow_si(result->real, base->real, expLong, MPFR_RNDN);
-
-                return result;
+                return;
             }
 
             case NUM_RATIONAL: {
                 if (mpq_sgn(base->rational) == 0 && expLong < 0) {
-                    Number* result = numNew(NUM_ERROR);
+                    numClear(out);
+                    numInit(out, NUM_ERROR);
 
                     char errorString[] = "Cannot raise zero to a -ve power";
                     size_t errorLength = strlen(errorString);
 
-                    numSetError(result, errorString, errorLength);
+                    numSetError(out, errorString, errorLength);
 
-                    return result;
+                    return;
                 }
-
-                Number* result = numNew(NUM_RATIONAL);
+                numClear(out);
+                numInit(out, NUM_RATIONAL);
 
                 if (expLong >= 0) {
                     mpz_t numer, denom;
@@ -1946,10 +2013,10 @@ Number* numPow(const Number* base, const Number* exp) {
                     mpz_pow_ui(numer, mpq_numref(base->rational), expLong);
                     mpz_pow_ui(denom, mpq_denref(base->rational), expLong);
 
-                    mpq_set_num(result->rational, numer);
-                    mpq_set_den(result->rational, denom);
+                    mpq_set_num(out->rational, numer);
+                    mpq_set_den(out->rational, denom);
 
-                    mpq_canonicalize(result->rational);
+                    mpq_canonicalize(out->rational);
 
                     mpz_clear(numer);
                     mpz_clear(denom);
@@ -1978,10 +2045,10 @@ Number* numPow(const Number* base, const Number* exp) {
                     mpz_pow_ui(numer, mpq_numref(invertedNum), -expLong);
                     mpz_pow_ui(denom, mpq_denref(invertedNum), -expLong);
 
-                    mpq_set_num(result->rational, numer);
-                    mpq_set_den(result->rational, denom);
+                    mpq_set_num(out->rational, numer);
+                    mpq_set_den(out->rational, denom);
 
-                    mpq_canonicalize(result->rational);
+                    mpq_canonicalize(out->rational);
 
                     mpz_clear(numer);
                     mpz_clear(denom);
@@ -1989,19 +2056,19 @@ Number* numPow(const Number* base, const Number* exp) {
                     mpq_clear(invertedNum);
                 }
 
-                return result;
+                return;
             }
 
             case NUM_BOOL: {
                 // a num of kind NUM_ERROR will
                 //  not reach this case block
-                return NULL;
+                return;
             }
 
             case NUM_ERROR: {
                 // a num of kind NUM_ERROR will
                 //  not reach this case block
-                return NULL;
+                return;
             }
         }
     }
@@ -2009,13 +2076,14 @@ Number* numPow(const Number* base, const Number* exp) {
     // base is complex, result will be complex
     if (base->kind == NUM_COMPLEX) {
         Number* complexExp = numConvertandSet(exp, NUM_COMPLEX);
-        Number* result = numNew(NUM_COMPLEX);
+        numClear(out);
+        numInit(out, NUM_COMPLEX);
 
-        mpc_pow(result->complex, base->complex, complexExp->complex, MPC_RNDNN);
+        mpc_pow(out->complex, base->complex, complexExp->complex, MPC_RNDNN);
 
         numFree(complexExp);
 
-        return result;
+        return;
     }
 
     // base is less than zero, result can be complex
@@ -2023,27 +2091,35 @@ Number* numPow(const Number* base, const Number* exp) {
         Number* complexBase = numConvertandSet(base, NUM_COMPLEX);
         Number* complexExp = numConvertandSet(exp, NUM_COMPLEX);
 
-        Number* result = numNew(NUM_COMPLEX);
+        numClear(out);
+        numInit(out, NUM_COMPLEX);
 
-        mpc_pow(result->complex, complexBase->complex, complexExp->complex,
+        mpc_pow(out->complex, complexBase->complex, complexExp->complex,
                 MPC_RNDNN);
 
         numFree(complexBase);
         numFree(complexExp);
 
-        return result;
+        return;
     } else {
         Number* realBase = numConvertandSet(base, NUM_REAL);
         Number* realExp = numConvertandSet(exp, NUM_REAL);
 
-        Number* result = numNew(NUM_REAL);
+        numClear(out);
+        numInit(out, NUM_REAL);
 
-        mpfr_pow(result->real, realBase->real, realExp->real, MPFR_RNDN);
+        mpfr_pow(out->real, realBase->real, realExp->real, MPFR_RNDN);
 
         numFree(realBase);
         numFree(realExp);
-        return result;
+        return;
     }
+}
+
+Number* numPow(const Number* base, const Number* exp) {
+    Number* result = numNew(NUM_BOOL);
+    numPowInto(result, base, exp);
+    return result;
 }
 
 Number* numExp(const Number* num) {
