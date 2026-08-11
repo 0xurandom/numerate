@@ -57,6 +57,10 @@ void numInit(Number *num, NumberKind kind) {
     }
 }
 
+void numSetKind(Number *num, NumberKind kind) {
+    
+}
+
 // expects dest to be from numNew and for dest
 // to have the same NumberKind as src
 void numSet(Number *dest, const Number *src) {
@@ -670,6 +674,38 @@ void numPrint(const Number *num) {
             printf("\n");
             return;
         }
+    }
+}
+
+// clears the kind inside the number
+// but not the number itself
+void numClear(Number *num) {
+    switch (num->kind){
+    case NUM_COMPLEX:
+        mpc_clear(num->complex);
+        break;
+
+    case NUM_REAL: {
+        mpfr_clear(num->real);
+        break;
+    }
+
+    case NUM_RATIONAL:{
+        mpq_clear(num->rational);
+        break;
+    }
+
+    case NUM_BOOL:{
+        break;
+    }
+
+    case NUM_ERROR: {
+        freeStringView(&num->error);
+        break;
+    }
+    
+    default:
+        break;
     }
 }
 

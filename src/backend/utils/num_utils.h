@@ -59,4 +59,5 @@ unsigned long numToUnsignedLong(const Number *num);
 
 void numPrint(const Number *num);
 
+void numClear(Number *num);
 void numFree(Number *num);

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "frontend",
+  "productName": "numerate",
   "version": "0.1.0",
   "identifier": "com.github.u0xurandom.numerate",
   "build": {
@@ -12,9 +12,10 @@
   "app": {
     "windows": [
       {
-        "title": "frontend",
+        "title": "Numerate",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "decorations": true
       }
     ],
     "security": {

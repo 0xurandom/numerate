@@ -12,28 +12,30 @@
 #include "num_utils.h"
 #include "string_view_utils.h"
 
-// inits a number and sets it to the sum
-Number *numAdd(const Number *a, const Number *b) {
+// inits out to the required kind
+// preferably use NUM_BOOL
+void numAddInto(const Number *a, const Number* b, Number *out) {
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
     Number *tempA = numConvertandSet(a, promotedKind);
     Number *tempB = numConvertandSet(b, promotedKind);
 
-    Number *result = numNew(promotedKind);
+    numClear(out);
+    numInit(out, promotedKind);
 
     switch (promotedKind) {
         case NUM_COMPLEX: {
-            mpc_add(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            mpc_add(out->complex, tempA->complex, tempB->complex, MPFR_RNDN);
             break;
         }
 
         case NUM_REAL: {
-            mpfr_add(result->real, tempA->real, tempB->real, MPFR_RNDN);
+            mpfr_add(out->real, tempA->real, tempB->real, MPFR_RNDN);
             break;
         }
 
         case NUM_RATIONAL: {
-            mpq_add(result->rational, tempA->rational, tempB->rational);
+            mpq_add(out->rational, tempA->rational, tempB->rational);
             break;
         }
 
@@ -52,30 +54,89 @@ Number *numAdd(const Number *a, const Number *b) {
     numFree(tempA);
     numFree(tempB);
 
+    return;
+}
+
+
+// inits a number and sets it to the sum
+Number *numAdd(const Number *a, const Number *b) {
+    Number *result = numNew(NUM_BOOL);
+    numAddInto(a, b, result);
     return result;
+}
+
+void numSubtractInto(const Number *a, const Number* b, Number *out) {
+NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
+
+    Number *tempA = numConvertandSet(a, promotedKind);
+    Number *tempB = numConvertandSet(b, promotedKind);
+
+    numClear(out);
+    numInit(out, promotedKind);
+
+    switch (promotedKind) {
+        case NUM_COMPLEX: {
+            mpc_sub(out->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_sub(out->real, tempA->real, tempB->real, MPFR_RNDN);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            mpq_sub(out->rational, tempA->rational, tempB->rational);
+            break;
+        }
+
+        // numPromoteKind does not return these values
+        case NUM_BOOL: {
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_BOOL\n");
+            break;
+        }
+
+        case NUM_ERROR: {
+            fprintf(stderr, "Warning: numPromoteKind returned NUM_ERROR\n");
+            break;
+        }
+    }
+
+    numFree(tempA);
+    numFree(tempB);
+
+    return;
 }
 
 Number *numSubtract(const Number *a, const Number *b) {
+    Number *result = numNew(NUM_BOOL);
+    numSubtractInto(a, b, result);
+    return result;
+}
+
+void numMultiplyInto(const Number *a, const Number *b, Number *out) {
+    
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
     Number *tempA = numConvertandSet(a, promotedKind);
     Number *tempB = numConvertandSet(b, promotedKind);
 
-    Number *result = numNew(promotedKind);
+    numClear(out);
+    numInit(out, promotedKind);
 
     switch (promotedKind) {
         case NUM_COMPLEX: {
-            mpc_sub(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            mpc_mul(out->complex, tempA->complex, tempB->complex, MPFR_RNDN);
             break;
         }
 
         case NUM_REAL: {
-            mpfr_sub(result->real, tempA->real, tempB->real, MPFR_RNDN);
+            mpfr_mul(out->real, tempA->real, tempB->real, MPFR_RNDN);
             break;
         }
 
         case NUM_RATIONAL: {
-            mpq_sub(result->rational, tempA->rational, tempB->rational);
+            mpq_mul(out->rational, tempA->rational, tempB->rational);
             break;
         }
 
@@ -94,72 +155,38 @@ Number *numSubtract(const Number *a, const Number *b) {
     numFree(tempA);
     numFree(tempB);
 
-    return result;
+    return;
 }
 
 Number *numMultiply(const Number *a, const Number *b) {
-    NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
-
-    Number *tempA = numConvertandSet(a, promotedKind);
-    Number *tempB = numConvertandSet(b, promotedKind);
-
-    Number *result = numNew(promotedKind);
-
-    switch (promotedKind) {
-        case NUM_COMPLEX: {
-            mpc_mul(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
-            break;
-        }
-
-        case NUM_REAL: {
-            mpfr_mul(result->real, tempA->real, tempB->real, MPFR_RNDN);
-            break;
-        }
-
-        case NUM_RATIONAL: {
-            mpq_mul(result->rational, tempA->rational, tempB->rational);
-            break;
-        }
-
-        // numPromoteKind does not return these values
-        case NUM_BOOL: {
-            fprintf(stderr, "Warning: numPromoteKind returned NUM_BOOL\n");
-            break;
-        }
-
-        case NUM_ERROR: {
-            fprintf(stderr, "Warning: numPromoteKind returned NUM_ERROR\n");
-            break;
-        }
-    }
-
-    numFree(tempA);
-    numFree(tempB);
-
+    Number *result = numNew(NUM_BOOL);
+    numMultiplyInto(a, b, result);
     return result;
 }
 
-Number *numDivide(const Number *a, const Number *b) {
+void numDivideInto(const Number *a, const Number* b, Number *out) {
+
     NumberKind promotedKind = numPromoteKind(a->kind, b->kind);
 
     Number *tempA = numConvertandSet(a, promotedKind);
     Number *tempB = numConvertandSet(b, promotedKind);
 
-    Number *result = numNew(promotedKind);
+    numClear(out);
+    numInit(out, promotedKind);
 
     switch (promotedKind) {
         case NUM_COMPLEX: {
-            mpc_div(result->complex, tempA->complex, tempB->complex, MPFR_RNDN);
+            mpc_div(out->complex, tempA->complex, tempB->complex, MPFR_RNDN);
             break;
         }
 
         case NUM_REAL: {
-            mpfr_div(result->real, tempA->real, tempB->real, MPFR_RNDN);
+            mpfr_div(out->real, tempA->real, tempB->real, MPFR_RNDN);
             break;
         }
 
         case NUM_RATIONAL: {
-            mpq_div(result->rational, tempA->rational, tempB->rational);
+            mpq_div(out->rational, tempA->rational, tempB->rational);
             break;
         }
 
@@ -178,6 +205,12 @@ Number *numDivide(const Number *a, const Number *b) {
     numFree(tempA);
     numFree(tempB);
 
+    return;
+} 
+
+Number *numDivide(const Number *a, const Number *b) {
+    Number *result = numNew(NUM_BOOL);
+    numDivideInto(a, b, result);
     return result;
 }
 
@@ -283,42 +316,104 @@ int numCompareSi(const Number *a, long b) {
     }
 }
 
-Number *numNeg(const Number *num) {
+void numNegInto(const Number *num, Number *out) {
+    numClear(out);
     switch (num->kind) {
         case NUM_COMPLEX: {
-            Number *result = numNew(NUM_COMPLEX);
-            mpc_neg(result->complex, num->complex, MPC_RNDNN);
+            numInit(out, NUM_COMPLEX);
+            mpc_neg(out->complex, num->complex, MPC_RNDNN);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
-            Number *result = numNew(NUM_COMPLEX);
-            mpfr_neg(result->real, num->real, MPFR_RNDN);
+            numInit(out, NUM_REAL);
+            mpfr_neg(out->real, num->real, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
-            Number *result = numNew(NUM_RATIONAL);
-            mpq_neg(result->rational, num->rational);
+            numInit(out, NUM_RATIONAL);
+            mpq_neg(out->rational, num->rational);
 
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
-            Number *realNum = numConvertandSet(num, NUM_REAL);
-            Number *result = numNeg(realNum);
-            numFree(realNum);
+            numInit(out, NUM_BOOL);
+            out->boolean = !(num->boolean);
 
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
-            Number *result = numNew(NUM_ERROR);
-            numSet(result, num);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
 
-            return result;
+            return;
+        }
+
+        default: {
+            exit(1);
+        }
+    }
+}
+
+Number *numNeg(const Number *num) {
+    Number *result = numNew(NUM_BOOL);
+    numNegInto(num, result);
+    return result;
+}
+
+void numFloorInto(const Number *num, Number* out) {
+    numClear(out);
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            numInit(out, NUM_COMPLEX);
+
+            mpfr_floor(mpc_realref(out->complex), mpc_realref(num->complex));
+            mpfr_floor(mpc_imagref(out->complex), mpc_imagref(num->complex));
+
+            return;
+        }
+
+        case NUM_REAL: {
+            numInit(out, NUM_REAL);
+
+            mpfr_floor(out->real, num->real);
+
+            return;
+        }
+
+        case NUM_RATIONAL: {
+            numInit(out, NUM_REAL);
+
+            mpz_t tempInt;
+            mpz_init(tempInt);
+
+            mpz_fdiv_q(tempInt, mpq_numref(num->rational),
+                       mpq_denref(num->rational));
+            mpfr_set_z(out->real, tempInt, MPFR_RNDN);
+
+            mpz_clear(tempInt);
+
+            return;
+        }
+
+        case NUM_BOOL: {
+            // TODO: change this to NUM_BOOL?
+            numInit(out, NUM_REAL);
+            mpfr_set_si(out->real, (num->boolean == 0) ? 0 : 1, MPFR_RNDN);
+
+            return;
+        }
+
+        case NUM_ERROR: {
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
+
+            return;
         }
 
         default: {
@@ -328,57 +423,9 @@ Number *numNeg(const Number *num) {
 }
 
 Number *numFloor(const Number *num) {
-    switch (num->kind) {
-        case NUM_COMPLEX: {
-            Number *result = numNew(NUM_COMPLEX);
-
-            mpfr_floor(mpc_realref(result->complex), mpc_realref(num->complex));
-            mpfr_floor(mpc_imagref(result->complex), mpc_imagref(num->complex));
-
-            return result;
-        }
-
-        case NUM_REAL: {
-            Number *result = numNew(NUM_REAL);
-
-            mpfr_floor(result->real, num->real);
-
-            return result;
-        }
-
-        case NUM_RATIONAL: {
-            Number *result = numNew(NUM_REAL);
-
-            mpz_t tempInt;
-            mpz_init(tempInt);
-
-            mpz_fdiv_q(tempInt, mpq_numref(num->rational),
-                       mpq_denref(num->rational));
-            mpfr_set_z(result->real, tempInt, MPFR_RNDN);
-
-            mpz_clear(tempInt);
-
-            return result;
-        }
-
-        case NUM_BOOL: {
-            Number *result = numNew(NUM_REAL);
-            mpfr_set_si(result->real, (num->boolean == 0) ? 0 : 1, MPFR_RNDN);
-
-            return result;
-        }
-
-        case NUM_ERROR: {
-            Number *result = numNew(NUM_ERROR);
-            numSet(result, num);
-
-            return result;
-        }
-
-        default: {
-            exit(1);
-        }
-    }
+    Number *result = numNew(NUM_BOOL);
+    numFloorInto(num, result);
+    return result;
 }
 
 Number *numCeil(const Number *num) {
