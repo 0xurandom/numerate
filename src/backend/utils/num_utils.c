@@ -17,8 +17,8 @@
 // TODO: before calculaing an equation, check if NUM_RATIONAL can
 // be converted into a NUM_REAL
 
-Number *numNew(NumberKind kind) {
-    Number *num = malloc(sizeof(Number));
+Number* numNew(NumberKind kind) {
+    Number* num = malloc(sizeof(Number));
     numInit(num, kind);
 
     return num;
@@ -26,7 +26,7 @@ Number *numNew(NumberKind kind) {
 
 // TODO: add num set
 
-void numInit(Number *num, NumberKind kind) {
+void numInit(Number* num, NumberKind kind) {
     num->kind = kind;
 
     switch (kind) {
@@ -57,13 +57,11 @@ void numInit(Number *num, NumberKind kind) {
     }
 }
 
-void numSetKind(Number *num, NumberKind kind) {
-    
-}
+void numSetKind(Number* num, NumberKind kind) {}
 
 // expects dest to be from numNew and for dest
 // to have the same NumberKind as src
-void numSet(Number *dest, const Number *src) {
+void numSet(Number* dest, const Number* src) {
     if (dest->kind != src->kind) {
         fprintf(stderr,
                 "Error: numCopy received dest and src of different kinds\n");
@@ -102,7 +100,7 @@ void numSet(Number *dest, const Number *src) {
     return;
 }
 
-void numSetBool(Number *num, bool boolean) {
+void numSetBool(Number* num, bool boolean) {
     if (num->kind != NUM_BOOL) {
         fprintf(stderr, "numSetBool received a Number not of kind NUM_ERROR\n");
         exit(1);
@@ -114,7 +112,7 @@ void numSetBool(Number *num, bool boolean) {
 }
 
 // needs a NUM_REAL as input
-void numSetRealSi(Number *num, double val) {
+void numSetRealSi(Number* num, double val) {
     if (num->kind != NUM_REAL) {
         fprintf(stderr,
                 "Error: numSetRealSi received a number not of kind NUM_REAL\n");
@@ -126,7 +124,7 @@ void numSetRealSi(Number *num, double val) {
 }
 
 // needs a Number of kind NUM_ERROR
-void numSetError(Number *num, const char *errorString, size_t errorLength) {
+void numSetError(Number* num, const char* errorString, size_t errorLength) {
     if (num->kind != NUM_ERROR) {
         fprintf(stderr,
                 "numSetError received a Number not of kind NUM_ERROR\n");
@@ -137,14 +135,14 @@ void numSetError(Number *num, const char *errorString, size_t errorLength) {
 }
 
 // inits x and sets x = src with NumberKind kind
-Number *numConvertandSet(const Number *src, NumberKind kind) {
-    Number *num = numNew(kind);
+Number* numConvertandSet(const Number* src, NumberKind kind) {
+    Number* num = numNew(kind);
 
     if (src->kind == kind) {
         numSet(num, src);
 
     } else {
-        Number *temp = numNew(src->kind);
+        Number* temp = numNew(src->kind);
         numSet(temp, src);
 
         temp = numConvert(temp, kind);
@@ -158,7 +156,7 @@ Number *numConvertandSet(const Number *src, NumberKind kind) {
 }
 
 // frees input Number and returns a new Number
-Number *numConvert(Number *num, NumberKind kind) {
+Number* numConvert(Number* num, NumberKind kind) {
     // TODO: result can be replaced here?
     if (num->kind == kind || num->kind == NUM_ERROR || kind == NUM_ERROR) {
         return num;
@@ -213,7 +211,7 @@ Number *numConvert(Number *num, NumberKind kind) {
 
             numFree(num);
 
-            Number *resultNum = numNew(NUM_REAL);
+            Number* resultNum = numNew(NUM_REAL);
             mpfr_set(resultNum->real, result, MPFR_RNDN);
             mpfr_clear(result);
 
@@ -255,7 +253,7 @@ Number *numConvert(Number *num, NumberKind kind) {
             }
             numFree(num);
 
-            Number *resultNum = numNew(NUM_COMPLEX);
+            Number* resultNum = numNew(NUM_COMPLEX);
             mpc_set(resultNum->complex, result, MPFR_RNDN);
             mpc_clear(result);
 
@@ -309,7 +307,7 @@ Number *numConvert(Number *num, NumberKind kind) {
             }
             numFree(num);
 
-            Number *resultNum = numNew(NUM_RATIONAL);
+            Number* resultNum = numNew(NUM_RATIONAL);
 
             mpq_set(resultNum->rational, result);
             mpq_clear(result);
@@ -319,7 +317,7 @@ Number *numConvert(Number *num, NumberKind kind) {
 
         case NUM_BOOL: {
             int boolean = numSgnSi(num);
-            Number *resultNum = numNew(NUM_BOOL);
+            Number* resultNum = numNew(NUM_BOOL);
 
             numSetBool(resultNum, boolean);
             return resultNum;
@@ -348,7 +346,7 @@ NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2) {
 
 // checks if number is an integer
 // and if the complex part is zero
-bool numIsInteger(const Number *num) {
+bool numIsInteger(const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             return (mpfr_integer_p(mpc_realref(num->complex))) &&
@@ -387,7 +385,7 @@ bool numIsInteger(const Number *num) {
 }
 
 // requires numIsInteger to be true
-void numToInt(mpz_t result, const Number *num) {
+void numToInt(mpz_t result, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             mpfr_get_z(result, mpc_realref(num->complex), MPFR_RNDN);
@@ -415,7 +413,7 @@ void numToInt(mpz_t result, const Number *num) {
     }
 }
 
-bool numCanBeLong(const Number *num) {
+bool numCanBeLong(const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             if (mpfr_cmp_ui(mpc_imagref(num->complex), 0) != 0) return false;
@@ -462,7 +460,7 @@ bool numCanBeLong(const Number *num) {
 // if result == 0, true;
 // 1, can be unsigned long but is negative;
 // -1, cannot be unsigned long
-int numCanBeUnsignedLong(const Number *num) {
+int numCanBeUnsignedLong(const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             if (mpfr_cmp_ui(mpc_imagref(num->complex), 0) != 0) return -1;
@@ -508,7 +506,7 @@ int numCanBeUnsignedLong(const Number *num) {
 }
 
 // needs a complex number as input
-bool numCompCanBeReal(const Number *num) {
+bool numCompCanBeReal(const Number* num) {
     if (num->kind != NUM_COMPLEX) {
         fprintf(stderr,
                 "Error: numCompCanBeReal received a non complex number\n");
@@ -523,7 +521,7 @@ bool numCompCanBeReal(const Number *num) {
 
 // needs a rational number as input
 // and result to be a NUM_REAL from newNew
-bool numRatCanBeReal(const Number *num, Number *result) {
+bool numRatCanBeReal(const Number* num, Number* result) {
     if (num->kind != NUM_RATIONAL) {
         fprintf(stderr,
                 "Error: numRatCanBeReal received a non rational number\n");
@@ -553,7 +551,7 @@ bool numRatCanBeReal(const Number *num, Number *result) {
 }
 
 // requires numIsInteger and numCanBeLong to be true
-long numToLong(const Number *num) {
+long numToLong(const Number* num) {
     long numLong;
 
     switch (num->kind) {
@@ -606,7 +604,7 @@ long numToLong(const Number *num) {
 }
 
 // requires numIsInteger and numCanBeLong to be true
-unsigned long numToUnsignedLong(const Number *num) {
+unsigned long numToUnsignedLong(const Number* num) {
     unsigned long numUnsignedLong;
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -638,7 +636,7 @@ unsigned long numToUnsignedLong(const Number *num) {
     return numUnsignedLong;
 }
 
-void numPrint(const Number *num) {
+void numPrint(const Number* num) {
     if (num == NULL) {
         printf("numPrint received a null pointer\n");
         return;
@@ -679,39 +677,46 @@ void numPrint(const Number *num) {
 
 // clears the kind inside the number
 // but not the number itself
-void numClear(Number *num) {
-    switch (num->kind){
-    case NUM_COMPLEX:
-        mpc_clear(num->complex);
-        break;
+void numClear(Number* num) {
+    switch (num->kind) {
+        case NUM_COMPLEX:
+            mpc_clear(num->complex);
+            num->kind = -1;
+            break;
 
-    case NUM_REAL: {
-        mpfr_clear(num->real);
-        break;
-    }
+        case NUM_REAL: {
+            mpfr_clear(num->real);
+            num->kind = -1;
 
-    case NUM_RATIONAL:{
-        mpq_clear(num->rational);
-        break;
-    }
+            break;
+        }
 
-    case NUM_BOOL:{
-        break;
-    }
+        case NUM_RATIONAL: {
+            mpq_clear(num->rational);
+            num->kind = -1;
 
-    case NUM_ERROR: {
-        freeStringView(&num->error);
-        break;
-    }
-    
-    default:
-        break;
+            break;
+        }
+
+        case NUM_BOOL: {
+            break;
+        }
+
+        case NUM_ERROR: {
+            freeStringView(&num->error);
+            num->kind = -1;
+
+            break;
+        }
+
+        default:
+            break;
     }
 }
 
 // TODO: decide if num itself will
 // need to be freed
-void numFree(Number *num) {
+void numFree(Number* num) {
     switch (num->kind) {
         case NUM_REAL: {
             mpfr_clear(num->real);
