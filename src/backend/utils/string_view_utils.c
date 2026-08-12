@@ -15,13 +15,19 @@
 
 // TODO: set max string length to int max
 
-void initStringView(StringView *view) {
+void initStringView(StringView* view) {
     view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
+
+    if (view->arr == NULL) {
+        fprintf(stderr, "Error: Could not allocate string view\n");
+        exit(1);
+    }
+
     view->length = 0;
     view->capacity = DEFAULT_STRING_CAPACITY;
 }
 
-void initStringViewWithString(StringView *view, const char *string,
+void initStringViewWithString(StringView* view, const char* string,
                               size_t stringLength) {
     if (stringLength > DEFAULT_STRING_CAPACITY) {
         view->arr = malloc(stringLength * sizeof(char));
@@ -46,8 +52,8 @@ void initStringViewWithString(StringView *view, const char *string,
 
 // copies length number of bytes from string
 // and allocates a new string view
-StringView *newStringView(char *string, size_t length) {
-    StringView *view = malloc(sizeof(StringView));
+StringView* newStringView(char* string, size_t length) {
+    StringView* view = malloc(sizeof(StringView));
 
     if (length > DEFAULT_STRING_CAPACITY) {
         view->arr = malloc(length * sizeof(char));
@@ -64,7 +70,7 @@ StringView *newStringView(char *string, size_t length) {
 }
 
 // change the string of an existing string view
-void setStringView(StringView *view, const char *string, size_t length) {
+void setStringView(StringView* view, const char* string, size_t length) {
     if (length > view->capacity) {
         view->arr = realloc(view->arr, length * sizeof(char));
         view->capacity = length;
@@ -75,7 +81,7 @@ void setStringView(StringView *view, const char *string, size_t length) {
     view->length = length;
 }
 
-void copyStringView(StringView *dest, const StringView *src) {
+void copyStringView(StringView* dest, const StringView* src) {
     dest->capacity = src->capacity;
     dest->length = src->length;
 
@@ -85,27 +91,27 @@ void copyStringView(StringView *dest, const StringView *src) {
     return;
 }
 
-void appendToStringView(StringView *view, char c) {
+void appendToStringView(StringView* view, char c) {
     if (view->length + 1 > view->capacity) reallocStringView(view);
 
     view->arr[view->length] = c;
 }
 
-void printStringView(const StringView *view) {
+void printStringView(const StringView* view) {
     printf("%.*s", (int)view->length, view->arr);
 }
 
 // get a c string from the string view
 // this string must be freed manually
-char *getCstring(const StringView *view) {
-    char *cstring = malloc((view->length + 1) * sizeof(char));
+char* getCstring(const StringView* view) {
+    char* cstring = malloc((view->length + 1) * sizeof(char));
     memcpy(cstring, view->arr, view->length);
     cstring[view->length] = '\0';
 
     return cstring;
 }
 
-bool compareViews(const StringView *view1, const StringView *view2) {
+bool compareViews(const StringView* view1, const StringView* view2) {
     if (view1->length != view2->length) return false;
 
     if (strncmp(view1->arr, view2->arr, view1->length) == 0)
@@ -115,12 +121,12 @@ bool compareViews(const StringView *view1, const StringView *view2) {
 }
 
 // double the capacity of StringView
-void reallocStringView(StringView *view) {
+void reallocStringView(StringView* view) {
     view->arr = realloc(view->arr, view->capacity * 2);
     view->capacity *= 2;
 }
 
-void freeStringView(StringView *view) {
+void freeStringView(StringView* view) {
     free(view->arr);
     view->arr = NULL;
     view->capacity = 0;

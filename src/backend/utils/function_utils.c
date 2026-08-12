@@ -39,7 +39,7 @@ bool addToFuncArr(FuncArr* funcArr, Func* func) {
 
 void deleteFromFuncArr(FuncArr* funcArr) {}
 
-void resizeFuncArr(FuncArr* funcArr) {
+void reallocFuncArr(FuncArr* funcArr) {
     funcArr->funcs = realloc(funcArr->funcs, 2 * funcArr->capacity);
     funcArr->capacity *= 2;
 }
