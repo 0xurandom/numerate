@@ -12,8 +12,8 @@
 #define HASHMAP_CAPACITY 32
 
 // TODO: make hashmap automatically resize
-void initHashmap(HashMap *map) {
-    map->arr = malloc(HASHMAP_CAPACITY * sizeof(LL_Node *));
+void initHashmap(HashMap* map) {
+    map->arr = malloc(HASHMAP_CAPACITY * sizeof(LL_Node*));
     map->count = 0;
     map->capacity = HASHMAP_CAPACITY;
 
@@ -28,11 +28,11 @@ void initHashmap(HashMap *map) {
     return;
 }
 
-void insertVar(HashMap *hashMap, const StringView *stringView,
-               const Number *value) {
+void insertVar(HashMap* hashMap, const StringView* stringView,
+               const Number* value) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
 
-    LL_Node *newNode = newLL_Node(stringView->arr, stringView->length, value);
+    LL_Node* newNode = newLL_Node(stringView->arr, stringView->length, value);
 
     if (hashMap->arr[bucketIndex] == NULL) {
         hashMap->arr[bucketIndex] = newNode;
@@ -47,13 +47,19 @@ void insertVar(HashMap *hashMap, const StringView *stringView,
 
 // func returns status code,
 // TODO: result is allocated and stored at *result
-int lookupVar(HashMap *hashMap, const StringView *stringView, Number *result) {
+int lookupVar(HashMap* hashMap, const StringView* stringView, Number* result) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
-    LL_Node *node = hashMap->arr[bucketIndex];
+    LL_Node* node = hashMap->arr[bucketIndex];
 
     while (node != NULL) {
         if (compareViews(&node->key, stringView)) {
             result->kind = node->value.kind;
+            numClear(result);
+            numInit(result, node->value.kind);
+            fprintf(stderr,
+                    "not: numSet received dest(kind: %d) and src(kind: %d)) of "
+                    "different kinds\n",
+                    result->kind, node->value.kind);
             numSet(result, &node->value);
             return 0;
 
@@ -65,10 +71,10 @@ int lookupVar(HashMap *hashMap, const StringView *stringView, Number *result) {
     return -1;
 }
 
-void deleteVar(HashMap *hashMap, const StringView *stringView) {
+void deleteVar(HashMap* hashMap, const StringView* stringView) {
     size_t bucketIndex = djb2(stringView->arr, stringView->length);
-    LL_Node *prevNode = NULL;
-    LL_Node *curNode = hashMap->arr[bucketIndex];
+    LL_Node* prevNode = NULL;
+    LL_Node* curNode = hashMap->arr[bucketIndex];
 
     while (curNode != NULL) {
         if (compareViews(&curNode->key, stringView)) {
@@ -86,9 +92,9 @@ void deleteVar(HashMap *hashMap, const StringView *stringView) {
     return;
 }
 
-void freeHashmap(HashMap *hashMap) {
-    LL_Node *curNode = NULL;
-    LL_Node *nextNode = NULL;
+void freeHashmap(HashMap* hashMap) {
+    LL_Node* curNode = NULL;
+    LL_Node* nextNode = NULL;
 
     for (size_t i = 0; i < hashMap->capacity; i++) {
         curNode = hashMap->arr[i];
@@ -106,7 +112,7 @@ void freeHashmap(HashMap *hashMap) {
     hashMap->capacity = 0;
 }
 
-size_t djb2(char *str, size_t str_length) {
+size_t djb2(char* str, size_t str_length) {
     size_t hash = 5381;
 
     for (size_t i = 0; i < str_length; i++) {

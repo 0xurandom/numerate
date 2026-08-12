@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include "lexer.h"
+#include "utils/function_utils.h"
 #include "utils/hashmap_utils.h"
 #include "utils/num_utils.h"
 #include "variable_store.h"
@@ -13,7 +14,7 @@ typedef struct {
     Token cur;
     Token prev;
 
-    HashMap varStore;
+    Env* env;
 } Parser;
 
 // Precedence in ascending order

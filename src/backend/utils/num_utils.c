@@ -63,7 +63,9 @@ void numInit(Number* num, NumberKind kind) {
 void numSet(Number* dest, const Number* src) {
     if (dest->kind != src->kind) {
         fprintf(stderr,
-                "Error: numCopy received dest and src of different kinds\n");
+                "Error: numSet received dest(kind: %d) and src(kind: %d)) of "
+                "different kinds\n",
+                dest->kind, src->kind);
         exit(1);
     }
 

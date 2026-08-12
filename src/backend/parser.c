@@ -148,7 +148,6 @@ Node* parse(Parser* parser, Precedence precedence) {
             // right associative tokens
             case TOK_EQUALS: {
                 if (left->kind != NODE_VAR) {
-                    // TODO: maybe implement comparison here?
                     fprintf(stderr, "Error: Cannot assign to a non var\n");
                     exit(1);
                 }
@@ -160,8 +159,6 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             case TOK_EQUALS_EQUALS:
             case TOK_NOT_EQUALS: {
-                // comparison operators
-
                 Node* right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
 
@@ -202,21 +199,18 @@ Node* simplifyTree(Parser* parser, Node* node) {
         }
 
         case NODE_VAR: {
-            Number* result = numNew(NUM_REAL);
+            Number* result = numNew(NUM_BOOL);
 
-            if (lookupVar(&parser->varStore, &node->assignment.name.ident,
-                          result) == 0) {
-                Node* newNode = newLiteralNode(result);
-                return newNode;
-            } else {
-                char* cString = getCstring(&node->var.name.ident);
+            if (lookupVar(&parser->env->varStore, &node->assignment.name.ident,
+                          result) != 0) {
+                numClear(result);
+                numInit(result, NUM_ERROR);
 
-                fprintf(stderr, "Error: Invalid variable referenced: %s\n",
-                        cString);
-
-                free(cString);
-                exit(1);
+                char error[] = "Invalid variable referenced:";
+                numSetError(result, error, strlen(error));
             }
+            Node* newNode = newLiteralNode(result);
+            return newNode;
         }
 
         // TODO: check if this is necessary
@@ -233,7 +227,8 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
             Number* value = &node->assignment.value->literal.value;
 
-            insertVar(&parser->varStore, &node->assignment.name.ident, value);
+            insertVar(&parser->env->varStore, &node->assignment.name.ident,
+                      value);
 
             Node* newNode = newLiteralNode(value);
             freeNode(node);
