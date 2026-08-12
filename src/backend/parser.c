@@ -321,25 +321,17 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_SQRT: {
-                    // TODO
-                    // result = numPow(num, 0.5);
+                    result = numSqrt(num);
                     break;
                 }
 
                 case TOK_CBRT: {
-                    // TODO
-                    // result = cbrt(num);
+                    result = numCbrt(num);
                     break;
                 }
 
                 case TOK_EXP: {
-                    // TODO
-                    // double e;
-                    // StringView* eVar = newStringView("e", 1);
-                    // lookupVar(&parser->varStore, eVar, &e);
-                    // freeStringView(eVar);
-                    //
-                    // result = pow(e, num);
+                    result = numExp(num);
                     break;
                 }
 
@@ -437,13 +429,13 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
             switch (node->binary.op.kind) {
                 case TOK_AND: {
-                    // TODO
-                    // newNode = newBooleanNode(left && right);
+                    Number* result = numAnd(left, right);
+                    newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_OR: {
-                    Number* result = numBitwiseOr(left, right);
+                    Number* result = numOr(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }

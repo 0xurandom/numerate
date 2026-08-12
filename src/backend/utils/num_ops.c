@@ -2185,6 +2185,56 @@ Number* numSqrt(const Number* num) {
     return result;
 }
 
+void numCbrtInto(Number* out, const Number* num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            Number* half = numNew(NUM_REAL);
+            numSetRealSd(half, 0.5);
+            numPowInto(out, num, half);
+            numClear(half);
+            return;
+        }
+
+        case NUM_REAL: {
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_cbrt(out->real, num->real, MPFR_RNDN);
+            return;
+        }
+
+        case NUM_RATIONAL: {
+            Number* realNum = numConvertandSet(num, NUM_REAL);
+            numCbrtInto(out, realNum);
+            numFree(realNum);
+            return;
+        }
+
+        case NUM_BOOL: {
+            numClear(out);
+            numInit(out, NUM_REAL);
+            numSetRealSd(out, num->boolean == 0 ? 0 : 1);
+            return;
+        }
+
+        case NUM_ERROR: {
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
+            return;
+        }
+
+        default: {
+            exit(1);
+        }
+    }
+}
+
+Number* numCbrt(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numCbrtInto(result, num);
+    return result;
+}
+
 void numExpInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -2434,78 +2484,6 @@ Number* numNcr(const Number* n, const Number* r) {
     return result;
 }
 
-void numBitwiseAndInto(Number* out, const Number* a, const Number* b) {
-    numClear(out);
-    // numIsInteger returns false for NUM_COMPLEX
-    // with complex parts
-    if (!(numIsInteger(a)) || !(numIsInteger(b))) {
-        numInit(out, NUM_ERROR);
-        char error[] = "'Bitwise and' is undefined for non integers";
-        numSetError(out, error, strlen(error));
-
-        return;
-    }
-
-    mpz_t intA;
-    mpz_t intB;
-    mpz_t resultInt;
-
-    mpz_inits(intA, intB, resultInt, (mpz_srcptr)NULL);
-
-    numToInt(intA, a);
-    numToInt(intB, b);
-
-    mpz_and(resultInt, intA, intB);
-
-    numInit(out, NUM_REAL);
-    mpfr_set_z(out->real, resultInt, MPFR_RNDN);
-
-    mpz_clears(intA, intB, resultInt, (mpz_srcptr)NULL);
-
-    return;
-}
-
-Number* numBitwiseAnd(const Number* a, const Number* b) {
-    Number* result = numNew(NUM_BOOL);
-    numBitwiseAndInto(result, a, b);
-    return result;
-}
-
-void numBitwiseOrInto(Number* out, const Number* a, const Number* b) {
-    numClear(out);
-    if (!(numIsInteger(a)) || !(numIsInteger(b))) {
-        numInit(out, NUM_ERROR);
-        char error[] = "'Bitwise or' is undefined for non integers";
-        numSetError(out, error, strlen(error));
-
-        return;
-    }
-
-    mpz_t intA;
-    mpz_t intB;
-    mpz_t resultInt;
-
-    mpz_inits(intA, intB, resultInt, (mpz_srcptr)NULL);
-
-    numToInt(intA, a);
-    numToInt(intB, b);
-
-    mpz_ior(resultInt, intA, intB);
-
-    numInit(out, NUM_REAL);
-    mpfr_set_z(out->real, resultInt, MPFR_RNDN);
-
-    mpz_clears(intA, intB, resultInt, (mpz_srcptr)NULL);
-
-    return;
-}
-
-Number* numBitwiseOr(const Number* a, const Number* b) {
-    Number* result = numNew(NUM_BOOL);
-    numBitwiseOrInto(result, a, b);
-    return result;
-}
-
 static void numShiftRightSiInto(Number* out, const Number* num,
                                 unsigned long bits) {
     numClear(out);
@@ -2692,5 +2670,87 @@ void numShiftLeftInto(Number* out, const Number* num, const Number* bits) {
 Number* numShiftLeft(const Number* num, const Number* bits) {
     Number* result = numNew(NUM_BOOL);
     numShiftLeftInto(result, num, bits);
+    return result;
+}
+
+void numAndInto(Number* out, const Number* a, const Number* b) {
+    numClear(out);
+
+    if ((a->kind == NUM_BOOL) && (b->kind == NUM_BOOL)) {
+        numInit(out, NUM_BOOL);
+        out->boolean = a->boolean && b->boolean;
+        return;
+    }
+
+    if ((!numIsInteger(a)) || (!numIsInteger(b))) {
+        char error[] = "Bitwise operands must be integers";
+        numInit(out, NUM_ERROR);
+        numSetError(out, error, strlen(error));
+        return;
+    }
+
+    mpz_t intA, intB, result;
+    mpz_init2(intA, PRECISION);
+    mpz_init2(intB, PRECISION);
+    mpz_init2(result, PRECISION);
+
+    numToInt(intA, a);
+    numToInt(intB, b);
+
+    mpz_and(result, intA, intB);
+
+    mpz_clear(intA);
+    mpz_clear(intB);
+    mpz_clear(result);
+
+    numInit(out, NUM_REAL);
+    mpfr_set_z(out->real, result, MPFR_RNDN);
+    return;
+}
+
+Number* numAnd(const Number* a, const Number* b) {
+    Number* result = numNew(NUM_BOOL);
+    numAndInto(result, a, b);
+    return result;
+}
+
+void numOrInto(Number* out, const Number* a, const Number* b) {
+    numClear(out);
+
+    if ((a->kind == NUM_BOOL) || (b->kind == NUM_BOOL)) {
+        numInit(out, NUM_BOOL);
+        out->boolean = a->boolean || b->boolean;
+        return;
+    }
+
+    if ((!numIsInteger(a)) || (!numIsInteger(b))) {
+        char error[] = "Bitwise operands must be integers";
+        numInit(out, NUM_ERROR);
+        numSetError(out, error, strlen(error));
+        return;
+    }
+
+    mpz_t intA, intB, result;
+    mpz_init2(intA, PRECISION);
+    mpz_init2(intB, PRECISION);
+    mpz_init2(result, PRECISION);
+
+    numToInt(intA, a);
+    numToInt(intB, b);
+
+    mpz_eor(result, intA, intB);
+
+    mpz_clear(intA);
+    mpz_clear(intB);
+    mpz_clear(result);
+
+    numInit(out, NUM_REAL);
+    mpfr_set_z(out->real, result, MPFR_RNDN);
+    return;
+}
+
+Number* numOr(const Number* a, const Number* b) {
+    Number* result = numNew(NUM_BOOL);
+    numOrInto(result, a, b);
     return result;
 }

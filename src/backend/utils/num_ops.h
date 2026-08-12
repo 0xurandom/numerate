@@ -66,6 +66,10 @@ void numAbsInto(Number* out, const Number* num);
 Number* numAbs(const Number* num);
 void numPowInto(Number* out, const Number* base, const Number* exp);
 Number* numPow(const Number* base, const Number* exp);
+void numSqrtInto(Number* out, const Number* num);
+Number* numSqrt(const Number* num);
+void numCbrtInto(Number* out, const Number* num);
+Number* numCbrt(const Number* num);
 void numExpInto(Number* out, const Number* num);
 Number* numExp(const Number* num);
 void numLnInto(Number* out, const Number* num);
@@ -78,12 +82,11 @@ Number* numNpr(const Number* n, const Number* r);
 void numNcrInto(Number* out, const Number* n, const Number* r);
 Number* numNcr(const Number* n, const Number* r);
 
-void numBitwiseAndInto(Number* out, const Number* a, const Number* b);
-Number* numBitwiseAnd(const Number* a, const Number* b);
-void numBitwiseOrInto(Number* out, const Number* a, const Number* b);
-Number* numBitwiseOr(const Number* a, const Number* b);
-
 void numShiftRightInto(Number* out, const Number* num, const Number* bits);
 Number* numShiftRight(const Number* num, const Number* bits);
 void numShiftLeftInto(Number* out, const Number* num, const Number* bits);
 Number* numShiftLeft(const Number* num, const Number* bits);
+void numAndInto(Number* out, const Number* a, const Number* b);
+Number* numAnd(const Number* a, const Number* b);
+void numOrInto(Number* out, const Number* a, const Number* b);
+Number* numOr(const Number* a, const Number* b);
