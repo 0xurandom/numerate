@@ -7,7 +7,6 @@
 
 #include "lexer.h"
 #include "utils/hashmap_utils.h"
-#include "utils/math_utils.h"
 #include "utils/num_ops.h"
 #include "utils/num_utils.h"
 #include "utils/parser_utils.h"
@@ -323,6 +322,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
                 case TOK_SQRT: {
                     // TODO
+                    // result = numPow(num, 0.5);
                     break;
                 }
 

@@ -52,7 +52,7 @@ Token tokenise(Lexer* lexer) {
             token.kind = TOK_NUMBER;
 
             if (lexer->string[lexer->cursor] == '0') {
-                char nextChar = peekNext(lexer);
+                // char nextChar = peekNext(lexer);
 
                 // TODO
 

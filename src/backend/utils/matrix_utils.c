@@ -38,9 +38,9 @@ void initIdentityMatrix(Matrix* matrix, unsigned short order) {
     for (size_t i = 0; i < matrix->rows; i++) {
         for (size_t j = 0; j < matrix->columns; j++) {
             if (i == j)
-                numSetRealSi(&matrix->arr[i][j], 1);
+                numSetRealSd(&matrix->arr[i][j], 1);
             else
-                numSetRealSi(&matrix->arr[i][j], 0);
+                numSetRealSd(&matrix->arr[i][j], 0);
         }
     }
 }
@@ -94,7 +94,7 @@ int multiplyMatrices(Matrix* mat1, Matrix* mat2, Matrix* result) {
     for (size_t i = 0; i < result->rows; i++) {
         for (size_t j = 0; j < result->columns; j++) {
             Number* sum = numNew(NUM_REAL);
-            numSetRealSi(sum, 0);
+            numSetRealSd(sum, 0);
 
             for (size_t k = 0; k < mat1->columns; k++) {
                 // multiply ith row and jth col

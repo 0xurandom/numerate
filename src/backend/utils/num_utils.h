@@ -39,7 +39,7 @@ void numInit(Number* num, NumberKind kind);
 
 void numSet(Number* dest, const Number* src);
 void numSetBool(Number* num, bool boolean);
-void numSetRealSi(Number* num, double val);
+void numSetRealSd(Number* num, double val);
 void numSetError(Number* num, const char* errorString, size_t errorLength);
 
 Number* numConvertandSet(const Number* src, NumberKind kind);

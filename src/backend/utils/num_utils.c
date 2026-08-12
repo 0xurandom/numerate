@@ -58,8 +58,6 @@ void numInit(Number* num, NumberKind kind) {
     }
 }
 
-void numSetKind(Number* num, NumberKind kind) {}
-
 // expects dest to be from numNew and for dest
 // to have the same NumberKind as src
 void numSet(Number* dest, const Number* src) {
@@ -113,7 +111,7 @@ void numSetBool(Number* num, bool boolean) {
 }
 
 // needs a NUM_REAL as input
-void numSetRealSi(Number* num, double val) {
+void numSetRealSd(Number* num, double val) {
     if (num->kind != NUM_REAL) {
         fprintf(stderr,
                 "Error: numSetRealSi received a number not of kind NUM_REAL\n");

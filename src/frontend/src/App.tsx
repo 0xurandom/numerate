@@ -3,6 +3,20 @@ import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
+import { Button } from "@/components/ui/button";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarGroup,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+
+import { FileIcon } from "lucide-react";
+
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
@@ -12,40 +26,47 @@ function App() {
     setGreetMsg(await invoke("greet", { name }));
   }
 
+  async function hello(): Promise<String> {
+    return await invoke("hello", { name });
+  }
+
   return (
     <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
+      <MenuBar></MenuBar>
+      <h1>{hello()}</h1>
     </main>
   );
 }
 
 export default App;
+
+function MenuBar() {
+  return (
+    <Menubar>
+      <MenubarMenu>
+        <MenubarTrigger>
+          <FileIcon />
+          File
+        </MenubarTrigger>
+        <MenubarContent>
+          <MenubarGroup>
+            <MenubarItem>
+              Open <MenubarShortcut>Ctrl + O</MenubarShortcut>
+            </MenubarItem>
+          </MenubarGroup>
+        </MenubarContent>
+      </MenubarMenu>
+
+      <MenubarMenu>
+        <MenubarTrigger>Edit</MenubarTrigger>
+        <MenubarContent>
+          <MenubarGroup>
+            <MenubarItem>
+              test item <MenubarShortcut>command + no</MenubarShortcut>
+            </MenubarItem>
+          </MenubarGroup>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
+  );
+}

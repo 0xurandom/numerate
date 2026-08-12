@@ -584,7 +584,7 @@ void numSubfactInto(Number* out, const Number* num) {
         numInit(out, NUM_ERROR);
         numSet(out, num);
 
-        return out;
+        return;
     }
 
     int sgn = numSgnSi(num);
@@ -701,6 +701,7 @@ Number* numSubfact(const Number* num) {
     return result;
 }
 
+// TODO
 void numGammaInto(Number* out, const Number* num) {
     numClear(out);
     if (numSgnSi(num) == 0) {
@@ -716,14 +717,14 @@ void numGammaInto(Number* out, const Number* num) {
         case NUM_COMPLEX: {
             Number* result = complexGamma(num);
 
-            return result;
+            return;
         }
 
         case NUM_REAL: {
             Number* result = numNew(NUM_REAL);
             mpfr_gamma(result->real, num->real, MPFR_RNDN);
 
-            return result;
+            return;
         }
 
         case NUM_RATIONAL: {
@@ -731,22 +732,22 @@ void numGammaInto(Number* out, const Number* num) {
             Number* result = numGamma(realNum);
 
             numFree(realNum);
-            return result;
+            return;
         }
 
         case NUM_BOOL: {
             // bool == 0 will not reach this case
             Number* result = numNew(NUM_REAL);
-            numSetRealSi(result, 1);
+            numSetRealSd(result, 1);
 
-            return result;
+            return;
         }
 
         case NUM_ERROR: {
             Number* result = numNew(NUM_ERROR);
             numSet(result, num);
 
-            return result;
+            return;
         }
 
         default: {
@@ -1183,7 +1184,7 @@ void numTanInto(Number* out, const Number* num) {
             numInit(out, NUM_ERROR);
             numSet(out, num);
 
-            return out;
+            return;
         }
 
         default: {
@@ -1260,10 +1261,11 @@ void numCosecInto(Number* out, const Number* num) {
             mpc_sin(tempSin, num->complex, MPC_RNDNN);
 
             if (mpc_cmp_si_si(tempSin, 0, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numClear(out);
+                numInit(out, NUM_ERROR);
                 char error[] = "Cosec is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
             numClear(out);
@@ -1275,18 +1277,18 @@ void numCosecInto(Number* out, const Number* num) {
         }
 
         case NUM_REAL: {
+            numClear(out);
             mpfr_t tempSin;
             mpfr_init2(tempSin, PRECISION);
             mpfr_sin(tempSin, num->real, MPFR_RNDN);
 
             if (mpfr_cmp_si(tempSin, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numInit(out, NUM_ERROR);
                 char error[] = "Cosec is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
-            numClear(out);
             numInit(out, NUM_REAL);
             mpfr_ui_div(out->real, 1, tempSin, MPFR_RNDN);
             mpfr_clear(tempSin);
@@ -1337,13 +1339,14 @@ void numCosechInto(Number* out, const Number* num) {
             mpc_init2(tempSinh, PRECISION);
             mpc_sinh(tempSinh, num->complex, MPC_RNDNN);
 
-            if (mpc_cmp_si_si(tempSinh, 0, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
-                char error[] = "Cosech is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
-            }
             numClear(out);
+
+            if (mpc_cmp_si_si(tempSinh, 0, 0) == 0) {
+                numInit(out, NUM_ERROR);
+                char error[] = "Cosech is undefined for this value";
+                numSetError(out, error, strlen(error));
+                return;
+            }
             numInit(out, NUM_COMPLEX);
             mpc_ui_div(out->complex, 1, tempSinh, MPC_RNDNN);
             mpc_clear(tempSinh);
@@ -1356,13 +1359,14 @@ void numCosechInto(Number* out, const Number* num) {
             mpfr_init2(tempSinh, PRECISION);
             mpfr_sinh(tempSinh, num->real, MPFR_RNDN);
 
-            if (mpfr_cmp_si(tempSinh, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
-                char error[] = "Cosec is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
-            }
             numClear(out);
+
+            if (mpfr_cmp_si(tempSinh, 0) == 0) {
+                numInit(out, NUM_ERROR);
+                char error[] = "Cosec is undefined for this value";
+                numSetError(out, error, strlen(error));
+                return;
+            }
             numInit(out, NUM_REAL);
             mpfr_ui_div(out->real, 1, tempSinh, MPFR_RNDN);
             mpfr_clear(tempSinh);
@@ -1413,14 +1417,15 @@ void numSecInto(Number* out, const Number* num) {
             mpc_init2(tempCos, PRECISION);
             mpc_cos(tempCos, num->complex, MPC_RNDNN);
 
+            numClear(out);
+
             if (mpc_cmp_si_si(tempCos, 0, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numInit(out, NUM_ERROR);
                 char error[] = "Sec is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
-            numClear(out);
             numInit(out, NUM_COMPLEX);
             mpc_ui_div(out->complex, 1, tempCos, MPC_RNDNN);
             mpc_clear(tempCos);
@@ -1433,14 +1438,15 @@ void numSecInto(Number* out, const Number* num) {
             mpfr_init2(tempCos, PRECISION);
             mpfr_cos(tempCos, num->real, MPFR_RNDN);
 
+            numClear(out);
+
             if (mpfr_cmp_si(tempCos, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numInit(out, NUM_ERROR);
                 char error[] = "Sec is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
-            numClear(out);
             numInit(out, NUM_REAL);
             mpfr_ui_div(out->real, 1, tempCos, MPFR_RNDN);
             mpfr_clear(tempCos);
@@ -1491,14 +1497,15 @@ void numSechInto(Number* out, const Number* num) {
             mpc_init2(tempCosh, PRECISION);
             mpc_cosh(tempCosh, num->complex, MPC_RNDNN);
 
+            numClear(out);
+
             if (mpc_cmp_si_si(tempCosh, 0, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numInit(out, NUM_ERROR);
                 char error[] = "Sech is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
-            numClear(out);
             numInit(out, NUM_COMPLEX);
             mpc_ui_div(out->complex, 1, tempCosh, MPC_RNDNN);
             mpc_clear(tempCosh);
@@ -1511,14 +1518,15 @@ void numSechInto(Number* out, const Number* num) {
             mpfr_init2(tempCosh, PRECISION);
             mpfr_cosh(tempCosh, num->real, MPFR_RNDN);
 
+            numClear(out);
+
             if (mpfr_cmp_si(tempCosh, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numInit(out, NUM_ERROR);
                 char error[] = "Sech is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
-            numClear(out);
             numInit(out, NUM_REAL);
             mpfr_ui_div(out->real, 1, tempCosh, MPFR_RNDN);
             mpfr_clear(tempCosh);
@@ -1569,14 +1577,15 @@ void numCotInto(Number* out, const Number* num) {
             mpc_init2(tempTan, PRECISION);
             mpc_tan(tempTan, num->complex, MPC_RNDNN);
 
+            numClear(out);
+
             if (mpc_cmp_si_si(tempTan, 0, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numInit(out, NUM_ERROR);
                 char error[] = "Cot is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
-            numClear(out);
             numInit(out, NUM_COMPLEX);
             mpc_ui_div(out->complex, 1, tempTan, MPC_RNDNN);
             mpc_clear(tempTan);
@@ -1589,14 +1598,15 @@ void numCotInto(Number* out, const Number* num) {
             mpfr_init2(tempTan, PRECISION);
             mpfr_tan(tempTan, num->real, MPFR_RNDN);
 
+            numClear(out);
+
             if (mpfr_cmp_si(tempTan, 0) == 0) {
-                Number* result = numNew(NUM_ERROR);
+                numInit(out, NUM_ERROR);
                 char error[] = "Cot is undefined for this value";
-                numSetError(result, error, strlen(error));
-                return result;
+                numSetError(out, error, strlen(error));
+                return;
             }
 
-            numClear(out);
             numInit(out, NUM_REAL);
             mpfr_ui_div(out->real, 1, tempTan, MPFR_RNDN);
             mpfr_clear(tempTan);
@@ -1651,7 +1661,7 @@ void numCothInto(Number* out, const Number* num) {
                 Number* result = numNew(NUM_ERROR);
                 char error[] = "Coth is undefined for this value";
                 numSetError(result, error, strlen(error));
-                return result;
+                return;
             }
 
             numClear(out);
@@ -1670,7 +1680,7 @@ void numCothInto(Number* out, const Number* num) {
                 Number* result = numNew(NUM_ERROR);
                 char error[] = "Coth is undefined for this value";
                 numSetError(result, error, strlen(error));
-                return result;
+                return;
             }
 
             numClear(out);
@@ -1757,10 +1767,10 @@ void numSgnInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
             if (mpc_cmp_si_si(num->complex, 0, 0) == 0) {
-                Number* result = numNew(NUM_REAL);
-                mpfr_set_si(result->real, 0, MPFR_RNDN);
+                numInit(out, NUM_REAL);
+                mpfr_set_si(out->real, 0, MPFR_RNDN);
 
-                return result;
+                return;
             }
 
             numInit(out, NUM_COMPLEX);
@@ -1889,7 +1899,7 @@ void numAbsInto(Number* out, const Number* num) {
 
         case NUM_BOOL: {
             numInit(out, NUM_REAL);
-            numSetRealSi(out, (num->boolean == 0 ? 0 : 1));
+            numSetRealSd(out, (num->boolean == 0 ? 0 : 1));
 
             return;
         }
@@ -2030,14 +2040,15 @@ void numPowInto(Number* out, const Number* base, const Number* exp) {
                     mpq_init(invertedNum);
 
                     if (numSgn(base) == 0) {
-                        Number* result = numNew(NUM_ERROR);
+                        numClear(out);
+                        numInit(out, NUM_ERROR);
 
                         char errorString[] = "Cannot raise zero to a -ve power";
                         size_t errorLength = strlen(errorString);
 
-                        numSetError(result, errorString, errorLength);
+                        numSetError(out, errorString, errorLength);
 
-                        return result;
+                        return;
                     }
 
                     mpq_inv(invertedNum, base->rational);
@@ -2126,6 +2137,54 @@ Number* numPow(const Number* base, const Number* exp) {
     return result;
 }
 
+void numSqrtInto(Number* out, const Number* num) {
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            numClear(out);
+            numInit(out, NUM_COMPLEX);
+            mpc_sqrt(out->complex, num->complex, MPC_RNDNN);
+            return;
+        }
+
+        case NUM_REAL: {
+            numClear(out);
+            numInit(out, NUM_REAL);
+            mpfr_sqrt(out->real, num->real, MPFR_RNDN);
+            return;
+        }
+
+        case NUM_RATIONAL: {
+            Number* realNum = numConvertandSet(num, NUM_REAL);
+            numSqrtInto(out, realNum);
+            numFree(realNum);
+            return;
+        }
+
+        case NUM_BOOL: {
+            numClear(out);
+            numInit(out, NUM_REAL);
+            numSetRealSd(out, num->boolean == 0 ? 0 : 1);
+            return;
+        }
+
+        case NUM_ERROR: {
+            numClear(out);
+            numInit(out, NUM_ERROR);
+            numSet(out, num);
+            return;
+        }
+
+        default:
+            exit(1);
+    }
+}
+
+Number* numSqrt(const Number* num) {
+    Number* result = numNew(NUM_BOOL);
+    numSqrtInto(result, num);
+    return result;
+}
+
 void numExpInto(Number* out, const Number* num) {
     switch (num->kind) {
         case NUM_COMPLEX: {
@@ -2188,7 +2247,7 @@ void numLnInto(Number* out, const Number* num) {
         char error[] = "Log is undefined for 0";
         numSetError(out, error, strlen(error));
 
-        return out;
+        return;
     }
 
     switch (num->kind) {
@@ -2295,7 +2354,7 @@ void numLogInto(Number* out, const Number* num) {
             numInit(out, NUM_ERROR);
             numSet(out, num);
 
-            return out;
+            return;
         }
 
         default: {
@@ -2483,7 +2542,7 @@ static void numShiftRightSiInto(Number* out, const Number* num,
 
         case NUM_ERROR: {
             // NUM_ERROR does not reach this case
-            return NULL;
+            return;
         }
 
         default: {
@@ -2535,7 +2594,7 @@ static void numShiftLeftSiInto(Number* out, const Number* num,
 
         case NUM_ERROR: {
             // NUM_ERROR does not reach this case
-            return NULL;
+            return;
         }
 
         default: {
@@ -2632,6 +2691,6 @@ void numShiftLeftInto(Number* out, const Number* num, const Number* bits) {
 
 Number* numShiftLeft(const Number* num, const Number* bits) {
     Number* result = numNew(NUM_BOOL);
-    numShiftLeftSiInto(result, num, bits);
+    numShiftLeftInto(result, num, bits);
     return result;
 }
