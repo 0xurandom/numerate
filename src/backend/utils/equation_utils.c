@@ -5,15 +5,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "complex_utils.h"
 #include "set_utils.h"
 
 // TODO: use newton rhapson for equation solving
 
-Polynomial *newPolynomial() {}
+Polynomial* newPolynomial() {}
 
 // ax^2 + bx + c = 0;
-Set *solveQuadratic(Polynomial *quadratic) {
+Set* solveQuadratic(Polynomial* quadratic) {
     if (quadratic->degree != 2) {
         fprintf(stderr, "Error: solveQuadratic received a non quadratic\n");
         exit(1);
@@ -29,7 +28,7 @@ Set *solveQuadratic(Polynomial *quadratic) {
         double x = (-b + sqrt(determinant)) / (2 * a);
         double y = (-b - sqrt(determinant)) / (2 * a);
 
-        Set *set = newSet();
+        Set* set = newSet();
         insertElement(set, x);
         insertElement(set, y);
 
@@ -38,7 +37,7 @@ Set *solveQuadratic(Polynomial *quadratic) {
     } else if (determinant == 0) {
         double x = (-b) / (2 * a);
 
-        Set *set = newSet();
+        Set* set = newSet();
         insertElement(set, x);
 
         return set;
@@ -53,7 +52,7 @@ Set *solveQuadratic(Polynomial *quadratic) {
 }
 
 // ax^3 + bx^2 + cx + d = 0
-Set *getCubicRoots(Polynomial *cubic) {
+Set* getCubicRoots(Polynomial* cubic) {
     if (cubic->degree != 3) {
         fprintf(stderr, "Error: getCubicRoots received a non cubic\n");
         exit(1);

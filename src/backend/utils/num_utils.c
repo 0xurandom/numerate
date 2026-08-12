@@ -3,6 +3,7 @@
 #include <gmp-x86_64.h>
 #include <limits.h>
 #include <mpc.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -714,8 +715,6 @@ void numClear(Number* num) {
     }
 }
 
-// TODO: decide if num itself will
-// need to be freed
 void numFree(Number* num) {
     switch (num->kind) {
         case NUM_REAL: {
@@ -744,4 +743,19 @@ void numFree(Number* num) {
     }
 
     free(num);
+}
+
+void numFrees(Number* num, ...) {
+    if (num == NULL) return;
+
+    va_list args;
+    va_start(args, num);
+
+    Number* nextArg;
+
+    while ((nextArg = va_arg(args, Number*)) != NULL) {
+        numFree(nextArg);
+    }
+
+    va_end(args);
 }

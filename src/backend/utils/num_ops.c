@@ -2458,13 +2458,13 @@ static void numShiftRightSiInto(Number* out, const Number* num,
         }
 
         case NUM_REAL: {
-            numInit(NUM_REAL);
+            numInit(out, NUM_REAL);
             mpfr_div_2ui(out->real, num->real, bits, MPFR_RNDN);
             return;
         }
 
         case NUM_RATIONAL: {
-            numInit(NUM_RATIONAL);
+            numInit(out, NUM_RATIONAL);
             mpq_div_2exp(out->rational, num->rational, bits);
             return;
         }
