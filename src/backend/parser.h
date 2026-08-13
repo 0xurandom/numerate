@@ -46,6 +46,7 @@ typedef enum {
     NODE_BINARY,
     NODE_ASSIGNMENT,
     NODE_VAR,  // subset of assignment
+    NODE_FUNCCALL,
 } NodeKind;
 
 typedef struct Node Node;
@@ -78,6 +79,12 @@ struct Node {
             Token name;
             Node* value;
         } assignment;
+
+        struct {
+            Token funcName;
+            struct Node** args;
+            int argCount;
+        } funcCall;
     };
 };
 

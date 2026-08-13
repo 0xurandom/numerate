@@ -1,13 +1,14 @@
 #include "function_utils.h"
 
+#include <stdarg.h>
+#include <stdio.h>
+
 Number* evaluateFunction(Parser* parser, StringView* func) {
+    Func* func = searchFuncArr(parser->env->varStore, func);
+
     Env localEnv = {.parent = parser->env};
     initVarStore(localEnv.varStore);
-
-    // for (int i = 0; i <)
 }
-
-// Func* newFunc(const char* name, , Node * val)
 
 void initFuncArr(FuncArr* funcArr) {
     funcArr->funcs = malloc(FUNCARR_CAP * sizeof(Func));
@@ -17,6 +18,31 @@ void initFuncArr(FuncArr* funcArr) {
     for (int i = 0; i < FUNCARR_CAP; i++) {
         funcArr->funcs[i] = NULL;
     }
+
+    return;
+}
+
+Func* newFunc(StringView* name, Node* val, int paramCount, StringView* param1,
+              ...) {
+    Func* func = malloc(sizeof(Func));
+
+    if (func == NULL) {
+        fprintf(stderr, "Error: Could not allocate Func\n");
+        exit(1);
+    }
+
+    copyStringView(&func->name, name);
+    initStringViewArr(&func->params, paramCount);
+
+    va_list args;
+    va_start(args, param1);
+    for (int i = 0; i < paramCount; i++) {
+        StringView* param = va_arg(args, StringView*);
+        addStringToStringViewArr(&func->params, param);
+    }
+    va_end(args);
+
+    return func;
 }
 
 Func* searchFuncArr(const FuncArr* funcArr, StringView* funcName) {
@@ -37,9 +63,32 @@ bool addToFuncArr(FuncArr* funcArr, Func* func) {
     return true;
 }
 
-void deleteFromFuncArr(FuncArr* funcArr) {}
+void deleteFromFuncArr(FuncArr* funcArr, StringView* funcName) {
+    int i;
+
+    for (i = 0; i < funcArr->count; i++) {
+        if (compareViews(funcName, &funcArr->funcs[i]->name)) {
+            freeFunc(&funcArr->funcs[i]);
+            funcArr->funcs[i] = funcArr->funcs[funcArr->count - 1];
+            funcArr->count--;
+        }
+    }
+
+    return;
+}
+
+void freeFunc(Func* func) {
+    freeNode(func->val);
+
+    free(func);
+    func = NULL;
+
+    return;
+}
 
 void reallocFuncArr(FuncArr* funcArr) {
     funcArr->funcs = realloc(funcArr->funcs, 2 * funcArr->capacity);
     funcArr->capacity *= 2;
+
+    return;
 }

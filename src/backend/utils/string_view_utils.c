@@ -10,9 +10,6 @@
 
 #define DEFAULT_STRING_CAPACITY 10
 
-// TODO: add malloc null checks
-// and const parameters
-
 // TODO: set max string length to int max
 
 void initStringView(StringView* view) {
@@ -52,7 +49,7 @@ void initStringViewWithString(StringView* view, const char* string,
 
 // copies length number of bytes from string
 // and allocates a new string view
-StringView* newStringView(char* string, size_t length) {
+StringView* newStringView(const char* string, size_t length) {
     StringView* view = malloc(sizeof(StringView));
 
     if (length > DEFAULT_STRING_CAPACITY) {

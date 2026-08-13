@@ -11,14 +11,36 @@ StringViewArr* newStringViewArr() {
 }
 
 // pass 0 as stringLength if unknown
-void addStringToStringView(StringViewArr* svArr, const char* string,
-                           size_t passedStrLen) {
+void initStringViewArr(StringViewArr* svArr, int paramCount) {
+    int cap = (paramCount == 0) ? STRINGVIEWARR_CAP : paramCount;
+
+    svArr->arr = malloc(cap * sizeof(StringView));
+    svArr->capacity = cap;
+    svArr->count = 0;
+
+    return;
+}
+
+// pass 0 as stringLength if unknown
+void addStringToStringViewArr(StringViewArr* svArr, StringView* sv) {
     if (svArr->count + 1 > svArr->capacity) reallocStringViewArr(svArr);
 
-    int StrLen = (passedStrLen == 0) ? strlen(string) : passedStrLen;
-    // change to stringView**
-    memcpy(&svArr->arr[svArr->count], string, StrLen * sizeof(char));
-    svArr->arr[svArr->count].length = StrLen;
+    svArr->arr[svArr->count] = sv;
+    svArr->count++;
+
+    return;
+}
+
+void freeStringViewArr(StringViewArr* svArr) {
+    for (int i = 0; i < svArr->count; i++) {
+        freeStringView(svArr->arr[i]);
+    }
+
+    free(svArr->arr);
+    free(svArr);
+    svArr = NULL;
+
+    return;
 }
 
 void reallocStringViewArr(StringView* svArr) {

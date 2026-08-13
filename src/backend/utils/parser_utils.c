@@ -1,6 +1,7 @@
 #include "parser_utils.h"
 
 #include <math.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,6 +86,13 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
     node->binary.right = right;
 
     return node;
+}
+
+Node* newFuncCallNode(Token name, int argCount, Node* arg1, ...) {
+    va_list args;
+    va_start(args, arg1);
+
+    va_end(args);
 }
 
 Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
