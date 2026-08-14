@@ -25,8 +25,6 @@ Number* numNew(NumberKind kind) {
     return num;
 }
 
-// TODO: add num set
-
 void numInit(Number* num, NumberKind kind) {
     num->kind = kind;
 

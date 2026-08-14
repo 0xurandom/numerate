@@ -106,7 +106,6 @@ Node* parse(Parser* parser, Precedence precedence) {
 
     // handle infixes and postfixes
 
-    // while the next token has a higher precedence
     while (precedence <= getPrecedence(parser->cur.kind)) {
         if (getPrecedence(parser->cur.kind) == PREC_NONE) {
             break;
@@ -117,9 +116,8 @@ Node* parse(Parser* parser, Precedence precedence) {
         Token op = parser->prev;
 
         switch (op.kind) {
-            // left associative tokens:
-            // add 1 to recursively parse
-            // with left associativity
+                // left associative tokens:
+
             case TOK_PLUS:
             case TOK_MINUS:
             case TOK_ASTERISK:

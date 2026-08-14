@@ -89,10 +89,27 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
 }
 
 Node* newFuncCallNode(Token name, int argCount, Node* arg1, ...) {
+    Node* node = malloc(sizeof(Node));
+
+    node->kind = NODE_FUNCCALL;
+    node->funcCall.funcName = name;
+    node->funcCall.argCount = argCount;
+
+    node->funcCall.args = malloc((argCount + 1) * sizeof(Node*));
+
     va_list args;
     va_start(args, arg1);
 
+    for (int i = 0; i < argCount; i++) {
+        Node* arg = va_arg(args, Node*);
+        node->funcCall.args[i] = arg;
+    }
+
     va_end(args);
+
+    node->funcCall.args[node->funcCall.argCount] = NULL;
+
+    return node;
 }
 
 Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
@@ -138,6 +155,20 @@ void freeNode(Node* node) {
         case NODE_BINARY: {
             freeNode(node->binary.left);
             freeNode(node->binary.right);
+            break;
+        }
+
+        case NODE_ASSIGNMENT: {
+            freeNode(node->assignment.value);
+            break;
+        }
+
+        case NODE_FUNCCALL: {
+            for (int i = 0; i < node->funcCall.argCount; i++) {
+                freeNode(node->funcCall.args[i]);
+            }
+
+            free(node->funcCall.args);
             break;
         }
 

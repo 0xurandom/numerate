@@ -3,11 +3,40 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-Number* evaluateFunction(Parser* parser, StringView* func) {
+Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
     Func* func = searchFuncArr(parser->env->varStore, func);
+
+    if (funcCallNode->funcCall.argCount != func->params.count) {
+        const char error[] = "Function call has invalid number of arguments";
+        Number* result = numNew(NUM_ERROR);
+        numSetError(result, error, strlen(error));
+        return result;
+    }
+
+    for (int i = 0; i < funcCallNode->funcCall.argCount; i++) {
+        Node* node = funcCallNode->funcCall.args[i];
+        Node* evaluatedNode = simplifyTree(parser, node);
+
+        if (!canBeNodeLiteral(evaluatedNode)) {
+            const char error[] = "Unable to evaluate function arguments";
+            Number* result = numNew(NUM_ERROR);
+            numSetError(result, error, strlen(error));
+            // TODO: free this and prev nodes
+            return result;
+        }
+
+        funcCallNode->funcCall.args[i] = evaluatedNode;
+
+        if (node != evaluatedNode) freeNode(node);
+    }
 
     Env localEnv = {.parent = parser->env};
     initVarStore(localEnv.varStore);
+
+    for (int i = 0; i < func->params.count; i++) {
+        insertVar(localEnv.varStore, func->params.arr[i],
+                  &funcCallNode->funcCall.args[i]->literal.value);
+    }
 }
 
 void initFuncArr(FuncArr* funcArr) {
