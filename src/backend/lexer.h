@@ -28,6 +28,7 @@ typedef enum {
     TOK_CARET,
     TOK_BANG,
     TOK_PERCENT,
+    TOK_COMMA,
 
     TOK_LPAREN,
     TOK_RPAREN,
@@ -64,7 +65,7 @@ typedef struct {
 } Token;
 
 typedef struct {
-    char *string;
+    char* string;
     size_t cursor;
     size_t length;
 } Lexer;
@@ -75,5 +76,5 @@ typedef struct {
     TokenKind tokenKind;
 } Keyword;
 
-Token tokenise(Lexer *lexer);
-TokenKind lookupKeyword(char *keyword, int len);
+Token tokenise(Lexer* lexer);
+TokenKind lookupKeyword(char* keyword, int len);

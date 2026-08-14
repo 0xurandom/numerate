@@ -1,12 +1,16 @@
 #include "string_view_arr.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-StringViewArr* newStringViewArr() {
+// pass 0 as stringLength if unknown
+StringViewArr* newStringViewArr(int paramCount) {
+    int cap = (paramCount == 0) ? STRINGVIEWARR_CAP : paramCount;
+
     StringViewArr* svArr = malloc(sizeof(StringViewArr));
-    svArr->arr = malloc(STRINGVIEWARR_CAP * sizeof(StringView));
-    svArr->capacity = STRINGVIEWARR_CAP;
+    svArr->arr = malloc(cap * sizeof(StringView));
+    svArr->capacity = cap;
     svArr->count = 0;
 }
 

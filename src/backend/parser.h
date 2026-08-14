@@ -8,6 +8,8 @@
 #include "utils/num_utils.h"
 #include "variable_store.h"
 
+#define DEF_FUNC_ARGS 4
+
 typedef struct {
     Lexer* lexer;
 
@@ -47,6 +49,7 @@ typedef enum {
     NODE_ASSIGNMENT,
     NODE_VAR,  // subset of assignment
     NODE_FUNCCALL,
+    NODE_FUNCDEF,
 } NodeKind;
 
 typedef struct Node Node;
@@ -85,6 +88,12 @@ struct Node {
             struct Node** args;
             int argCount;
         } funcCall;
+
+        struct {
+            Token name;
+            StringViewArr* params;
+            Node* val;
+        } funcDef;
     };
 };
 

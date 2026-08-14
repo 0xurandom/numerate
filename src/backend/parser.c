@@ -145,13 +145,77 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             // right associative tokens
             case TOK_EQUALS: {
+                Node* rightVal = parse(parser, getPrecedence(op.kind));
+
+                if (left->kind == NODE_VAR) {
+                    left = newAssignmentNode(left->var.name, rightVal);
+                } else if (left->kind == NODE_FUNCCALL) {
+                    Token name = left->funcCall.funcName;
+
+                    StringViewArr* params =
+                        newStringViewArr(left->funcCall.argCount);
+
+                    for (int i = 0; i < left->funcCall.argCount; i++) {
+                        Node* argNode = left->funcCall.args[i];
+
+                        if (argNode->kind != NODE_VAR) {
+                            // TODO: errror better
+                            fprintf(stderr, "error\n");
+                            exit(1);
+                        }
+
+                        StringView* sv = malloc(sizeof(StringView));
+                        *sv = argNode->var.name.ident;
+                        addStringToStringViewArr(params, sv);
+                    }
+
+                    Node* funcDef = newFuncDefNode(name, params, rightVal);
+                    freeNode(left);
+                    left = funcDef;
+                } else {
+                    fprintf(stderr, "err 2");
+                    exit(1);
+                }
+                break;
+            }
+
+            case TOK_LPAREN: {
                 if (left->kind != NODE_VAR) {
-                    fprintf(stderr, "Error: Cannot assign to a non var\n");
+                    fprintf(stderr, "err 3");
                     exit(1);
                 }
 
-                Node* value = parse(parser, getPrecedence(op.kind));
-                left = newAssignmentNode(left->var.name, value);
+                Token funcName = left->var.name;
+                freeNode(left);
+
+                int argCap = DEF_FUNC_ARGS;
+                int argCount = 0;
+                Node** args = malloc(argCap * sizeof(Node));
+
+                if (parser->cur.kind != TOK_RPAREN) {
+                    args[argCount] = parse(parser, PREC_ASSIGNMENT);
+                    argCount++;
+
+                    while (parser->cur.kind == TOK_COMMA) {
+                        nextToken(parser);
+                        if (argCount >= argCap) {
+                            args = realloc(args, 2 * argCap * sizeof(Node));
+                            argCap *= 2;
+                        }
+
+                        args[argCount] = parse(parser, PREC_ASSIGNMENT);
+                    }
+                }
+
+                if (parser->cur.kind == TOK_RPAREN) {
+                    nextToken(parser);
+                } else {
+                    fprintf(stderr, "err4\n");
+                    exit(1);
+                }
+
+                left = newFuncCallNode(funcName, args, argCount);
+
                 break;
             }
 

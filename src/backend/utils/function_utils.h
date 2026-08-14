@@ -7,6 +7,9 @@
 
 #define FUNCARR_CAP 20
 
+typedef struct Node Node;
+typedef struct HashMap HashMap;
+
 typedef struct {
     StringView name;
     StringViewArr params;

@@ -10,8 +10,8 @@ typedef struct {
     int capacity;
 } StringViewArr;
 
-StringViewArr* newStringViewArr();
+StringViewArr* newStringViewArr(int paramCount);
 void initStringViewArr(StringViewArr* svArr, int paramCount);
 void addStringToStringViewArr(StringViewArr* svArr, StringView* sv);
 void freeStringViewArr(StringViewArr* svArr);
-void reallocStringViewArr(StringView* svArr);
+void reallocStringViewArr(StringViewArr* svArr);

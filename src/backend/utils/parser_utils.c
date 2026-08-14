@@ -112,6 +112,15 @@ Node* newFuncCallNode(Token name, int argCount, Node* arg1, ...) {
     return node;
 }
 
+Node* newFuncDefNode(Token name, StringViewArr* params, Node* val) {
+    Node* node = malloc(sizeof(Node));
+    node->kind = NODE_FUNCDEF;
+    node->funcDef.name = name;
+    node->funcDef.params = params;
+    node->funcDef.val = val;
+    return node;
+}
+
 Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
     printf("\n\nevaluating: %s\n", str);
     lexer->string = str;
@@ -169,6 +178,12 @@ void freeNode(Node* node) {
             }
 
             free(node->funcCall.args);
+            break;
+        }
+
+        case NODE_FUNCDEF: {
+            freeStringViewArr(node->funcDef.params);
+            freeNode(node->funcDef.val);
             break;
         }
 

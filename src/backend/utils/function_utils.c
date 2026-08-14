@@ -13,30 +13,54 @@ Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
         return result;
     }
 
+    Number** evaledArgs =
+        malloc(funcCallNode->funcCall.argCount * sizeof(Number));
+
     for (int i = 0; i < funcCallNode->funcCall.argCount; i++) {
-        Node* node = funcCallNode->funcCall.args[i];
-        Node* evaluatedNode = simplifyTree(parser, node);
+        Node* evaluatedNode =
+            simplifyTree(parser, funcCallNode->funcCall.args[i]);
 
         if (!canBeNodeLiteral(evaluatedNode)) {
             const char error[] = "Unable to evaluate function arguments";
             Number* result = numNew(NUM_ERROR);
             numSetError(result, error, strlen(error));
-            // TODO: free this and prev nodes
+
+            freeNode(evaluatedNode);
+            for (int j = 0; j < i; j++) {
+                numFree(evaledArgs[j]);
+            }
+            free(evaledArgs);
             return result;
         }
 
-        funcCallNode->funcCall.args[i] = evaluatedNode;
+        evaledArgs[i] = numNew(evaluatedNode->literal.value.kind);
+        numSet(evaledArgs[i], &evaluatedNode->literal.value);
 
-        if (node != evaluatedNode) freeNode(node);
+        freeNode(evaluatedNode);
     }
 
     Env localEnv = {.parent = parser->env};
     initVarStore(localEnv.varStore);
+    Env* prevEnv = parser->env;
+    parser->env = localEnv;
 
     for (int i = 0; i < func->params.count; i++) {
         insertVar(localEnv.varStore, func->params.arr[i],
                   &funcCallNode->funcCall.args[i]->literal.value);
     }
+
+    Node* resultNode = simplifyTree(parser, func->val);
+    parser->env = prevEnv;
+
+    Number* result = numNew(resultNode->literal.value.kind);
+    numSet(result, &resultNode->literal.value);
+
+    for (int i = 0; i < funcCallNode->funcCall.argCount; i++) {
+        numFree(evaledArgs[i]);
+    }
+    free(evaledArgs);
+
+    return result;
 }
 
 void initFuncArr(FuncArr* funcArr) {
