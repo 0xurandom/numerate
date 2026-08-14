@@ -179,3 +179,9 @@ char peekNext(Lexer* lexer) {
         return lexer->string[lexer->cursor + 1];
     }
 }
+
+Token newToken(TokenKind kind) {
+    Token token;
+    token.kind = kind;
+    return token;
+}

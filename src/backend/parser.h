@@ -52,8 +52,6 @@ typedef enum {
     NODE_FUNCDEF,
 } NodeKind;
 
-typedef struct Node Node;
-
 // TODO: add a format kind for lilteral
 struct Node {
     NodeKind kind;

@@ -146,6 +146,56 @@ Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
     return result_val;
 }
 
+Node* newLiteralNodeWithVal(double val) {
+    Node* node = malloc(sizeof(Node));
+    node->kind = NODE_LITERAL;
+    numInit(&node->literal.value, NUM_REAL);
+    numSetRealSd(&node->literal.value, val);
+
+    return node;
+}
+
+Node* copyNode(Node* node) {
+    if (node == NULL) return NULL;
+
+    Node* newNode = malloc(sizeof(Node));
+    newNode->kind = node->kind;
+
+    switch (node->kind) {
+        case NODE_LITERAL: {
+            numInit(&newNode->literal.value, node->literal.value.kind);
+            numSet(&newNode->literal.value, &node->literal.value);
+            break;
+        }
+
+        case NODE_VAR: {
+            newNode->var.name = node->var.name;
+            break;
+        }
+
+        case NODE_UNARY:
+        case NODE_PREFIX: {
+            newNode->unary.op = node->unary.op;
+            newNode->unary.operand = copyNode(node->unary.operand);
+            break;
+        }
+
+        case NODE_BINARY: {
+            newNode->binary.op = node->binary.op;
+            newNode->binary.left = copyNode(node->binary.left);
+            newNode->binary.right = copyNode(node->binary.right);
+            break;
+        }
+
+        default: {
+            fprintf(stderr, "unknown node");
+            break;
+        }
+    }
+
+    return newNode;
+}
+
 void nextToken(Parser* parser) {
     parser->prev = parser->cur;
 
