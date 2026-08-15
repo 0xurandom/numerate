@@ -47,7 +47,7 @@ void freeStringViewArr(StringViewArr* svArr) {
     return;
 }
 
-void reallocStringViewArr(StringView* svArr) {
+void reallocStringViewArr(StringViewArr* svArr) {
     svArr->arr = realloc(svArr->arr, svArr->capacity * 2);
     if (svArr->arr == NULL) {
         fprintf(stderr, "Error: Could not allocate String View Arr\n");

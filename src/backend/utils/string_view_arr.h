@@ -4,7 +4,7 @@
 
 #define STRINGVIEWARR_CAP 7
 
-typedef struct {
+typedef struct StringViewArr {
     StringView** arr;
     int count;
     int capacity;

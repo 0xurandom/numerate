@@ -2,6 +2,8 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
     Func* func = searchFuncArr(parser->env->varStore, func);
@@ -42,7 +44,7 @@ Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
     Env localEnv = {.parent = parser->env};
     initVarStore(localEnv.varStore);
     Env* prevEnv = parser->env;
-    parser->env = localEnv;
+    *parser->env = localEnv;
 
     for (int i = 0; i < func->params.count; i++) {
         insertVar(localEnv.varStore, func->params.arr[i],
@@ -59,6 +61,18 @@ Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
         numFree(evaledArgs[i]);
     }
     free(evaledArgs);
+
+    return result;
+}
+
+Number* evaluateFunctionAt(Parser* parser, Token funcName, const Number* x) {
+    Number* arg = numNew(x->kind);
+    numSet(arg, x);
+    Node* argNode = newLiteralNode(arg);
+
+    Node* funcCallNode = newFuncCallNode(funcName, 1, argNode);
+    Number* result = evaluateFunction(parser, funcCallNode);
+    freeNode(funcCallNode);
 
     return result;
 }

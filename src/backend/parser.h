@@ -6,11 +6,12 @@
 #include "utils/function_utils.h"
 #include "utils/hashmap_utils.h"
 #include "utils/num_utils.h"
+#include "utils/string_view_arr.h"
 #include "variable_store.h"
 
 #define DEF_FUNC_ARGS 4
 
-typedef struct {
+typedef struct Parser {
     Lexer* lexer;
 
     Token cur;
@@ -51,6 +52,8 @@ typedef enum {
     NODE_FUNCCALL,
     NODE_FUNCDEF,
 } NodeKind;
+
+typedef struct Node Node;
 
 // TODO: add a format kind for lilteral
 struct Node {
