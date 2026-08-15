@@ -42,6 +42,7 @@ typedef enum {
 
     TOK_SGN,
     TOK_ABS,
+    // TODO: remove twos complement
     TOK_TWOS,
     TOK_SQRT,
     TOK_CBRT,

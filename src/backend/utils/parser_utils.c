@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "lexer_utils.h"
 #include "num_utils.h"
 
 Node* newLiteralNode(Number* num) {
@@ -243,6 +244,22 @@ void freeNode(Node* node) {
     }
 
     free(node);
+}
+
+Node* newAddNode(Node* left, Node* right) {
+    return newBinaryNode(newToken(TOK_PLUS), left, right);
+}
+Node* newSubNode(Node* left, Node* right) {
+    return newBinaryNode(newToken(TOK_MINUS), left, right);
+}
+Node* newMulNode(Node* left, Node* right) {
+    return newBinaryNode(newToken(TOK_ASTERISK), left, right);
+}
+Node* newDivNode(Node* left, Node* right) {
+    return newBinaryNode(newToken(TOK_SLASH), left, right);
+}
+Node* newPowNode(Node* base, Node* exp) {
+    return newBinaryNode(newToken(TOK_CARET), base, exp);
 }
 
 bool isArithOp(TokenKind kind) {
