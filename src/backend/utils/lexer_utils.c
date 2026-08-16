@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <gmp-x86_64.h>
+#include <math.h>
 #include <mpc.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -9,7 +10,6 @@
 #include <string.h>
 
 #include "num_utils.h"
-#include "parser_utils.h"
 
 void lexString(char* string) {
     int len = strlen(string);

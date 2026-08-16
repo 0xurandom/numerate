@@ -5,8 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../parser.h"
+#include "../variable_store.h"
+#include "hashmap_utils.h"
+#include "parser_utils.h"
+
 Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
-    Func* func = searchFuncArr(parser->env->varStore, func);
+    Func* func = searchFuncArr(parser->env->funcArr, &func->name);
 
     if (funcCallNode->funcCall.argCount != func->params.count) {
         const char error[] = "Function call has invalid number of arguments";
@@ -68,9 +73,10 @@ Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
 Number* evaluateFunctionAt(Parser* parser, Token funcName, const Number* x) {
     Number* arg = numNew(x->kind);
     numSet(arg, x);
-    Node* argNode = newLiteralNode(arg);
+    Node** args = malloc(sizeof(Node*));
+    args[0] = newLiteralNode(arg);
 
-    Node* funcCallNode = newFuncCallNode(funcName, 1, argNode);
+    Node* funcCallNode = newFuncCallNode(funcName, args, 1);
     Number* result = evaluateFunction(parser, funcCallNode);
     freeNode(funcCallNode);
 
@@ -115,7 +121,7 @@ Func* newFunc(StringView* name, Node* val, int paramCount, StringView* param1,
 Func* searchFuncArr(const FuncArr* funcArr, StringView* funcName) {
     for (int i = 0; i < funcArr->count; i++) {
         if (compareViews(funcName, &funcArr->funcs[i]->name))
-            return &funcArr->funcs[i];
+            return funcArr->funcs[i];
     }
 
     return NULL;
@@ -124,7 +130,7 @@ Func* searchFuncArr(const FuncArr* funcArr, StringView* funcName) {
 bool addToFuncArr(FuncArr* funcArr, Func* func) {
     if (searchFuncArr(funcArr, &func->name) != NULL) return false;
 
-    if (funcArr->count + 1 > funcArr->capacity) resizeFuncArr(funcArr);
+    if (funcArr->count + 1 > funcArr->capacity) reallocFuncArr(funcArr);
 
     funcArr->funcs[funcArr->count] = func;
     return true;
@@ -135,7 +141,7 @@ void deleteFromFuncArr(FuncArr* funcArr, StringView* funcName) {
 
     for (i = 0; i < funcArr->count; i++) {
         if (compareViews(funcName, &funcArr->funcs[i]->name)) {
-            freeFunc(&funcArr->funcs[i]);
+            freeFunc(funcArr->funcs[i]);
             funcArr->funcs[i] = funcArr->funcs[funcArr->count - 1];
             funcArr->count--;
         }

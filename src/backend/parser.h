@@ -4,21 +4,22 @@
 
 #include "lexer.h"
 #include "utils/function_utils.h"
-#include "utils/hashmap_utils.h"
 #include "utils/num_utils.h"
 #include "utils/string_view_arr.h"
-#include "variable_store.h"
 
 #define DEF_FUNC_ARGS 4
 
-typedef struct Parser {
+typedef struct Env Env;
+typedef struct Parser Parser;
+
+struct Parser {
     Lexer* lexer;
 
     Token cur;
     Token prev;
 
     Env* env;
-} Parser;
+};
 
 // Precedence in ascending order
 

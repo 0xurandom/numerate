@@ -1,11 +1,14 @@
 #pragma once
 
-#include "../parser.h"
-#include "parser_utils.h"
+#include "../lexer.h"
+#include "hashmap_utils.h"
 #include "string_view_arr.h"
 #include "string_view_utils.h"
 
 #define FUNCARR_CAP 20
+
+typedef struct Node Node;
+typedef struct Parser Parser;
 
 typedef struct {
     StringView name;
@@ -13,21 +16,22 @@ typedef struct {
     Node* val;
 } Func;
 
-typedef struct Env Env;
-
-struct Env {
-    HashMap* varStore;
-    Env* parent;
-};
-
 typedef struct {
     Func** funcs;
     int count;
     int capacity;
 } FuncArr;
 
+typedef struct Env Env;
+
+struct Env {
+    HashMap* varStore;
+    FuncArr* funcArr;
+    Env* parent;
+};
+
 Number* evaluateFunction(Parser* parser, Node* funcCallNode);
-Number* evaluateFunctionAt(Parser* parser, Token funcName, Number* x);
+Number* evaluateFunctionAt(Parser* parser, Token funcName, const Number* x);
 void initFuncArr(FuncArr* funcArr);
 Func* newFunc(StringView* name, Node* val, int paramCount, StringView* param1,
               ...);

@@ -29,6 +29,7 @@ typedef enum {
     TOK_BANG,
     TOK_PERCENT,
     TOK_COMMA,
+    TOK_COLON,
 
     TOK_LPAREN,
     TOK_RPAREN,

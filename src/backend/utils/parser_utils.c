@@ -1,6 +1,5 @@
 #include "parser_utils.h"
 
-#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,8 +8,8 @@
 #include "lexer_utils.h"
 #include "num_utils.h"
 
-Node* newLiteralNode(Number* num) {
-    Node* node = malloc(sizeof(Node));
+Node *newLiteralNode(Number *num) {
+    Node *node = malloc(sizeof(Node));
 
     node->kind = NODE_LITERAL;
 
@@ -20,17 +19,17 @@ Node* newLiteralNode(Number* num) {
     return node;
 }
 
-Node* newBooleanNode(Number* num) {
+Node *newBooleanNode(Number *num) {
     if (num->kind != NUM_BOOL) {
         fprintf(
             stderr,
             "Warning: num of kind not NUM_BOOLEAN passed to newBooleanNode\n");
     }
 
-    Node* node = malloc(sizeof(Node));
+    Node *node = malloc(sizeof(Node));
     node->kind = NODE_BOOLEAN;
 
-    Number* boolNum = numConvertandSet(num, NUM_BOOL);
+    Number *boolNum = numConvertandSet(num, NUM_BOOL);
     numSet(&node->literal.value, boolNum);
 
     numFree(boolNum);
@@ -38,8 +37,8 @@ Node* newBooleanNode(Number* num) {
     return node;
 }
 
-Node* newAssignmentNode(Token name, Node* value) {
-    Node* node = malloc(sizeof(Node));
+Node *newAssignmentNode(Token name, Node *value) {
+    Node *node = malloc(sizeof(Node));
 
     node->kind = NODE_ASSIGNMENT;
     node->assignment.name = name;
@@ -48,8 +47,8 @@ Node* newAssignmentNode(Token name, Node* value) {
     return node;
 }
 
-Node* newVarNode(Token name) {
-    Node* node = malloc(sizeof(Node));
+Node *newVarNode(Token name) {
+    Node *node = malloc(sizeof(Node));
 
     node->kind = NODE_VAR;
     node->var.name = name;
@@ -57,8 +56,8 @@ Node* newVarNode(Token name) {
     return node;
 }
 
-Node* newUnaryNode(Token op, Node* operand) {
-    Node* node = malloc(sizeof(Node));
+Node *newUnaryNode(Token op, Node *operand) {
+    Node *node = malloc(sizeof(Node));
 
     node->kind = NODE_UNARY;
     node->unary.op = op;
@@ -67,8 +66,8 @@ Node* newUnaryNode(Token op, Node* operand) {
     return node;
 }
 
-Node* newPrefixNode(Token op, Node* operand) {
-    Node* node = malloc(sizeof(Node));
+Node *newPrefixNode(Token op, Node *operand) {
+    Node *node = malloc(sizeof(Node));
 
     node->kind = NODE_PREFIX;
     node->unary.op = op;
@@ -77,8 +76,8 @@ Node* newPrefixNode(Token op, Node* operand) {
     return node;
 }
 
-Node* newBinaryNode(Token op, Node* left, Node* right) {
-    Node* node = malloc(sizeof(Node));
+Node *newBinaryNode(Token op, Node *left, Node *right) {
+    Node *node = malloc(sizeof(Node));
 
     node->kind = NODE_BINARY;
 
@@ -89,32 +88,26 @@ Node* newBinaryNode(Token op, Node* left, Node* right) {
     return node;
 }
 
-Node* newFuncCallNode(Token name, int argCount, Node* arg1, ...) {
-    Node* node = malloc(sizeof(Node));
+Node *newFuncCallNode(Token name, Node **args, int argCount) {
+    Node *node = malloc(sizeof(Node));
 
     node->kind = NODE_FUNCCALL;
     node->funcCall.funcName = name;
     node->funcCall.argCount = argCount;
 
-    node->funcCall.args = malloc((argCount + 1) * sizeof(Node*));
-
-    va_list args;
-    va_start(args, arg1);
+    node->funcCall.args = malloc((argCount) * sizeof(Node *));
 
     for (int i = 0; i < argCount; i++) {
-        Node* arg = va_arg(args, Node*);
-        node->funcCall.args[i] = arg;
+        node->funcCall.args[i] = args[i];
     }
-
-    va_end(args);
 
     node->funcCall.args[node->funcCall.argCount] = NULL;
 
     return node;
 }
 
-Node* newFuncDefNode(Token name, StringViewArr* params, Node* val) {
-    Node* node = malloc(sizeof(Node));
+Node *newFuncDefNode(Token name, StringViewArr *params, Node *val) {
+    Node *node = malloc(sizeof(Node));
     node->kind = NODE_FUNCDEF;
     node->funcDef.name = name;
     node->funcDef.params = params;
@@ -122,7 +115,7 @@ Node* newFuncDefNode(Token name, StringViewArr* params, Node* val) {
     return node;
 }
 
-Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
+Number *evaluateString(Lexer *lexer, Parser *parser, char *str) {
     printf("\n\nevaluating: %s\n", str);
     lexer->string = str;
     lexer->cursor = 0;
@@ -130,16 +123,16 @@ Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
 
     parser->cur = tokenise(lexer);
 
-    Node* tree = parse(parser, PREC_ASSIGNMENT);
+    Node *tree = parse(parser, PREC_ASSIGNMENT);
 
     if (tree == NULL) {
         fprintf(stderr, "Error: parse function returned nullptr\n");
         exit(1);
     }
 
-    Node* result = simplifyTree(parser, tree);
+    Node *result = simplifyTree(parser, tree);
 
-    Number* result_val = numNew(result->literal.value.kind);
+    Number *result_val = numNew(result->literal.value.kind);
     numSet(result_val, &result->literal.value);
 
     freeNode(result);
@@ -147,8 +140,8 @@ Number* evaluateString(Lexer* lexer, Parser* parser, char* str) {
     return result_val;
 }
 
-Node* newLiteralNodeWithVal(double val) {
-    Node* node = malloc(sizeof(Node));
+Node *newLiteralNodeWithVal(double val) {
+    Node *node = malloc(sizeof(Node));
     node->kind = NODE_LITERAL;
     numInit(&node->literal.value, NUM_REAL);
     numSetRealSd(&node->literal.value, val);
@@ -156,10 +149,10 @@ Node* newLiteralNodeWithVal(double val) {
     return node;
 }
 
-Node* copyNode(Node* node) {
+Node *copyNode(Node *node) {
     if (node == NULL) return NULL;
 
-    Node* newNode = malloc(sizeof(Node));
+    Node *newNode = malloc(sizeof(Node));
     newNode->kind = node->kind;
 
     switch (node->kind) {
@@ -197,13 +190,13 @@ Node* copyNode(Node* node) {
     return newNode;
 }
 
-void nextToken(Parser* parser) {
+void nextToken(Parser *parser) {
     parser->prev = parser->cur;
 
     parser->cur = tokenise(parser->lexer);
 }
 
-void freeNode(Node* node) {
+void freeNode(Node *node) {
     if (node == NULL) return;
 
     switch (node->kind) {
@@ -246,19 +239,32 @@ void freeNode(Node* node) {
     free(node);
 }
 
-Node* newAddNode(Node* left, Node* right) {
+bool isImplicitMult(TokenKind left, TokenKind right) {
+    bool leftValid =
+        (left == TOK_NUMBER || left == TOK_VAR || left == TOK_RPAREN);
+    bool rightValid =
+        (right == TOK_VAR || right == TOK_NUMBER || right == TOK_LPAREN ||
+         right == TOK_SIN || right == TOK_COS || right == TOK_TAN ||
+         right == TOK_COSEC || right == TOK_SEC || right == TOK_COT ||
+         right == TOK_SGN || right == TOK_LN || right == TOK_LOG ||
+         right == TOK_EXP || right == TOK_SQRT || right == TOK_CBRT);
+
+    return leftValid && rightValid;
+}
+
+Node *newAddNode(Node *left, Node *right) {
     return newBinaryNode(newToken(TOK_PLUS), left, right);
 }
-Node* newSubNode(Node* left, Node* right) {
+Node *newSubNode(Node *left, Node *right) {
     return newBinaryNode(newToken(TOK_MINUS), left, right);
 }
-Node* newMulNode(Node* left, Node* right) {
+Node *newMulNode(Node *left, Node *right) {
     return newBinaryNode(newToken(TOK_ASTERISK), left, right);
 }
-Node* newDivNode(Node* left, Node* right) {
+Node *newDivNode(Node *left, Node *right) {
     return newBinaryNode(newToken(TOK_SLASH), left, right);
 }
-Node* newPowNode(Node* base, Node* exp) {
+Node *newPowNode(Node *base, Node *exp) {
     return newBinaryNode(newToken(TOK_CARET), base, exp);
 }
 
@@ -304,7 +310,7 @@ bool isComparisonOp(TokenKind kind) {
     }
 }
 
-char* lookupTokenKind(TokenKind kind) {
+char *lookupTokenKind(TokenKind kind) {
     switch (kind) {
         case TOK_VAR:
             return "Var";
@@ -385,7 +391,7 @@ char* lookupTokenKind(TokenKind kind) {
     }
 }
 
-char* lookupNodeKind(NodeKind kind) {
+char *lookupNodeKind(NodeKind kind) {
     switch (kind) {
         case NODE_LITERAL:
             return "Literal";
@@ -409,6 +415,6 @@ char* lookupNodeKind(NodeKind kind) {
     }
 }
 
-bool canBeNodeLiteral(Node* node) {
+bool canBeNodeLiteral(Node *node) {
     return (node->kind == NODE_LITERAL || node->kind == NODE_BOOLEAN);
 }

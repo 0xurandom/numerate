@@ -7,8 +7,10 @@
 
 Number* calculateLimit(Parser* parser, Node* funcDefNode, const Number* x) {
     if (funcDefNode->funcDef.params != 1) {
-        char error[] = "";
-        return 0;
+        char error[] = "Cannot calculate limits for multivariable functions";
+        Number* result = numNew(NUM_ERROR);
+        numSetError(result, error, strlen(error));
+        return result;
     }
 
     Number* epsilon = numNew(NUM_REAL);

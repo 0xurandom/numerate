@@ -1,9 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "num_utils.h"
 
 void numAddInto(Number* out, const Number* a, const Number* b);
@@ -28,10 +24,6 @@ void numSubfactInto(Number* out, const Number* num);
 Number* numSubfact(const Number* num);
 void numGammaInto(Number* out, const Number* num);
 Number* numGamma(const Number* num);
-
-static Number* complexGamma(const Number* num);
-static Number* SpougeApprox(const Number* num);
-static Number* eulerReflection(const Number* num);
 
 void numSinInto(Number* out, const Number* num);
 Number* numSin(const Number* num);

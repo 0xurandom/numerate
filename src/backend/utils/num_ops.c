@@ -7,10 +7,19 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "num_utils.h"
 #include "string_view_utils.h"
+
+static Number* complexGamma(const Number* num);
+static Number* SpougeApprox(const Number* num);
+static Number* eulerReflection(const Number* num);
+static Number* numShiftRightSi(const Number* num, unsigned long bits);
+static void numShiftRightSiInto(Number* out, const Number* num,
+                                unsigned long bits);
+static Number* numShiftLeftSi(const Number* num, unsigned long bits);
 
 // inits out to the required kind
 // preferably use NUM_BOOL

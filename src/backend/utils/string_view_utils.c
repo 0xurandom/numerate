@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "num_utils.h"
-
 #define DEFAULT_STRING_CAPACITY 10
 
 // TODO: set max string length to int max

@@ -195,7 +195,7 @@ Number* getDeterminant(Matrix* matrix) {
     return determinant;
 }
 
-Number* getMinorMatrix(Matrix* matrix, unsigned short row,
+Matrix* getMinorMatrix(Matrix* matrix, unsigned short row,
                        unsigned short column) {
     Matrix* minor = getSubmatrix(matrix, row, column);
 

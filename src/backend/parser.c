@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ucontext.h>
 
 #include "lexer.h"
@@ -12,7 +13,7 @@
 #include "utils/parser_utils.h"
 #include "utils/string_view_utils.h"
 
-Node* parse(Parser* parser, Precedence precedence) {
+Node *parse(Parser *parser, Precedence precedence) {
     nextToken(parser);
 
     // TODO: handle spaces for keyword funcs
@@ -20,7 +21,7 @@ Node* parse(Parser* parser, Precedence precedence) {
     // TODO: handle percent as modulo
     // and as * 0.01
 
-    Node* left = NULL;
+    Node *left = NULL;
 
     // handle prefixes
 
@@ -43,7 +44,7 @@ Node* parse(Parser* parser, Precedence precedence) {
         // not operator for bool
         case TOK_BANG: {
             Token op = parser->prev;
-            Node* operand = parse(parser, PREC_UNARY);
+            Node *operand = parse(parser, PREC_UNARY);
             left = newPrefixNode(op, operand);
             break;
         }
@@ -66,7 +67,7 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_LN:
         case TOK_LOG: {
             Token op = parser->prev;
-            Node* operand = parse(parser, PREC_FUNC);
+            Node *operand = parse(parser, PREC_FUNC);
             left = newPrefixNode(op, operand);
             break;
         }
@@ -74,7 +75,7 @@ Node* parse(Parser* parser, Precedence precedence) {
         case TOK_MINUS: {
             // unary minus
             Token op = parser->prev;
-            Node* operand = parse(parser, PREC_UNARY);
+            Node *operand = parse(parser, PREC_UNARY);
             left = newPrefixNode(op, operand);
 
             break;
@@ -105,6 +106,7 @@ Node* parse(Parser* parser, Precedence precedence) {
     }
 
     // handle infixes and postfixes
+    bool isImplicitMult = isImplicitMult(parser->prev.kind, parser->cur.kind);
 
     while (precedence <= getPrecedence(parser->cur.kind)) {
         if (getPrecedence(parser->cur.kind) == PREC_NONE) {
@@ -125,7 +127,7 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             case TOK_AND:
             case TOK_OR: {
-                Node* right = parse(parser, getPrecedence(op.kind) + 1);
+                Node *right = parse(parser, getPrecedence(op.kind) + 1);
 
                 left = newBinaryNode(op, left, right);
 
@@ -136,7 +138,7 @@ Node* parse(Parser* parser, Precedence precedence) {
             case TOK_GREATER:
             case TOK_LESS_EQUALS:
             case TOK_GREATER_EQUALS: {
-                Node* right = parse(parser, getPrecedence(op.kind) + 1);
+                Node *right = parse(parser, getPrecedence(op.kind) + 1);
 
                 left = newBinaryNode(op, left, right);
 
@@ -145,18 +147,18 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             // right associative tokens
             case TOK_EQUALS: {
-                Node* rightVal = parse(parser, getPrecedence(op.kind));
+                Node *rightVal = parse(parser, getPrecedence(op.kind));
 
                 if (left->kind == NODE_VAR) {
                     left = newAssignmentNode(left->var.name, rightVal);
                 } else if (left->kind == NODE_FUNCCALL) {
                     Token name = left->funcCall.funcName;
 
-                    StringViewArr* params =
+                    StringViewArr *params =
                         newStringViewArr(left->funcCall.argCount);
 
                     for (int i = 0; i < left->funcCall.argCount; i++) {
-                        Node* argNode = left->funcCall.args[i];
+                        Node *argNode = left->funcCall.args[i];
 
                         if (argNode->kind != NODE_VAR) {
                             // TODO: errror better
@@ -164,17 +166,20 @@ Node* parse(Parser* parser, Precedence precedence) {
                             exit(1);
                         }
 
-                        StringView* sv = malloc(sizeof(StringView));
+                        StringView *sv = malloc(sizeof(StringView));
                         *sv = argNode->var.name.ident;
                         addStringToStringViewArr(params, sv);
                     }
 
-                    Node* funcDef = newFuncDefNode(name, params, rightVal);
+                    Node *funcDef = newFuncDefNode(name, params, rightVal);
                     freeNode(left);
                     left = funcDef;
                 } else {
-                    fprintf(stderr, "err 2");
-                    exit(1);
+                    freeNode(rightVal);
+                    const char error[] = "Unable to assign to invalid target";
+                    Number *result = numNew(NUM_ERROR);
+                    numSetError(result, error, strlen(error));
+                    left = newLiteralNode(result);
                 }
                 break;
             }
@@ -190,7 +195,7 @@ Node* parse(Parser* parser, Precedence precedence) {
 
                 int argCap = DEF_FUNC_ARGS;
                 int argCount = 0;
-                Node** args = malloc(argCap * sizeof(Node));
+                Node **args = malloc(argCap * sizeof(Node));
 
                 if (parser->cur.kind != TOK_RPAREN) {
                     args[argCount] = parse(parser, PREC_ASSIGNMENT);
@@ -221,14 +226,14 @@ Node* parse(Parser* parser, Precedence precedence) {
 
             case TOK_EQUALS_EQUALS:
             case TOK_NOT_EQUALS: {
-                Node* right = parse(parser, getPrecedence(op.kind));
+                Node *right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
 
                 break;
             }
 
             case TOK_CARET: {
-                Node* right = parse(parser, getPrecedence(op.kind));
+                Node *right = parse(parser, getPrecedence(op.kind));
                 left = newBinaryNode(op, left, right);
 
                 break;
@@ -251,7 +256,7 @@ Node* parse(Parser* parser, Precedence precedence) {
     return left;
 }
 
-Node* simplifyTree(Parser* parser, Node* node) {
+Node *simplifyTree(Parser *parser, Node *node) {
     if (node == NULL) return NULL;
 
     switch (node->kind) {
@@ -261,9 +266,9 @@ Node* simplifyTree(Parser* parser, Node* node) {
         }
 
         case NODE_VAR: {
-            Number* result = numNew(NUM_BOOL);
+            Number *result = numNew(NUM_REAL);
 
-            if (lookupVar(&parser->env->varStore, &node->assignment.name.ident,
+            if (lookupVar(parser->env->varStore, &node->var.name.ident,
                           result) != 0) {
                 numClear(result);
                 numInit(result, NUM_ERROR);
@@ -271,11 +276,10 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 char error[] = "Invalid variable referenced:";
                 numSetError(result, error, strlen(error));
             }
-            Node* newNode = newLiteralNode(result);
+            Node *newNode = newLiteralNode(result);
             return newNode;
         }
 
-        // TODO: check if this is necessary
         case NODE_ASSIGNMENT: {
             node->assignment.value =
                 simplifyTree(parser, node->assignment.value);
@@ -287,12 +291,16 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            Number* value = &node->assignment.value->literal.value;
+            Number *value = &node->assignment.value->literal.value;
+            Number *hashmapValue = numNew(value->kind);
+            numSet(hashmapValue, value);
+            insertVar(parser->env->varStore, &node->assignment.name.ident,
+                      hashmapValue);
 
-            insertVar(&parser->env->varStore, &node->assignment.name.ident,
-                      value);
+            Number *newValue = numNew(value->kind);
+            numSet(newValue, value);
 
-            Node* newNode = newLiteralNode(value);
+            Node *newNode = newLiteralNode(newValue);
             freeNode(node);
             return newNode;
 
@@ -303,11 +311,9 @@ Node* simplifyTree(Parser* parser, Node* node) {
         case NODE_PREFIX: {
             node->unary.operand = simplifyTree(parser, node->unary.operand);
 
-            // double num = node->unary.operand->literal.value;
-            Number* num = &node->unary.operand->literal.value;
+            Number *num = &node->unary.operand->literal.value;
 
-            // double result;
-            Number* result;
+            Number *result;
 
             switch (node->unary.op.kind) {
                 case TOK_BANG: {
@@ -316,7 +322,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
                     } else if (node->unary.operand->kind == NODE_BOOLEAN) {
                         result = numNew(NUM_BOOL);
-                        Node* newNode = newBooleanNode(result);
+                        Node *newNode = newBooleanNode(result);
 
                         result->boolean = (num->boolean == 0) ? 1 : 0;
 
@@ -370,8 +376,6 @@ Node* simplifyTree(Parser* parser, Node* node) {
                     break;
                 }
 
-                // TODO: does not work correctly
-                // when used without ()
                 case TOK_ABS: {
                     result = numAbs(num);
                     break;
@@ -407,7 +411,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                             lookupTokenKind(node->unary.op.kind));
                 }
             }
-            Node* newNode = newLiteralNode(result);
+            Node *newNode = newLiteralNode(result);
             freeNode(node);
             return newNode;
             break;
@@ -422,8 +426,8 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            Number* num = &node->unary.operand->literal.value;
-            Number* result = NULL;
+            Number *num = &node->unary.operand->literal.value;
+            Number *result = NULL;
             switch (node->unary.op.kind) {
                 case TOK_BANG: {
                     result = numFact(num);
@@ -436,7 +440,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
             }
 
-            Node* newNode = newLiteralNode(result);
+            Node *newNode = newLiteralNode(result);
             freeNode(node);
             return newNode;
 
@@ -478,33 +482,33 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 exit(1);
             }
 
-            Number* left = &node->binary.left->literal.value;
-            Number* right = &node->binary.right->literal.value;
+            Number *left = &node->binary.left->literal.value;
+            Number *right = &node->binary.right->literal.value;
 
-            Node* newNode = NULL;
-            Number* result = NULL;
+            Node *newNode = NULL;
+            Number *result = NULL;
 
             switch (node->binary.op.kind) {
                 case TOK_AND: {
-                    Number* result = numAnd(left, right);
+                    Number *result = numAnd(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_OR: {
-                    Number* result = numOr(left, right);
+                    Number *result = numOr(left, right);
                     newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_BITWISE_AND: {
-                    Number* result = numNew(NUM_REAL);
+                    Number *result = numNew(NUM_REAL);
                     newNode = newLiteralNode(result);
                     break;
                 }
 
                 case TOK_EQUALS_EQUALS: {
-                    Number* result = numNew(NUM_BOOL);
+                    Number *result = numNew(NUM_BOOL);
                     result->boolean = (numCompare(left, right) == 0);
 
                     newNode = newBooleanNode(result);
@@ -512,7 +516,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_NOT_EQUALS: {
-                    Number* result = numNew(NUM_BOOL);
+                    Number *result = numNew(NUM_BOOL);
                     result->boolean = (numCompare(left, right) != 0);
 
                     newNode = newBooleanNode(result);
@@ -520,7 +524,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_LESS: {
-                    Number* result = numNew(NUM_BOOL);
+                    Number *result = numNew(NUM_BOOL);
                     result->boolean = (numCompare(left, right) < 0);
 
                     newNode = newBooleanNode(result);
@@ -528,7 +532,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_GREATER: {
-                    Number* result = numNew(NUM_BOOL);
+                    Number *result = numNew(NUM_BOOL);
                     result->boolean = (numCompare(left, right) > 0);
 
                     newNode = newBooleanNode(result);
@@ -536,7 +540,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_LESS_EQUALS: {
-                    Number* result = numNew(NUM_BOOL);
+                    Number *result = numNew(NUM_BOOL);
                     result->boolean = (numCompare(left, right) <= 0);
 
                     newNode = newBooleanNode(result);
@@ -544,7 +548,7 @@ Node* simplifyTree(Parser* parser, Node* node) {
                 }
 
                 case TOK_GREATER_EQUALS: {
-                    Number* result = numNew(NUM_BOOL);
+                    Number *result = numNew(NUM_BOOL);
                     result->boolean = (numCompare(left, right) >= 0);
 
                     newNode = newBooleanNode(result);
@@ -600,7 +604,6 @@ Node* simplifyTree(Parser* parser, Node* node) {
 
 Precedence getPrecedence(TokenKind kind) {
     switch (kind) {
-        // TODO: check trig func precedence
         case TOK_AND:
             return PREC_AND;
 
@@ -642,7 +645,6 @@ Precedence getPrecedence(TokenKind kind) {
 
         case TOK_NUMBER:
         case TOK_VAR:
-        case TOK_LPAREN:
         case TOK_RPAREN:
         case TOK_END:
             return PREC_NONE;
@@ -657,6 +659,9 @@ Precedence getPrecedence(TokenKind kind) {
         case TOK_ABS:
         case TOK_SQRT:
             return PREC_UNARY;
+
+        case TOK_LPAREN:
+            return PREC_CALL;
 
         default:
             fprintf(stderr, "Warning: using PREC_NONE for token kind: %s\n",

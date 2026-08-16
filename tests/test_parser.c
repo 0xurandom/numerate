@@ -2,17 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../src/lexer.h"
-#include "../src/parser.h"
-#include "../src/variable_store.h"
+#include "../src/backend/lexer.h"
+#include "../src/backend/parser.h"
+#include "../src/backend/utils/num_utils.h"
+#include "../src/backend/utils/parser_utils.h"
+#include "../src/backend/variable_store.h"
 #include "stdbool.h"
 
 typedef struct {
-    char *input;
+    char* input;
     double ans;
 } ParserTestCase;
 
-void test_parser(Lexer *lexer, Parser *parser) {
+void test_parser(Lexer* lexer, Parser* parser) {
     ParserTestCase tests[] = {
 
         {"8+21", 29},
@@ -34,7 +36,7 @@ void test_parser(Lexer *lexer, Parser *parser) {
     for (int i = 0; i < tests_count; i++) {
         // printf("Running case %d: %s\n", i + 1, tests[i].input);
 
-        double result = evaluateString(lexer, parser, tests[i].input);
+        Number* result = evaluateString(lexer, parser, tests[i].input);
 
         printf("Expected: %.9f\tGot: %.9f\n", tests[i].ans, result);
 

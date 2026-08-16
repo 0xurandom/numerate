@@ -222,6 +222,12 @@ Token tokenise(Lexer* lexer) {
             break;
         }
 
+        case ':': {
+            token.kind = TOK_COLON;
+            lexer->cursor++;
+            break;
+        }
+
         default: {
             token.kind = TOK_UNKNOWN;
             StringView* view = newStringView(&lexer->string[lexer->cursor], 1);
@@ -263,7 +269,5 @@ TokenKind lookupKeyword(char* keyword, int len) {
         }
     }
 
-    // string did not match a keyword,
-    // is a varibale instead
     return TOK_VAR;
 }
