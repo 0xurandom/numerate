@@ -7,6 +7,7 @@
 
 #include "lexer_utils.h"
 #include "num_utils.h"
+#include "string_view_utils.h"
 
 Node *newLiteralNode(Number *num) {
     Node *node = malloc(sizeof(Node));
@@ -126,11 +127,14 @@ Number *evaluateString(Lexer *lexer, Parser *parser, char *str) {
     Node *tree = parse(parser, PREC_ASSIGNMENT);
 
     if (tree == NULL) {
-        fprintf(stderr, "Error: parse function returned nullptr\n");
-        exit(1);
+        Number *error = numNew(NUM_ERROR);
+        error->error = *formatStringView("Could not parse syntax tree");
+        return error;
     }
 
     Node *result = simplifyTree(parser, tree);
+
+    if (result == NULL) return NULL;
 
     Number *result_val = numNew(result->literal.value.kind);
     numSet(result_val, &result->literal.value);
@@ -181,8 +185,25 @@ Node *copyNode(Node *node) {
             break;
         }
 
+        case NODE_FUNCCALL: {
+            newNode->funcCall.funcName = node->funcCall.funcName;
+            newNode->funcCall.argCount = newNode->funcCall.argCount;
+
+            newNode->funcCall.args =
+                malloc(newNode->funcCall.argCount * sizeof(Node *));
+
+            for (int i = 0; i < newNode->funcCall.argCount; i++) {
+                newNode->funcCall.args[i] = copyNode(node->funcCall.args[i]);
+            }
+
+            break;
+        }
+
         default: {
-            fprintf(stderr, "unknown node");
+            node->kind = NODE_LITERAL;
+            numInit(&newNode->literal.value, NUM_ERROR);
+            newNode->literal.value.error =
+                *formatStringView("Could not copy Node of unknwon type");
             break;
         }
     }
@@ -240,6 +261,8 @@ void freeNode(Node *node) {
 }
 
 bool isImplicitMult(TokenKind left, TokenKind right) {
+    if (left == TOK_VAR && right == TOK_LPAREN) return false;
+
     bool leftValid =
         (left == TOK_NUMBER || left == TOK_VAR || left == TOK_RPAREN);
     bool rightValid =

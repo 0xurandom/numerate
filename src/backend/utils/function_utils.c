@@ -8,28 +8,38 @@
 #include "../parser.h"
 #include "../variable_store.h"
 #include "hashmap_utils.h"
+#include "num_utils.h"
 #include "parser_utils.h"
+#include "string_view_utils.h"
 
-Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
-    Func* func = searchFuncArr(parser->env->funcArr, &func->name);
+Number *evaluateFunction(Parser *parser, Node *funcCallNode) {
+    StringView *funcName = &funcCallNode->funcCall.funcName.ident;
+    Func *func = searchFuncArr(parser->env->funcArr, funcName);
 
-    if (funcCallNode->funcCall.argCount != func->params.count) {
-        const char error[] = "Function call has invalid number of arguments";
-        Number* result = numNew(NUM_ERROR);
+    if (func == NULL) {
+        Number *result = numNew(NUM_ERROR);
+        const char error[] = "Function is undefined";
         numSetError(result, error, strlen(error));
         return result;
     }
 
-    Number** evaledArgs =
+    if (funcCallNode->funcCall.argCount != func->params.count) {
+        const char error[] = "Function call has invalid number of arguments";
+        Number *result = numNew(NUM_ERROR);
+        numSetError(result, error, strlen(error));
+        return result;
+    }
+
+    Number **evaledArgs =
         malloc(funcCallNode->funcCall.argCount * sizeof(Number));
 
     for (int i = 0; i < funcCallNode->funcCall.argCount; i++) {
-        Node* evaluatedNode =
+        Node *evaluatedNode =
             simplifyTree(parser, funcCallNode->funcCall.args[i]);
 
         if (!canBeNodeLiteral(evaluatedNode)) {
             const char error[] = "Unable to evaluate function arguments";
-            Number* result = numNew(NUM_ERROR);
+            Number *result = numNew(NUM_ERROR);
             numSetError(result, error, strlen(error));
 
             freeNode(evaluatedNode);
@@ -46,20 +56,26 @@ Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
         freeNode(evaluatedNode);
     }
 
-    Env localEnv = {.parent = parser->env};
-    initVarStore(localEnv.varStore);
-    Env* prevEnv = parser->env;
-    *parser->env = localEnv;
+    HashMap localVarStore;
+    initVarStore(&localVarStore);
+    Env localEnv = {.parent = parser->env,
+                    .varStore = &localVarStore,
+                    .funcArr = parser->env->funcArr};
+    Env *prevEnv = parser->env;
+    parser->env = &localEnv;
 
     for (int i = 0; i < func->params.count; i++) {
-        insertVar(localEnv.varStore, func->params.arr[i],
-                  &funcCallNode->funcCall.args[i]->literal.value);
+        Number *arg = numNew(evaledArgs[i]->kind);
+        numSet(arg, evaledArgs[i]);
+        insertVar(&localVarStore, func->params.arr[i], arg);
     }
 
-    Node* resultNode = simplifyTree(parser, func->val);
+    Node *funcBody = copyNode(func->val);
+
+    Node *resultNode = simplifyTree(parser, funcBody);
     parser->env = prevEnv;
 
-    Number* result = numNew(resultNode->literal.value.kind);
+    Number *result = numNew(resultNode->literal.value.kind);
     numSet(result, &resultNode->literal.value);
 
     for (int i = 0; i < funcCallNode->funcCall.argCount; i++) {
@@ -70,20 +86,20 @@ Number* evaluateFunction(Parser* parser, Node* funcCallNode) {
     return result;
 }
 
-Number* evaluateFunctionAt(Parser* parser, Token funcName, const Number* x) {
-    Number* arg = numNew(x->kind);
+Number *evaluateFunctionAt(Parser *parser, Token funcName, const Number *x) {
+    Number *arg = numNew(x->kind);
     numSet(arg, x);
-    Node** args = malloc(sizeof(Node*));
+    Node **args = malloc(sizeof(Node *));
     args[0] = newLiteralNode(arg);
 
-    Node* funcCallNode = newFuncCallNode(funcName, args, 1);
-    Number* result = evaluateFunction(parser, funcCallNode);
+    Node *funcCallNode = newFuncCallNode(funcName, args, 1);
+    Number *result = evaluateFunction(parser, funcCallNode);
     freeNode(funcCallNode);
 
     return result;
 }
 
-void initFuncArr(FuncArr* funcArr) {
+void initFuncArr(FuncArr *funcArr) {
     funcArr->funcs = malloc(FUNCARR_CAP * sizeof(Func));
     funcArr->capacity = FUNCARR_CAP;
     funcArr->count = 0;
@@ -95,9 +111,9 @@ void initFuncArr(FuncArr* funcArr) {
     return;
 }
 
-Func* newFunc(StringView* name, Node* val, int paramCount, StringView* param1,
-              ...) {
-    Func* func = malloc(sizeof(Func));
+Func *newFunc(const StringView *name, Node *val, int paramCount,
+              StringView *param1, ...) {
+    Func *func = malloc(sizeof(Func));
 
     if (func == NULL) {
         fprintf(stderr, "Error: Could not allocate Func\n");
@@ -110,7 +126,7 @@ Func* newFunc(StringView* name, Node* val, int paramCount, StringView* param1,
     va_list args;
     va_start(args, param1);
     for (int i = 0; i < paramCount; i++) {
-        StringView* param = va_arg(args, StringView*);
+        StringView *param = va_arg(args, StringView *);
         addStringToStringViewArr(&func->params, param);
     }
     va_end(args);
@@ -118,7 +134,22 @@ Func* newFunc(StringView* name, Node* val, int paramCount, StringView* param1,
     return func;
 }
 
-Func* searchFuncArr(const FuncArr* funcArr, StringView* funcName) {
+Func *newFuncWithArr(const StringView *name, Node *val, StringViewArr *params) {
+    Func *func = malloc(sizeof(Func));
+
+    if (func == NULL) {
+        fprintf(stderr, "Error: Could not allocate Func\n");
+        exit(1);
+    }
+
+    copyStringView(&func->name, name);
+    func->val = val;
+    func->params = *params;
+
+    return func;
+}
+
+Func *searchFuncArr(const FuncArr *funcArr, StringView *funcName) {
     for (int i = 0; i < funcArr->count; i++) {
         if (compareViews(funcName, &funcArr->funcs[i]->name))
             return funcArr->funcs[i];
@@ -127,16 +158,19 @@ Func* searchFuncArr(const FuncArr* funcArr, StringView* funcName) {
     return NULL;
 }
 
-bool addToFuncArr(FuncArr* funcArr, Func* func) {
-    if (searchFuncArr(funcArr, &func->name) != NULL) return false;
+bool addToFuncArr(FuncArr *funcArr, Func *func) {
+    if (searchFuncArr(funcArr, &func->name) != NULL) {
+        deleteFromFuncArr(funcArr, &func->name);
+    }
 
     if (funcArr->count + 1 > funcArr->capacity) reallocFuncArr(funcArr);
 
     funcArr->funcs[funcArr->count] = func;
+    funcArr->count++;
     return true;
 }
 
-void deleteFromFuncArr(FuncArr* funcArr, StringView* funcName) {
+void deleteFromFuncArr(FuncArr *funcArr, StringView *funcName) {
     int i;
 
     for (i = 0; i < funcArr->count; i++) {
@@ -150,7 +184,7 @@ void deleteFromFuncArr(FuncArr* funcArr, StringView* funcName) {
     return;
 }
 
-void freeFunc(Func* func) {
+void freeFunc(Func *func) {
     freeNode(func->val);
 
     free(func);
@@ -159,8 +193,9 @@ void freeFunc(Func* func) {
     return;
 }
 
-void reallocFuncArr(FuncArr* funcArr) {
-    funcArr->funcs = realloc(funcArr->funcs, 2 * funcArr->capacity);
+void reallocFuncArr(FuncArr *funcArr) {
+    funcArr->funcs =
+        realloc(funcArr->funcs, 2 * funcArr->capacity * sizeof(Func *));
     funcArr->capacity *= 2;
 
     return;

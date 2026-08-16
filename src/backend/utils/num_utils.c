@@ -677,12 +677,14 @@ void numPrint(const Number *num) {
 // clears the kind inside the number
 // but not the number itself
 void numClear(Number *num) {
+    if (num == NULL) return;
+
     switch (num->kind) {
-        case NUM_COMPLEX:
+        case NUM_COMPLEX: {
             mpc_clear(num->complex);
             num->kind = -1;
             break;
-
+        }
         case NUM_REAL: {
             mpfr_clear(num->real);
             num->kind = -1;
@@ -714,6 +716,8 @@ void numClear(Number *num) {
 }
 
 void numFree(Number *num) {
+    if (num == NULL) return;
+
     switch (num->kind) {
         case NUM_REAL: {
             mpfr_clear(num->real);

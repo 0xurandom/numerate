@@ -13,7 +13,7 @@
 
 #define INPUT_STRING_CAP 10
 
-void evaluateInput(Lexer* lexer, Parser* parser, StringView stringView);
+void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView);
 
 int main() {
     StringView stringView = {
@@ -25,8 +25,10 @@ int main() {
 
     Lexer lexer;
     HashMap varStore;
+    FuncArr funcArr;
+    initFuncArr(&funcArr);
     initVarStore(&varStore);
-    Env env = {.parent = NULL, .varStore = &varStore};
+    Env env = {.parent = NULL, .varStore = &varStore, .funcArr = &funcArr};
     Parser parser = {.lexer = &lexer, .env = &env};
 
     while (true) {
@@ -36,13 +38,13 @@ int main() {
     return 0;
 }
 
-void evaluateInput(Lexer* lexer, Parser* parser, StringView stringView) {
+void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
     printf("> ");
     // TODO: change scanf to fgets
 
     scanf("%99[^\n]%*c", stringView.arr);
     lexString(stringView.arr);
-    Number* result = evaluateString(lexer, parser, stringView.arr);
+    Number *result = evaluateString(lexer, parser, stringView.arr);
     printf("Result: ");
     numPrint(result);
     numFree(result);

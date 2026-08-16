@@ -7,17 +7,17 @@
 #include <sys/ucontext.h>
 
 #include "lexer.h"
+#include "utils/function_utils.h"
 #include "utils/hashmap_utils.h"
 #include "utils/lexer_utils.h"
 #include "utils/num_ops.h"
 #include "utils/num_utils.h"
 #include "utils/parser_utils.h"
+#include "utils/string_view_arr.h"
 #include "utils/string_view_utils.h"
 
 Node *parse(Parser *parser, Precedence precedence) {
     nextToken(parser);
-
-    // TODO: handle spaces for keyword funcs
 
     // TODO: handle percent as modulo
     // and as * 0.01
@@ -99,10 +99,13 @@ Node *parse(Parser *parser, Precedence precedence) {
         }
 
         default: {
-            fprintf(stderr, "Unexpected prefix token: %s\n",
-                    lookupTokenKind(parser->prev.kind));
+            Number *result = numNew(NUM_ERROR);
+            result->error =
+                *formatStringView("Unexpected prefix token: ",
+                                  lookupTokenKind(parser->prev.kind));
+            left = newLiteralNode(result);
 
-            exit(1);
+            break;
         }
     }
 
@@ -199,7 +202,7 @@ Node *parse(Parser *parser, Precedence precedence) {
 
                     int argCap = DEF_FUNC_ARGS;
                     int argCount = 0;
-                    Node **args = malloc(argCap * sizeof(Node));
+                    Node **args = malloc(argCap * sizeof(Node *));
 
                     if (parser->cur.kind != TOK_RPAREN) {
                         args[argCount] = parse(parser, PREC_ASSIGNMENT);
@@ -208,22 +211,28 @@ Node *parse(Parser *parser, Precedence precedence) {
                         while (parser->cur.kind == TOK_COMMA) {
                             nextToken(parser);
                             if (argCount >= argCap) {
-                                args = realloc(args, 2 * argCap * sizeof(Node));
+                                args =
+                                    realloc(args, 2 * argCap * sizeof(Node *));
                                 argCap *= 2;
                             }
 
                             args[argCount] = parse(parser, PREC_ASSIGNMENT);
+                            argCount++;
                         }
                     }
 
-                    if (parser->cur.kind == TOK_RPAREN) {
-                        nextToken(parser);
-                    } else {
-                        fprintf(stderr, "err4\n");
-                        exit(1);
-                    }
+                    if (parser->cur.kind != TOK_RPAREN) {
+                        free(args);
 
+                        Number *result = numNew(NUM_ERROR);
+                        result->error = *formatStringView("Expected ')'");
+                        left = newLiteralNode(result);
+                        break;
+                    }
+                    nextToken(parser);
                     left = newFuncCallNode(funcName, args, argCount);
+
+                    free(args);
 
                     break;
                 }
@@ -250,16 +259,19 @@ Node *parse(Parser *parser, Precedence precedence) {
                 }
 
                 default: {
-                    fprintf(stderr, "Unexpected postfix/infix token: %s\n",
-                            lookupTokenKind(op.kind));
-                    exit(1);
+                    Number *result = numNew(NUM_ERROR);
+                    result->error =
+                        *formatStringView("Unexpected prefix/infix token: %s",
+                                          lookupTokenKind(op.kind));
+                    left = newLiteralNode(result);
+
+                    break;
                 }
             }
         }
+        implicitMult = isImplicitMult(parser->prev.kind, parser->cur.kind);
+        curPrec = implicitMult ? PREC_FACTOR : getPrecedence(parser->cur.kind);
     }
-
-    implicitMult = isImplicitMult(parser->prev.kind, parser->cur.kind);
-    curPrec = implicitMult ? PREC_FACTOR : getPrecedence(parser->cur.kind);
 
     return left;
 }
@@ -609,8 +621,30 @@ Node *simplifyTree(Parser *parser, Node *node) {
             return newNode;
         }
 
+        case NODE_FUNCDEF: {
+            Func *func =
+                newFuncWithArr(&node->funcDef.name.ident, node->funcDef.val,
+                               node->funcDef.params);
+            addToFuncArr(parser->env->funcArr, func);
+            free(node);
+            return NULL;
+        }
+
+        case NODE_FUNCCALL: {
+            Number *result = evaluateFunction(parser, node);
+            Node *newNode = newLiteralNode(result);
+            freeNode(node);
+
+            return newNode;
+        }
+
         default: {
-            exit(1);
+            Number *result = numNew(NUM_ERROR);
+            result->error =
+                *formatStringView("simplifyTree received unknown node kind");
+            Node *newNode = newLiteralNode(result);
+            freeNode(node);
+            return newNode;
         }
     }
 }
