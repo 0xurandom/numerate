@@ -8,6 +8,7 @@
 
 #include "lexer.h"
 #include "utils/hashmap_utils.h"
+#include "utils/lexer_utils.h"
 #include "utils/num_ops.h"
 #include "utils/num_utils.h"
 #include "utils/parser_utils.h"
@@ -106,152 +107,159 @@ Node *parse(Parser *parser, Precedence precedence) {
     }
 
     // handle infixes and postfixes
-    bool isImplicitMult = isImplicitMult(parser->prev.kind, parser->cur.kind);
+    bool implicitMult = isImplicitMult(parser->prev.kind, parser->cur.kind);
+    Precedence curPrec =
+        implicitMult ? PREC_FACTOR : getPrecedence(parser->cur.kind);
 
-    while (precedence <= getPrecedence(parser->cur.kind)) {
-        if (getPrecedence(parser->cur.kind) == PREC_NONE) {
-            break;
-        }
+    while ((precedence <= curPrec) && curPrec != PREC_NONE) {
+        if (implicitMult) {
+            Node *right = parse(parser, PREC_FACTOR);
+            left = newBinaryNode(newToken(TOK_ASTERISK), left, right);
 
-        // go to next token so the infix operator is prev
-        nextToken(parser);
-        Token op = parser->prev;
+        } else {
+            nextToken(parser);
+            Token op = parser->prev;
 
-        switch (op.kind) {
-                // left associative tokens:
+            switch (op.kind) {
+                    // left associative tokens:
 
-            case TOK_PLUS:
-            case TOK_MINUS:
-            case TOK_ASTERISK:
-            case TOK_SLASH:
+                case TOK_PLUS:
+                case TOK_MINUS:
+                case TOK_ASTERISK:
+                case TOK_SLASH:
 
-            case TOK_AND:
-            case TOK_OR: {
-                Node *right = parse(parser, getPrecedence(op.kind) + 1);
+                case TOK_AND:
+                case TOK_OR: {
+                    Node *right = parse(parser, getPrecedence(op.kind) + 1);
 
-                left = newBinaryNode(op, left, right);
+                    left = newBinaryNode(op, left, right);
 
-                break;
-            }
+                    break;
+                }
 
-            case TOK_LESS:
-            case TOK_GREATER:
-            case TOK_LESS_EQUALS:
-            case TOK_GREATER_EQUALS: {
-                Node *right = parse(parser, getPrecedence(op.kind) + 1);
+                case TOK_LESS:
+                case TOK_GREATER:
+                case TOK_LESS_EQUALS:
+                case TOK_GREATER_EQUALS: {
+                    Node *right = parse(parser, getPrecedence(op.kind) + 1);
 
-                left = newBinaryNode(op, left, right);
+                    left = newBinaryNode(op, left, right);
 
-                break;
-            }
+                    break;
+                }
 
-            // right associative tokens
-            case TOK_EQUALS: {
-                Node *rightVal = parse(parser, getPrecedence(op.kind));
+                // right associative tokens
+                case TOK_EQUALS: {
+                    Node *rightVal = parse(parser, getPrecedence(op.kind));
 
-                if (left->kind == NODE_VAR) {
-                    left = newAssignmentNode(left->var.name, rightVal);
-                } else if (left->kind == NODE_FUNCCALL) {
-                    Token name = left->funcCall.funcName;
+                    if (left->kind == NODE_VAR) {
+                        left = newAssignmentNode(left->var.name, rightVal);
+                    } else if (left->kind == NODE_FUNCCALL) {
+                        Token name = left->funcCall.funcName;
 
-                    StringViewArr *params =
-                        newStringViewArr(left->funcCall.argCount);
+                        StringViewArr *params =
+                            newStringViewArr(left->funcCall.argCount);
 
-                    for (int i = 0; i < left->funcCall.argCount; i++) {
-                        Node *argNode = left->funcCall.args[i];
+                        for (int i = 0; i < left->funcCall.argCount; i++) {
+                            Node *argNode = left->funcCall.args[i];
 
-                        if (argNode->kind != NODE_VAR) {
-                            // TODO: errror better
-                            fprintf(stderr, "error\n");
-                            exit(1);
+                            if (argNode->kind != NODE_VAR) {
+                                // TODO: errror better
+                                fprintf(stderr, "error\n");
+                                exit(1);
+                            }
+
+                            StringView *sv = malloc(sizeof(StringView));
+                            *sv = argNode->var.name.ident;
+                            addStringToStringViewArr(params, sv);
                         }
 
-                        StringView *sv = malloc(sizeof(StringView));
-                        *sv = argNode->var.name.ident;
-                        addStringToStringViewArr(params, sv);
+                        Node *funcDef = newFuncDefNode(name, params, rightVal);
+                        freeNode(left);
+                        left = funcDef;
+                    } else {
+                        freeNode(rightVal);
+                        const char error[] =
+                            "Unable to assign to invalid target";
+                        Number *result = numNew(NUM_ERROR);
+                        numSetError(result, error, strlen(error));
+                        left = newLiteralNode(result);
+                    }
+                    break;
+                }
+
+                case TOK_LPAREN: {
+                    if (left->kind != NODE_VAR) {
+                        fprintf(stderr, "err 3");
+                        exit(1);
                     }
 
-                    Node *funcDef = newFuncDefNode(name, params, rightVal);
+                    Token funcName = left->var.name;
                     freeNode(left);
-                    left = funcDef;
-                } else {
-                    freeNode(rightVal);
-                    const char error[] = "Unable to assign to invalid target";
-                    Number *result = numNew(NUM_ERROR);
-                    numSetError(result, error, strlen(error));
-                    left = newLiteralNode(result);
-                }
-                break;
-            }
 
-            case TOK_LPAREN: {
-                if (left->kind != NODE_VAR) {
-                    fprintf(stderr, "err 3");
-                    exit(1);
-                }
+                    int argCap = DEF_FUNC_ARGS;
+                    int argCount = 0;
+                    Node **args = malloc(argCap * sizeof(Node));
 
-                Token funcName = left->var.name;
-                freeNode(left);
-
-                int argCap = DEF_FUNC_ARGS;
-                int argCount = 0;
-                Node **args = malloc(argCap * sizeof(Node));
-
-                if (parser->cur.kind != TOK_RPAREN) {
-                    args[argCount] = parse(parser, PREC_ASSIGNMENT);
-                    argCount++;
-
-                    while (parser->cur.kind == TOK_COMMA) {
-                        nextToken(parser);
-                        if (argCount >= argCap) {
-                            args = realloc(args, 2 * argCap * sizeof(Node));
-                            argCap *= 2;
-                        }
-
+                    if (parser->cur.kind != TOK_RPAREN) {
                         args[argCount] = parse(parser, PREC_ASSIGNMENT);
+                        argCount++;
+
+                        while (parser->cur.kind == TOK_COMMA) {
+                            nextToken(parser);
+                            if (argCount >= argCap) {
+                                args = realloc(args, 2 * argCap * sizeof(Node));
+                                argCap *= 2;
+                            }
+
+                            args[argCount] = parse(parser, PREC_ASSIGNMENT);
+                        }
                     }
+
+                    if (parser->cur.kind == TOK_RPAREN) {
+                        nextToken(parser);
+                    } else {
+                        fprintf(stderr, "err4\n");
+                        exit(1);
+                    }
+
+                    left = newFuncCallNode(funcName, args, argCount);
+
+                    break;
                 }
 
-                if (parser->cur.kind == TOK_RPAREN) {
-                    nextToken(parser);
-                } else {
-                    fprintf(stderr, "err4\n");
+                case TOK_EQUALS_EQUALS:
+                case TOK_NOT_EQUALS: {
+                    Node *right = parse(parser, getPrecedence(op.kind));
+                    left = newBinaryNode(op, left, right);
+
+                    break;
+                }
+
+                case TOK_CARET: {
+                    Node *right = parse(parser, getPrecedence(op.kind));
+                    left = newBinaryNode(op, left, right);
+
+                    break;
+                }
+
+                case TOK_BANG: {
+                    left = newUnaryNode(op, left);
+
+                    break;
+                }
+
+                default: {
+                    fprintf(stderr, "Unexpected postfix/infix token: %s\n",
+                            lookupTokenKind(op.kind));
                     exit(1);
                 }
-
-                left = newFuncCallNode(funcName, args, argCount);
-
-                break;
-            }
-
-            case TOK_EQUALS_EQUALS:
-            case TOK_NOT_EQUALS: {
-                Node *right = parse(parser, getPrecedence(op.kind));
-                left = newBinaryNode(op, left, right);
-
-                break;
-            }
-
-            case TOK_CARET: {
-                Node *right = parse(parser, getPrecedence(op.kind));
-                left = newBinaryNode(op, left, right);
-
-                break;
-            }
-
-            case TOK_BANG: {
-                left = newUnaryNode(op, left);
-
-                break;
-            }
-
-            default: {
-                fprintf(stderr, "Unexpected postfix/infix token: %s\n",
-                        lookupTokenKind(op.kind));
-                exit(1);
             }
         }
     }
+
+    implicitMult = isImplicitMult(parser->prev.kind, parser->cur.kind);
+    curPrec = implicitMult ? PREC_FACTOR : getPrecedence(parser->cur.kind);
 
     return left;
 }
@@ -285,10 +293,15 @@ Node *simplifyTree(Parser *parser, Node *node) {
                 simplifyTree(parser, node->assignment.value);
 
             if (node->assignment.value->kind != NODE_LITERAL) {
-                fprintf(stderr,
-                        "Error: Could not simplify the value of var: %s\n",
-                        getCstring(&node->assignment.name.ident));
-                exit(1);
+                freeNode(node);
+                Number *num = numNew(NUM_BOOL);
+                numClear(num);
+                num->error = *formatStringView(
+                    "Error: Could not simplify the value of var: %s\n",
+                    getCstring(&node->assignment.name.ident));
+
+                Node *newNode = newLiteralNode(num);
+                return newNode;
             }
 
             Number *value = &node->assignment.value->literal.value;
