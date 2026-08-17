@@ -187,15 +187,15 @@ Node *copyNode(Node *node) {
 
         case NODE_FUNCCALL: {
             newNode->funcCall.funcName = node->funcCall.funcName;
-            newNode->funcCall.argCount = newNode->funcCall.argCount;
+            newNode->funcCall.argCount = node->funcCall.argCount;
 
             newNode->funcCall.args =
-                malloc(newNode->funcCall.argCount * sizeof(Node *));
+                malloc((newNode->funcCall.argCount + 1) * sizeof(Node *));
 
             for (int i = 0; i < newNode->funcCall.argCount; i++) {
                 newNode->funcCall.args[i] = copyNode(node->funcCall.args[i]);
             }
-
+            newNode->funcCall.args[newNode->funcCall.argCount] = NULL;
             break;
         }
 

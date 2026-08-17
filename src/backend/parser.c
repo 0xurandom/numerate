@@ -510,6 +510,20 @@ Node *simplifyTree(Parser *parser, Node *node) {
             Number *left = &node->binary.left->literal.value;
             Number *right = &node->binary.right->literal.value;
 
+            if (left->kind == NUM_ERROR) {
+                Number *result = numNew(NUM_ERROR);
+                numSet(result, left);
+                freeNode(node);
+                return newLiteralNode(result);
+            }
+
+            if (right->kind == NUM_ERROR) {
+                Number *result = numNew(NUM_ERROR);
+                numSet(result, right);
+                freeNode(node);
+                return newLiteralNode(result);
+            }
+
             Node *newNode = NULL;
             Number *result = NULL;
 

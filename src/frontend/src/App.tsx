@@ -4,25 +4,15 @@ import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 import { Button } from "@/components/ui/button";
-import {
-  Menubar,
-  MenubarContent,
-  MenubarGroup,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
+import {MenuBar} from "@/Menubar"
+import { TextView } from "@/TextView";
 
-import { FileIcon } from "lucide-react";
 
-function App() {
+export default function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
 
   async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
     setGreetMsg(await invoke("greet", { name }));
   }
 
@@ -32,41 +22,8 @@ function App() {
 
   return (
     <main className="container">
-      <MenuBar></MenuBar>
-      <h1>{hello()}</h1>
+      <MenuBar/>
+      <TextView/>
     </main>
-  );
-}
-
-export default App;
-
-function MenuBar() {
-  return (
-    <Menubar>
-      <MenubarMenu>
-        <MenubarTrigger>
-          <FileIcon />
-          File
-        </MenubarTrigger>
-        <MenubarContent>
-          <MenubarGroup>
-            <MenubarItem>
-              Open <MenubarShortcut>Ctrl + O</MenubarShortcut>
-            </MenubarItem>
-          </MenubarGroup>
-        </MenubarContent>
-      </MenubarMenu>
-
-      <MenubarMenu>
-        <MenubarTrigger>Edit</MenubarTrigger>
-        <MenubarContent>
-          <MenubarGroup>
-            <MenubarItem>
-              test item <MenubarShortcut>command + no</MenubarShortcut>
-            </MenubarItem>
-          </MenubarGroup>
-        </MenubarContent>
-      </MenubarMenu>
-    </Menubar>
   );
 }

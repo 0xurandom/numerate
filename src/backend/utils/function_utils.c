@@ -171,9 +171,7 @@ bool addToFuncArr(FuncArr *funcArr, Func *func) {
 }
 
 void deleteFromFuncArr(FuncArr *funcArr, StringView *funcName) {
-    int i;
-
-    for (i = 0; i < funcArr->count; i++) {
+    for (int i = 0; i < funcArr->count; i++) {
         if (compareViews(funcName, &funcArr->funcs[i]->name)) {
             freeFunc(funcArr->funcs[i]);
             funcArr->funcs[i] = funcArr->funcs[funcArr->count - 1];
