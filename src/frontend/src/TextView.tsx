@@ -1,10 +1,14 @@
 import CodeMirror, { highlightActiveLine } from "@uiw/react-codemirror"
+import { shadcnTheme } from "./editor-theme";
 
-export function TextView (){
+
+export function TextView() {
   return (
-    <CodeMirror basicSetup={{
+    <CodeMirror theme={shadcnTheme} basicSetup={{
       lineNumbers: false,
       highlightActiveLine: false,
+      foldGutter: false,
+      closeBrackets: true,
     }}/>
   );
 };
