@@ -2,9 +2,9 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
-
+import { NotebookView } from "./NotebookView";
 import { Button } from "@/components/ui/button";
-import {MenuBar} from "@/Menubar"
+import MenuBar from "@/Menubar"
 import { TextView } from "@/TextView";
 
 
@@ -22,8 +22,8 @@ export default function App() {
 
   return (
     <main className="container">
-      <MenuBar/>
-      <TextView/>
+      <MenuBar />
+      <NotebookView/>
     </main>
   );
 }

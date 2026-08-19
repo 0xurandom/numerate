@@ -3,5 +3,5 @@
 
 
 fn main() {
-    frontend_lib::run()
+    numerate_lib::run()
 }

@@ -11,7 +11,7 @@ import {
 
 import { FileIcon } from "lucide-react";
 
-export function MenuBar() {
+export default function MenuBar() {
   return (
     <Menubar>
       <MenubarMenu>
