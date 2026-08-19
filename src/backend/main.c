@@ -38,6 +38,8 @@ int main() {
     return 0;
 }
 
+char *testfunc() { return "test string"; }
+
 void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
     printf("> ");
     // TODO: change scanf to fgets

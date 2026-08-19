@@ -13,13 +13,14 @@ import { FileIcon } from "lucide-react";
 
 export default function MenuBar() {
   return (
-    <Menubar>
+    <Menubar className="border-b rounded-none px-2 lg:px-4">
+
       <MenubarMenu>
-        <MenubarTrigger>
+        <MenubarContent>
+          <MenubarTrigger className="font-medium">
           <FileIcon />
           File
         </MenubarTrigger>
-        <MenubarContent>
           <MenubarGroup>
             <MenubarItem>
               Open <MenubarShortcut>Ctrl + O</MenubarShortcut>

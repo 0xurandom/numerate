@@ -22,8 +22,7 @@ export default function App() {
 
   return (
     <main className="container">
-      <MenuBar />
-      <NotebookView/>
+      <TextView />
     </main>
   );
 }

@@ -1,6 +1,6 @@
 import { ScrollArea } from "./components/ui/scroll-area";
-import { FileText, Clock } from "lucide-react";
-import { Card, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
+import { FileText, Clock, Plus } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
 import { initStorage, Notebook, getNotebooks } from "./notebooks";
 import { useState, useEffect } from "react";
 
@@ -12,6 +12,7 @@ function getDate(timestamp: number): string  {
     minute: 'numeric'
   }).format(new Date(timestamp))
 }
+
 
 export function NotebookView() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
@@ -25,9 +26,9 @@ export function NotebookView() {
     <div>
       <ScrollArea>
         {notebooks.length == 0 ? (
-          <div>
-            <FileText className="text-muted-foreground/50" />
-              <h3>No notebooks found</h3>
+          <div className="flex flex-col items-center gap-4">
+            <NewNoteBookCard onClick={() => { null }} />
+            <p className="text-muted-foreground text-sm">No Notebooks yet; Create your first</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 pb-8">
@@ -55,5 +56,18 @@ export function NotebookView() {
         )}
       </ScrollArea>
     </div>
+  );
+}
+
+interface NewNotebookCardProps {
+  onClick: () => void;
+}
+
+export function NewNoteBookCard({onClick } : NewNotebookCardProps) {
+  return (
+    <Card onClick = {onClick} className="flex items-center justify-center cursor-pointer hover:border-foreground/30 hover:bg-muted/30 ">
+      <Plus size={30} />
+      <span className="text-sm font-medium">New notebook</span>
+    </Card>
   );
 }

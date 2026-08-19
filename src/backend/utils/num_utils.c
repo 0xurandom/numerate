@@ -674,6 +674,46 @@ void numPrint(const Number *num) {
     }
 }
 
+char *numToString(const Number *num) {
+    char *str = NULL;
+
+    if (num == NULL) {
+        mpfr_asprintf(&str, "nullptr");
+        return str;
+    }
+
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            mpfr_asprintf(&str, "%Rg + %Rgi", mpc_realref(num->complex),
+                          mpc_imagref(num->complex));
+            return str;
+        }
+
+        case NUM_REAL: {
+            mpfr_asprintf(&str, "%Rg", num->real);
+            return str;
+        }
+
+        case NUM_RATIONAL: {
+            gmp_asprintf(&str, "%Zd/%Zd", mpq_numref(num->rational),
+                         mpq_denref(num->rational));
+            return str;
+        }
+
+        case NUM_BOOL: {
+            mpfr_asprintf(&str, "%s", num->boolean == true ? "true" : false);
+            return str;
+        }
+
+        case NUM_ERROR: {
+            char *cStr = getCstring(&num->error);
+            mpfr_asprintf(&str, "Error: %s", cStr);
+            free(cStr);
+            return str;
+        }
+    }
+}
+
 // clears the kind inside the number
 // but not the number itself
 void numClear(Number *num) {
