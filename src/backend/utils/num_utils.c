@@ -343,6 +343,17 @@ NumberKind numPromoteKind(NumberKind kind1, NumberKind kind2) {
         return NUM_RATIONAL;
 }
 
+Number *rationalStringToNum(const char *numer, const char *denom) {
+    Number *result = numNew(NUM_RATIONAL);
+    char buffer[64];
+
+    snprintf(buffer, sizeof(buffer), "%s/%s", numer, denom);
+    mpq_set_str(result->rational, buffer, 10);
+    mpq_canonicalize(result->rational);
+
+    return result;
+}
+
 // checks if number is an integer
 // and if the complex part is zero
 bool numIsInteger(const Number *num) {
@@ -712,6 +723,10 @@ char *numToString(const Number *num) {
             return str;
         }
     }
+}
+
+void freeNumString(char *str) {
+    if (str == NULL) mpfr_free_str(str);
 }
 
 // clears the kind inside the number
