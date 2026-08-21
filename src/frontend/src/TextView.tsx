@@ -2,8 +2,32 @@ import CodeMirror, { highlightActiveLine } from "@uiw/react-codemirror"
 import { shadcnDark, shadcnLight } from "./editor-theme";
 import { useTheme } from "@infogata/shadcn-vite-theme-provider";
 
+interface InputTextViewProps {
+  value: string;
+  onChange: (value: string) => void;
+}
 
-export function TextView() {
+export function InputTextView({value, onChange}: InputTextViewProps) {
+  const { theme } = useTheme();
+  const isDarkTheme = theme === "dark" || (theme == "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  return (
+    <CodeMirror
+      theme={isDarkTheme ? shadcnDark : shadcnLight}
+      value={ value }
+      onChange = { onChange }
+      height="100%"
+      className="text-sm h-full"
+      basicSetup={{
+      lineNumbers: false,
+      highlightActiveLine: false,
+      foldGutter: false,
+      closeBrackets: true,
+      autocompletion: false,
+    }}/>
+  );
+};
+
+export function OutputTextView() {
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark" || (theme == "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   return (
@@ -19,4 +43,4 @@ export function TextView() {
       autocompletion: false,
     }}/>
   );
-};
+}
