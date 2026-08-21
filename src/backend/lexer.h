@@ -3,6 +3,7 @@
 
 #include "utils/num_utils.h"
 #include "utils/string_view_utils.h"
+#include "utils/unit_utils.h"
 
 typedef enum {
     TOK_VAR,
@@ -19,6 +20,8 @@ typedef enum {
     TOK_BITWISE_OR,
     TOK_AND,
     TOK_OR,
+
+    TOK_TO,
 
     TOK_EQUALS,
     TOK_PLUS,
@@ -57,17 +60,16 @@ typedef enum {
 } TokenKind;
 
 typedef struct {
-    // TODO: remove stack.cap
-    // if zero copy lexing
     union {
         StringView ident;
         Number num;
     };
     TokenKind kind;
+    const Unit *unit;
 } Token;
 
 typedef struct {
-    char* string;
+    char *string;
     size_t cursor;
     size_t length;
 } Lexer;
@@ -78,5 +80,5 @@ typedef struct {
     TokenKind tokenKind;
 } Keyword;
 
-Token tokenise(Lexer* lexer);
-TokenKind lookupKeyword(char* keyword, int len);
+Token tokenise(Lexer *lexer);
+TokenKind lookupKeyword(char *keyword, int len);

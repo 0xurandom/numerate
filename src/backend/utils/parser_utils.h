@@ -5,6 +5,7 @@ typedef struct Node Node;
 typedef struct StringViewArr StringViewArr;
 
 Node *newLiteralNode(Number *num);
+Node *newUnitLiteralNode(Number *num, const Unit *unit);
 Node *newBooleanNode(Number *num);
 Node *newAssignmentNode(Token name, Node *value);
 Node *newVarNode(Token name);
@@ -13,7 +14,8 @@ Node *newPrefixNode(Token op, Node *operand);
 Node *newBinaryNode(Token op, Node *left, Node *right);
 Node *newFuncCallNode(Token name, Node **args, int argCount);
 Node *newFuncDefNode(Token name, StringViewArr *params, Node *val);
-Number *evaluateString(Lexer *lexer, Parser *parser, char *str);
+Number *evaluateString(Lexer *lexer, Parser *parser, char *str,
+                       const Unit **outUnit);
 Node *newLiteralNodeWithVal(double val);
 void nextToken(Parser *parser);
 void freeNode(Node *node);

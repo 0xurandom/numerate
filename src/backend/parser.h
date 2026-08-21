@@ -13,12 +13,12 @@ typedef struct Env Env;
 typedef struct Parser Parser;
 
 struct Parser {
-    Lexer* lexer;
+    Lexer *lexer;
 
     Token cur;
     Token prev;
 
-    Env* env;
+    Env *env;
 };
 
 // Precedence in ascending order
@@ -63,17 +63,18 @@ struct Node {
     union {
         struct {
             Number value;
+            const Unit *unit;
         } literal;
 
         struct {
             Token op;
-            Node* operand;
+            Node *operand;
         } unary;
 
         struct {
             Token op;
-            Node* left;
-            Node* right;
+            Node *left;
+            Node *right;
         } binary;
 
         struct {
@@ -82,27 +83,27 @@ struct Node {
 
         struct {
             Token name;
-            Node* value;
+            Node *value;
         } assignment;
 
         struct {
             Token funcName;
-            struct Node** args;
+            struct Node **args;
             int argCount;
         } funcCall;
 
         struct {
             Token name;
-            StringViewArr* params;
-            Node* val;
+            StringViewArr *params;
+            Node *val;
         } funcDef;
     };
 };
 
-Node* parse(Parser* parser, Precedence precedence);
-Node* simplifyTree(Parser* parser, Node* node);
+Node *parse(Parser *parser, Precedence precedence);
+Node *simplifyTree(Parser *parser, Node *node);
 Precedence getPrecedence(TokenKind kind);
-void nextToken(Parser* parser);
-void freeNode(Node* node);
+void nextToken(Parser *parser);
+void freeNode(Node *node);
 bool isArithOp(TokenKind kind);
 bool isComparisonOp(TokenKind kind);

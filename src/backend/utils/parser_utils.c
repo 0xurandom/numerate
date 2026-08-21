@@ -116,7 +116,8 @@ Node *newFuncDefNode(Token name, StringViewArr *params, Node *val) {
     return node;
 }
 
-Number *evaluateString(Lexer *lexer, Parser *parser, char *str) {
+Number *evaluateString(Lexer *lexer, Parser *parser, char *str,
+                       const Unit **outUnit) {
     printf("\n\nevaluating: %s\n", str);
     lexer->string = str;
     lexer->cursor = 0;
@@ -139,6 +140,8 @@ Number *evaluateString(Lexer *lexer, Parser *parser, char *str) {
     Number *result_val = numNew(result->literal.value.kind);
     numSet(result_val, &result->literal.value);
 
+    if (outUnit != NULL) *outUnit = result->literal.unit;
+
     freeNode(result);
 
     return result_val;
@@ -147,8 +150,20 @@ Number *evaluateString(Lexer *lexer, Parser *parser, char *str) {
 Node *newLiteralNodeWithVal(double val) {
     Node *node = malloc(sizeof(Node));
     node->kind = NODE_LITERAL;
+    node->literal.unit = NULL;
     numInit(&node->literal.value, NUM_REAL);
     numSetRealSd(&node->literal.value, val);
+
+    return node;
+}
+
+Node *newUnitLiteralNode(Number *num, const Unit *unit) {
+    Node *node = malloc(sizeof(Node));
+    node->kind = NODE_LITERAL;
+
+    numInit(&node->literal.value, num->kind);
+    numSet(&node->literal.value, num);
+    node->literal.unit = unit;
 
     return node;
 }

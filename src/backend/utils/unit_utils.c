@@ -8,62 +8,25 @@
 #include "num_ops.h"
 #include "num_utils.h"
 
-// TODO: add strlen to these tables
-static const Unit table[] = {{"pm", UNIT_LENGTH, "1", "1000000000000", "0"},
-                             {"nm", UNIT_LENGTH, "1", "1000000000", "0"},
-                             {"um", UNIT_LENGTH, "1", "1000000", "0"},
-                             {"mm", UNIT_LENGTH, "1", "1000", "0"},
-                             {"cm", UNIT_LENGTH, "1", "100", "0"},
-                             {"dm", UNIT_LENGTH, "1", "10", "0"},
-                             {"m", UNIT_LENGTH, "1", "1", "0"},
-                             {"dam", UNIT_LENGTH, "10", "1", "0"},
-                             {"hm", UNIT_LENGTH, "100", "1", "0"},
-                             {"km", UNIT_LENGTH, "1000", "1", "0"},
-                             {"Mm", UNIT_LENGTH, "1000000", "1", "0"},
-                             {"Gm", UNIT_LENGTH, "1000000000", "1", "0"},
-                             {"Tm", UNIT_LENGTH, "1000000000000", "1", "0"},
+#define SI_TABLE(symbol, UnitKind)                         \
+    {"p" symbol, UNIT_LENGTH, "1", "1000000000000", "0"},  \
+        {"n" symbol, UNIT_LENGTH, "1", "1000000000", "0"}, \
+        {"u" symbol, UNIT_LENGTH, "1", "1000000", "0"},    \
+        {"m" symbol, UNIT_LENGTH, "1", "1000", "0"},       \
+        {"c" symbol, UNIT_LENGTH, "1", "100", "0"},        \
+        {"d" symbol, UNIT_LENGTH, "1", "10", "0"},         \
+        {symbol, UNIT_LENGTH, "1", "1", "0"},              \
+        {"da" symbol, UNIT_LENGTH, "10", "1", "0"},        \
+        {"h" symbol, UNIT_LENGTH, "100", "1", "0"},        \
+        {"k" symbol, UNIT_LENGTH, "1000", "1", "0"},       \
+        {"M" symbol, UNIT_LENGTH, "1000000", "1", "0"},    \
+        {"G" symbol, UNIT_LENGTH, "1000000000", "1", "0"}, \
+        {"T" symbol, UNIT_LENGTH, "1000000000000", "1", "0"}
 
-                             {"pg", UNIT_MASS, "1", "1000000000000", "0"},
-                             {"ng", UNIT_MASS, "1", "1000000000", "0"},
-                             {"ug", UNIT_MASS, "1", "1000000", "0"},
-                             {"mg", UNIT_MASS, "1", "1000", "0"},
-                             {"cg", UNIT_MASS, "1", "100", "0"},
-                             {"dg", UNIT_MASS, "1", "10", "0"},
-                             {"G", UNIT_MASS, "1", "1", "0"},
-                             {"daG", UNIT_MASS, "10", "1", "0"},
-                             {"hg", UNIT_MASS, "100", "1", "0"},
-                             {"kg", UNIT_MASS, "1000", "1", "0"},
-                             {"Mg", UNIT_MASS, "1000000", "1", "0"},
-                             {"Gg", UNIT_MASS, "1000000000", "1", "0"},
-                             {"Tg", UNIT_MASS, "1000000000000", "1", "0"},
-
-                             {"pl", UNIT_VOLUME, "1", "1000000000000", "0"},
-                             {"nl", UNIT_VOLUME, "1", "1000000000", "0"},
-                             {"ul", UNIT_VOLUME, "1", "1000000", "0"},
-                             {"ml", UNIT_VOLUME, "1", "1000", "0"},
-                             {"cl", UNIT_VOLUME, "1", "100", "0"},
-                             {"dl", UNIT_VOLUME, "1", "10", "0"},
-                             {"l", UNIT_VOLUME, "1", "1", "0"},
-                             {"dal", UNIT_VOLUME, "10", "1", "0"},
-                             {"hl", UNIT_VOLUME, "100", "1", "0"},
-                             {"kl", UNIT_VOLUME, "1000", "1", "0"},
-                             {"Ml", UNIT_VOLUME, "1000000", "1", "0"},
-                             {"Gl", UNIT_VOLUME, "1000000000", "1", "0"},
-                             {"Tl", UNIT_VOLUME, "1000000000000", "1", "0"},
-
-                             {"ps", UNIT_TIME, "1", "1000000000000", "0"},
-                             {"ns", UNIT_TIME, "1", "1000000000", "0"},
-                             {"us", UNIT_TIME, "1", "1000000", "0"},
-                             {"ms", UNIT_TIME, "1", "1000", "0"},
-                             {"cs", UNIT_TIME, "1", "100", "0"},
-                             {"ds", UNIT_TIME, "1", "10", "0"},
-                             {"s", UNIT_TIME, "1", "1", "0"},
-                             {"das", UNIT_TIME, "10", "1", "0"},
-                             {"hs", UNIT_TIME, "100", "1", "0"},
-                             {"ks", UNIT_TIME, "1000", "1", "0"},
-                             {"Ms", UNIT_TIME, "1000000", "1", "0"},
-                             {"Gs", UNIT_TIME, "1000000000", "1", "0"},
-                             {"Ts", UNIT_TIME, "1000000000000", "1", "0"},
+static const Unit table[] = {SI_TABLE("m", UNIT_LENGTH),  // 0 - 12
+                             SI_TABLE("g", UNIT_MASS),    // 13 - 25
+                             SI_TABLE("l", UNIT_VOLUME),  // 26-38
+                             SI_TABLE("s", UNIT_TIME),    // 39-52
 
                              {"lb", UNIT_MASS, "45359237", "100000000", "0"},
                              {"oz", UNIT_MASS, "45359237", "1600000000", "0"},
@@ -104,72 +67,74 @@ static const size_t unitTableCount = sizeof(table) / sizeof(table[0]);
 #define SI_TIER_2(index, a1, a2) \
     {a1, sizeof(a1) - 1, &table[index]}, { a2, sizeof(a2) - 1, &table[index] }
 
-#define SI_PREFIXES(startIndex, symbol, word)                   \
-    SI_TIER_2((startIndex + 0), "p" symbol, "pico" word),       \
-        SI_TIER_2((startIndex + 1), "n" symbol, "nano" word),   \
-        SI_TIER_2((startIndex + 2), "u" symbol, "micro" word),  \
-        SI_TIER_2((startIndex + 3), "m" symbol, "millli" word), \
-        SI_TIER_2((startIndex + 4), "c" symbol, "centi" word),  \
-        SI_TIER_2((startIndex + 5), "d" symbol, "deci" word),   \
-        {symbol, sizeof(symbol) - 1, &table[startIndex + 6]},   \
-        {word, sizeof(word) - 1, &table[startIndex + 6]},       \
-        SI_TIER_2((startIndex), "da" symbol, "deca" word),      \
-        SI_TIER_2((startIndex), "h" symbol, "hecto" word),      \
-        SI_TIER_2((startIndex), "k" symbol, "kilo" word),       \
-        SI_TIER_2((startIndex), "M" symbol, "mega" word),       \
-        SI_TIER_2((startIndex), "G" symbol, "giga" word),       \
+#define SI_TIER_2_DUAL(index, a1, a2, a3)                                     \
+    {a1, sizeof(a1) - 1, &table[index]}, {a2, sizeof(a2) - 1, &table[index]}, \
+    {                                                                         \
+        a3, sizeof(a3) - 1, &table[index]                                     \
+    }
+
+#define SI_PREFIXES(startIndex, symbol, word)                  \
+    SI_TIER_2((startIndex + 0), "p" symbol, "pico" word),      \
+        SI_TIER_2((startIndex + 1), "n" symbol, "nano" word),  \
+        SI_TIER_2((startIndex + 2), "u" symbol, "micro" word), \
+        SI_TIER_2((startIndex + 3), "m" symbol, "milli" word), \
+        SI_TIER_2((startIndex + 4), "c" symbol, "centi" word), \
+        SI_TIER_2((startIndex + 5), "d" symbol, "deci" word),  \
+        {symbol, sizeof(symbol) - 1, &table[startIndex + 6]},  \
+        {word, sizeof(word) - 1, &table[startIndex + 6]},      \
+        SI_TIER_2((startIndex), "da" symbol, "deca" word),     \
+        SI_TIER_2((startIndex), "h" symbol, "hecto" word),     \
+        SI_TIER_2((startIndex), "k" symbol, "kilo" word),      \
+        SI_TIER_2((startIndex), "M" symbol, "mega" word),      \
+        SI_TIER_2((startIndex), "G" symbol, "giga" word),      \
         SI_TIER_2((startIndex), "T" symbol, "tera" word)
+
+#define SI_PREFIXES_DUAL(startIndex, symbol, word, word2)                    \
+    SI_TIER_2_DUAL((startIndex + 0), "p" symbol, "pico" word, "pico" word2), \
+        SI_TIER_2_DUAL((startIndex + 1), "n" symbol, "nano" word,            \
+                       "nano" word2),                                        \
+        SI_TIER_2_DUAL((startIndex + 2), "u" symbol, "micro" word,           \
+                       "micro" word2),                                       \
+        SI_TIER_2_DUAL((startIndex + 3), "m" symbol, "milli" word,           \
+                       "milli" word2),                                       \
+        SI_TIER_2_DUAL((startIndex + 4), "c" symbol, "centi" word,           \
+                       "centi" word2),                                       \
+        SI_TIER_2_DUAL((startIndex + 5), "d" symbol, "deci" word,            \
+                       "deci" word2),                                        \
+        {symbol, sizeof(symbol) - 1, &table[startIndex + 6]},                \
+        {word, sizeof(word) - 1, &table[startIndex + 6]},                    \
+        {word2, sizeof(word2) - 1, &table[startIndex + 6]},                  \
+        SI_TIER_2_DUAL((startIndex + 7), "da" symbol, "deca" word,           \
+                       "deca" word2),                                        \
+        SI_TIER_2_DUAL((startIndex + 8), "h" symbol, "hecto" word,           \
+                       "hecto" word2),                                       \
+        SI_TIER_2_DUAL((startIndex + 9), "k" symbol, "kilo" word,            \
+                       "kilo" word2),                                        \
+        SI_TIER_2_DUAL((startIndex + 10), "M" symbol, "mega" word,           \
+                       "mega" word2),                                        \
+        SI_TIER_2_DUAL((startIndex + 11), "G" symbol, "giga" word,           \
+                       "giga" word2),                                        \
+        SI_TIER_2_DUAL((startIndex + 12), "T" symbol, "tera" word,           \
+                       "tera" word2)
 
 static const UnitAlias aliasTable[] = {
 
-    SI_PREFIXES(0, "m", "meter"),
+    SI_PREFIXES_DUAL(0, "m", "meter", "metre"),
+    SI_PREFIXES(13, "g", "gram"),
+    ALIAS(26, "L"),
+    SI_PREFIXES_DUAL(26, "l", "liter", "litre"),
+    SI_PREFIXES(39, "s", "second"),
 
-    ALIAS(13 + 0, "pg", "picogram"),
-    ALIAS(13 + 1, "ng", "nanogram"),
-    ALIAS(13 + 2, "ug", "microgram"),
-    ALIAS(13 + 3, "mg", "milligram"),
-    ALIAS(13 + 4, "cg", "centigram"),
-    ALIAS(13 + 5, "dg", "decigram"),
-    ALIAS(13 + 6, "g", "gram"),
-    ALIAS(13 + 7, "dag", "decagram"),
-    ALIAS(13 + 8, "hg", "hectogram"),
-    ALIAS(13 + 9, "kg", "kilogram"),
-    ALIAS(13 + 10, "Mg", "megagram"),
-    ALIAS(13 + 11, "Gg", "gigagram"),
-    ALIAS(13 + 12, "Tg", "teragram"),
-
-    ALIAS(26 + 0, "pl", "picoliter", "picolitre"),
-    ALIAS(26 + 1, "nl", "nanoliter", "nanolitre"),
-    ALIAS(26 + 2, "ul", "microliter", "micrometre"),
-    ALIAS(26 + 3, "ml", "milliliter", "millilitre"),
-    ALIAS(26 + 4, "cl", "centiliter", "centilitre"),
-    ALIAS(26 + 5, "dl", "deciliter", "decilitre"),
-    ALIAS(26 + 6, "l", "L", "liter", "litre"),
-    ALIAS(26 + 7, "dal", "decaliter", "decalitre"),
-    ALIAS(26 + 8, "hl", "hectoliter", "hectolitre"),
-    ALIAS(26 + 9, "kl", "kiloliter", "kilolitre"),
-    ALIAS(26 + 10, "Ml", "megaliter", "megalitre"),
-    ALIAS(26 + 11, "Gl", "gigaliter", "gigalitre"),
-    ALIAS(26 + 12, "Tl", "teraliter", "teralitre"),
-
-    ALIAS(39 + 0, "ps", "picosecond"),
-    ALIAS(39 + 1, "ns", "nanosecond"),
-    ALIAS(39 + 2, "us", "microsecond"),
-    ALIAS(39 + 3, "ms", "millisecond"),
-    ALIAS(39 + 4, "cs", "centisecond"),
-    ALIAS(39 + 5, "ds", "decisecond"),
-    ALIAS(39 + 6, "s", "second"),
-    ALIAS(39 + 7, "das", "decasecond"),
-    ALIAS(39 + 8, "hs", "hectosecond"),
-    ALIAS(39 + 9, "ks", "kilogsecond"),
-    ALIAS(39 + 10, "Ms", "megasecond"),
-    ALIAS(39 + 11, "Gs", "gigasecond"),
-    ALIAS(39 + 12, "Ts", "terasecond"),
 };
+
+static const size_t aliasTableCount =
+    sizeof(aliasTable) / sizeof(aliasTable[0]);
+
 const Unit *unitLookup(const char *name, size_t len) {
-    for (size_t i = 0; i < unitTableCount; i++) {
-        if (strlen(table[i].name) == len && strncmp(table[i].name, name, len)) {
-            return &table[i];
+    for (size_t i = 0; i < aliasTableCount; i++) {
+        if (aliasTable[i].aliasLength == len &&
+            strncmp(aliasTable[i].alias, name, len)) {
+            return aliasTable[i].unit;
         }
     }
     return NULL;

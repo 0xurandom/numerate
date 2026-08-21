@@ -1,7 +1,9 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
-#include <string.h>
+
+#include "num_utils.h"
 
 typedef enum {
     UNIT_LENGTH,
@@ -32,3 +34,8 @@ typedef struct {
     const int aliasLength;
     const Unit *unit;
 } UnitAlias;
+
+const Unit *unitLookup(const char *name, size_t len);
+UnitKind getUnitKind(const Unit *unit);
+bool areUnitsCompatible(const Unit *u1, const Unit *u2);
+Number *unitConvert(const Number *val, const Unit *from, const Unit *to);

@@ -46,8 +46,16 @@ void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
 
     scanf("%99[^\n]%*c", stringView.arr);
     lexString(stringView.arr);
-    Number *result = evaluateString(lexer, parser, stringView.arr);
+
+    const Unit *resultUnit = NULL;
+    Number *result = evaluateString(lexer, parser, stringView.arr, &resultUnit);
     printf("Result: ");
     numPrint(result);
+
+    if (resultUnit != NULL)
+        printf(" %s\n", resultUnit->name);
+    else
+        printf("\n");
+
     numFree(result);
 }

@@ -648,24 +648,24 @@ unsigned long numToUnsignedLong(const Number *num) {
 
 void numPrint(const Number *num) {
     if (num == NULL) {
-        printf("numPrint received a null pointer\n");
+        printf("numPrint received a null pointer");
         return;
     }
 
     switch (num->kind) {
         case NUM_COMPLEX: {
-            mpfr_printf("complex: %Rg + %Rgi\n", mpc_realref(num->complex),
+            mpfr_printf("complex: %Rg + %Rgi", mpc_realref(num->complex),
                         mpc_imagref(num->complex));
             return;
         }
 
         case NUM_REAL: {
-            mpfr_printf("real: %Rg\n", num->real);
+            mpfr_printf("real: %Rg", num->real);
             return;
         }
 
         case NUM_RATIONAL: {
-            gmp_printf("rational: %Zd/%Zd\n", mpq_numref(num->rational),
+            gmp_printf("rational: %Zd/%Zd", mpq_numref(num->rational),
                        mpq_denref(num->rational));
             return;
         }
@@ -673,13 +673,12 @@ void numPrint(const Number *num) {
         case NUM_BOOL: {
             char trueString[] = "true";
             char falseString[] = "false";
-            printf("%s\n", num->boolean ? trueString : falseString);
+            printf("%s", num->boolean ? trueString : falseString);
             return;
         }
 
         case NUM_ERROR: {
             printStringView(&num->error);
-            printf("\n");
             return;
         }
     }

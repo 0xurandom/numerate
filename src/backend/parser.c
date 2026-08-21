@@ -15,6 +15,7 @@
 #include "utils/parser_utils.h"
 #include "utils/string_view_arr.h"
 #include "utils/string_view_utils.h"
+#include "utils/unit_utils.h"
 
 Node *parse(Parser *parser, Precedence precedence) {
     nextToken(parser);
@@ -28,7 +29,45 @@ Node *parse(Parser *parser, Precedence precedence) {
 
     switch (parser->prev.kind) {
         case TOK_NUMBER: {
-            left = newLiteralNode(&parser->prev.num);
+            Number *num = &parser->prev.num;
+            const Unit *srcUnit = parser->prev.unit;
+
+            if (srcUnit != NULL && parser->cur.kind == TOK_TO) {
+                nextToken(parser);
+
+                if (parser->cur.kind != TOK_VAR) {
+                    const char error[] = "Expected a unit after 'to'";
+                    Number *result = numNew(NUM_ERROR);
+                    numSetError(result, error, strlen(error));
+                    left = newLiteralNode(result);
+                    break;
+                }
+
+                StringView targetView = parser->cur.ident;
+                const Unit *targetUnit =
+                    unitLookup(targetView.arr, targetView.length);
+
+                if (targetUnit == NULL) {
+                    const char error[] = "Unknown unit";
+                    Number *result = numNew(NUM_ERROR);
+                    numSetError(result, error, strlen(error));
+                    left = newLiteralNode(result);
+                    break;
+                }
+
+                if (srcUnit != NULL) {
+                    Number *convertedNum =
+                        unitConvert(num, srcUnit, targetUnit);
+                    left = newLiteralNode(convertedNum);
+                    numFree(convertedNum);
+                } else {
+                    left = newUnitLiteralNode(num, targetUnit);
+                }
+                nextToken(parser);
+
+            } else {
+                left = newLiteralNode(&parser->prev.num);
+            }
 
             break;
         }
@@ -354,10 +393,11 @@ Node *simplifyTree(Parser *parser, Node *node) {
                         freeNode(node);
                         return newNode;
                     } else {
-                        fprintf(stderr,
-                                "Invalid operand for prefix node with bang "
-                                "operator\n");
-                        exit(1);
+                        const char error[] =
+                            "Invalid operand for prefix node with bang "
+                            "operator";
+                        Number *result = numNew(NUM_ERROR);
+                        numSetError(result, error, strlen(error));
                     }
                     break;
                 }

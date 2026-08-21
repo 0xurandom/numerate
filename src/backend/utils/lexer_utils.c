@@ -10,8 +10,9 @@
 #include <string.h>
 
 #include "num_utils.h"
+#include "unit_utils.h"
 
-void lexString(char* string) {
+void lexString(char *string) {
     int len = strlen(string);
     Lexer lexer = {
         .string = string,
@@ -26,14 +27,14 @@ void lexString(char* string) {
     return;
 }
 
-void checkAllocation(void* ptr) {
+void checkAllocation(void *ptr) {
     if (ptr == NULL) {
         fprintf(stderr, "Unable to allocate memory\n");
         exit(1);
     }
 }
 
-double parseDec(Lexer* lexer) {
+double parseDec(Lexer *lexer) {
     int i;
     double value;
     for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
@@ -57,9 +58,9 @@ double parseDec(Lexer* lexer) {
     return value;
 }
 
-double parseHex(Lexer* lexer) {
+double parseHex(Lexer *lexer) {
     lexer->cursor = lexer->cursor + 2;
-    char* endptr;
+    char *endptr;
 
     double value = strtol(&lexer->string[lexer->cursor], &endptr, 16);
     int offset = endptr - (lexer->string + lexer->cursor);
@@ -83,10 +84,10 @@ double parseHex(Lexer* lexer) {
     return value;
 }
 
-double parseBin(Lexer* lexer) {
+double parseBin(Lexer *lexer) {
     lexer->cursor = lexer->cursor + 2;
 
-    char* endptr;
+    char *endptr;
     double value = strtol(&lexer->string[lexer->cursor], &endptr, 2);
 
     int offset = endptr - (lexer->string + lexer->cursor);
@@ -95,9 +96,9 @@ double parseBin(Lexer* lexer) {
     return value;
 }
 
-void parseNum(Lexer* lexer, Token* token) {
-    const char* startPtr = &lexer->string[lexer->cursor];
-    char* endPtr = (char*)startPtr;
+void parseNum(Lexer *lexer, Token *token) {
+    const char *startPtr = &lexer->string[lexer->cursor];
+    char *endPtr = (char *)startPtr;
 
     mpfr_t num1;
     mpfr_init2(num1, PRECISION);
@@ -128,15 +129,15 @@ void parseNum(Lexer* lexer, Token* token) {
 
     // is rational
     if (*endPtr == '/') {
-        char* denomStart = endPtr + 1;
-        char* denomEnd = denomStart;
+        char *denomStart = endPtr + 1;
+        char *denomEnd = denomStart;
 
         while (isdigit(*denomEnd)) {
             denomEnd++;
         }
 
         int len = denomEnd - startPtr;
-        char* rationalStr = malloc(len + 1);
+        char *rationalStr = malloc(len + 1);
         memcpy(rationalStr, startPtr, len);
         rationalStr[len] = '\0';
 
@@ -170,7 +171,7 @@ int hexToInt(char c) {
     return -1;
 }
 
-char peekNext(Lexer* lexer) {
+char peekNext(Lexer *lexer) {
     if (lexer->cursor + 1 > lexer->length) {
         // TODO: handle this error gracefully
         fprintf(stderr, "Error: string accessed at illegal index\n");
@@ -183,5 +184,21 @@ char peekNext(Lexer* lexer) {
 Token newToken(TokenKind kind) {
     Token token;
     token.kind = kind;
+    token.unit = NULL;
     return token;
+}
+
+const Unit *lexUnitSuffix(Lexer *lexer) {
+    int start = lexer->cursor;
+    int i = lexer->cursor;
+
+    while (isalpha(lexer->string[i])) i++;
+
+    if (i == start) return NULL;
+
+    const Unit *unit = unitLookup(&lexer->string[start], i - start);
+
+    if (unit != NULL) lexer->cursor = i;
+
+    return unit;
 }

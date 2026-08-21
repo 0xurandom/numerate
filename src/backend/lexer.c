@@ -10,7 +10,7 @@
 #include "utils/num_utils.h"
 #include "utils/string_view_utils.h"
 
-Token tokenise(Lexer* lexer) {
+Token tokenise(Lexer *lexer) {
     Token token;
 
     if (lexer->cursor == lexer->length) {
@@ -27,7 +27,7 @@ Token tokenise(Lexer* lexer) {
                 lexer->cursor++;
             }
 
-            char* keyword = &lexer->string[start];
+            char *keyword = &lexer->string[start];
             size_t keyword_len = lexer->cursor - start;
 
             // check for lone 'i's that dont start with a number
@@ -39,7 +39,7 @@ Token tokenise(Lexer* lexer) {
                 token.kind = lookupKeyword(keyword, keyword_len);
 
                 if (token.kind == TOK_VAR) {
-                    StringView* view = newStringView(keyword, keyword_len);
+                    StringView *view = newStringView(keyword, keyword_len);
                     token.ident = *view;
                 }
             }
@@ -68,6 +68,7 @@ Token tokenise(Lexer* lexer) {
 
             parseNum(lexer, &token);
             if (token.kind == TOK_NUMBER) {
+                token.unit = lexUnitSuffix(lexer);
                 numPrint(&token.num);
             }
 
@@ -230,7 +231,7 @@ Token tokenise(Lexer* lexer) {
 
         default: {
             token.kind = TOK_UNKNOWN;
-            StringView* view = newStringView(&lexer->string[lexer->cursor], 1);
+            StringView *view = newStringView(&lexer->string[lexer->cursor], 1);
             token.ident = *view;
             lexer->cursor++;
         }
@@ -239,7 +240,7 @@ Token tokenise(Lexer* lexer) {
     return token;
 }
 
-TokenKind lookupKeyword(char* keyword, int len) {
+TokenKind lookupKeyword(char *keyword, int len) {
     Keyword keywords[] = {
         (Keyword){.string = "sin", .len = 3, .tokenKind = TOK_SIN},
         (Keyword){.string = "cos", .len = 3, .tokenKind = TOK_COS},
@@ -256,6 +257,7 @@ TokenKind lookupKeyword(char* keyword, int len) {
         (Keyword){.string = "cbrt", .len = 4, .tokenKind = TOK_CBRT},
         (Keyword){.string = "exp", .len = 3, .tokenKind = TOK_EXP},
         (Keyword){.string = "ln", .len = 2, .tokenKind = TOK_LN},
+        (Keyword){.string = "to", .len = 2, .tokenKind = TOK_TO},
         // TODO: log breaks pi for some reason?
         // (Keyword){.string = "log", .len = 3, .tokenKind = TOK_LOG},
     };
