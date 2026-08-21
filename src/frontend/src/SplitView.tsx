@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { InputTextView, OutputTextView } from "./TextView";
+import { invoke } from "@tauri-apps/api/core";
+
 
 interface SplitCalcViewProps {
   value: string;
@@ -44,7 +46,11 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
     const lines = value.split("\n");
     let cancelled: boolean = false;
     (async () => {
-      // reset calc
+      try {
+        await invoke("reset_calc");
+      } catch (err) {
+        console.error("Failed to reset calculator state:", err);
+      }
 
       const output: string[] = [];
 
@@ -52,9 +58,10 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
         if (line.trim() === "") { output.push(""); continue; }
 
         try {
-          // try to calculate
+          const result = await invoke<string>("evaluate", { input: line });
+          output.push(result);
         } catch {
-          output.push("");
+          output.push("Error");
         }
       }
 
@@ -75,7 +82,13 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
         >
           <InputTextView value={value} onChange={onChange} />
         </div>
-        <div ref={outputScrollRef} onScroll={handleOutputScroll} className="h-full overflow-auto transition-[width]  duration-250 ease-out">
+        <div
+          ref={outputScrollRef}
+          onScroll={handleOutputScroll}
+          className="h-full overflow-auto transition-[width]  duration-250 ease-out"
+           style={{width: WIDTH[page].output}}
+        >
+           
           <OutputTextView />
         </div>
       </div>

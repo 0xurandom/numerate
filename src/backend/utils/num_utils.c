@@ -11,6 +11,7 @@
 
 #include "num_ops.h"
 #include "string_view_utils.h"
+#include "unit_utils.h"
 
 // TODO: check for functions using MPFR_RNDN instead of MPC_RNDNN
 
@@ -681,6 +682,66 @@ void numPrint(const Number *num) {
             printStringView(&num->error);
             return;
         }
+    }
+}
+
+void numToStringApi(char *out, size_t outSize, const Number *num,
+                    const Unit **unit) {
+    char valStr[128] = {0};
+    switch (num->kind) {
+        case NUM_COMPLEX: {
+            char realStr[64] = {0};
+            char imagStr[64] = {0};
+
+            mpfr_snprintf(realStr, sizeof(realStr), "%.10RG",
+                          mpc_realref(num->complex));
+            mpfr_snprintf(imagStr, sizeof(imagStr), "%.10RG",
+                          mpc_imagref(num->complex));
+
+            snprintf(valStr, sizeof(valStr), "(%s = %si)", realStr, imagStr);
+            break;
+        }
+
+        case NUM_REAL: {
+            mpfr_snprintf(valStr, sizeof(valStr), "%.10RG", num->real);
+            break;
+        }
+
+        case NUM_RATIONAL: {
+            char *gmpStr = mpq_get_str(NULL, 10, num->rational);
+
+            if (gmpStr != NULL) {
+                snprintf(valStr, sizeof(valStr), "%s", gmpStr);
+                free(gmpStr);
+            }
+            break;
+        }
+
+        case NUM_BOOL: {
+            snprintf(valStr, sizeof(valStr), "%s",
+                     num->boolean == true ? "true" : "false");
+            break;
+        }
+
+        case NUM_ERROR: {
+            int len = (int)num->error.length;
+            if (len >= sizeof(valStr)) len = (int)sizeof(valStr) - 1;
+
+            snprintf(valStr, sizeof(valStr), "Error: %.*s", len,
+                     num->error.arr);
+            break;
+        }
+
+        default: {
+            snprintf(valStr, sizeof(valStr), "Unknwon");
+            break;
+        }
+    }
+
+    if (unit != NULL && *unit != NULL && (*unit)->name != NULL) {
+        snprintf(out, outSize, "%s %s", valStr, (*unit)->name);
+    } else {
+        snprintf(out, outSize, "%s", valStr);
     }
 }
 

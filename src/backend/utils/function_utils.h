@@ -40,4 +40,5 @@ Func *searchFuncArr(const FuncArr *funcArr, StringView *funcName);
 bool addToFuncArr(FuncArr *funcArr, Func *func);
 void deleteFromFuncArr(FuncArr *funcArr, StringView *funcName);
 void freeFunc(Func *func);
+void freeFuncArr(FuncArr *funcArr);
 void reallocFuncArr(FuncArr *funcArr);

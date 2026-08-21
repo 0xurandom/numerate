@@ -5,24 +5,15 @@ import "./App.css";
 import { NotebookView } from "./NotebookView";
 import { Button } from "@/components/ui/button";
 import MenuBar from "@/Menubar"
-import { TextView } from "@/TextView";
+import { SplitView } from "./SplitView";
 
 
 export default function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
-
-  async function greet() {
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
-  async function hello(): Promise<String> {
-    return await invoke("hello", { name });
-  }
+  const [inputContent, setInputContent] = useState("");
 
   return (
-    <main className="container">
-      <TextView />
+    <main className="w-screen h-screen overflow-hidden">
+      <SplitView value={inputContent} onChange={setInputContent} />
     </main>
   );
 }

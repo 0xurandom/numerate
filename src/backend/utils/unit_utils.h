@@ -21,13 +21,15 @@ typedef enum {
     UNIT_UNKNOWN
 } UnitKind;
 
-typedef struct {
+typedef struct Unit Unit;
+
+struct Unit {
     const char *name;
     UnitKind kind;
     const char *baseNumer;
     const char *baseDenom;
     const char *offset;
-} Unit;
+};
 
 typedef struct {
     const char *alias;

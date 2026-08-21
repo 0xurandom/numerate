@@ -27,11 +27,19 @@ export function InputTextView({value, onChange}: InputTextViewProps) {
   );
 };
 
-export function OutputTextView() {
+interface OutputTextViewProps {
+  results: string[];
+}
+
+export function OutputTextView({ results }: OutputTextViewProps) {
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark" || (theme == "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  const outputString = results.join("\n");
+
   return (
     <CodeMirror
+      value={ outputString }
       theme={isDarkTheme ? shadcnDark : shadcnLight}
       height="100%"
       className="text-sm h-full"

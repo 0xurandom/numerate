@@ -182,6 +182,13 @@ void deleteFromFuncArr(FuncArr *funcArr, StringView *funcName) {
     return;
 }
 
+void freeFuncArr(FuncArr *funcArr) {
+    for (int i = 0; i < funcArr->count; i++) {
+        freeFunc(funcArr->funcs[i]);
+    }
+    free(funcArr->funcs);
+}
+
 void freeFunc(Func *func) {
     freeNode(func->val);
 

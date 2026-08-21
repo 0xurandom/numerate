@@ -7,6 +7,8 @@
 
 #include "string_view_utils.h"
 
+typedef struct Unit Unit;
+
 // TODO: allow changing precision
 #define PRECISION 10
 
@@ -58,7 +60,8 @@ long numToLong(const Number *num);
 unsigned long numToUnsignedLong(const Number *num);
 
 void numPrint(const Number *num);
-
+void numToStringApi(char *out, size_t outSize, const Number *num,
+                    const Unit **unit);
 void numClear(Number *num);
 void numFree(Number *num);
 void numFrees(Number *num, ...);
