@@ -2152,6 +2152,7 @@ name = "numerate"
 version = "0.1.0"
 dependencies = [
  "cc",
+ "glob",
  "libc",
  "serde",
  "serde_json",

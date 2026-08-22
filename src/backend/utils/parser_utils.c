@@ -7,6 +7,7 @@
 
 #include "lexer_utils.h"
 #include "num_utils.h"
+#include "set_utils.h"
 #include "string_view_utils.h"
 
 Node *newLiteralNode(Number *num) {
@@ -113,6 +114,22 @@ Node *newFuncDefNode(Token name, StringViewArr *params, Node *val) {
     node->funcDef.name = name;
     node->funcDef.params = params;
     node->funcDef.val = val;
+    return node;
+}
+
+Node *newSetNode(Node **elements, int count) {
+    Node *node = malloc(sizeof(Node));
+    node->kind = NODE_SET;
+    node->set.elements = elements;
+    node->set.count = count;
+
+    return node;
+}
+
+Node *newSetLiteralNode(Set *set) {
+    Node *node = malloc(sizeof(Node));
+    node->kind = NODE_SET_LITERAL;
+    node->setLiteral.value = set;
     return node;
 }
 

@@ -14,16 +14,16 @@ typedef struct {
 
 Set *newSet();
 Set *allocateSet(unsigned long mem);
-bool isElement(Set *set, Number *val);
-void insertElement(Set *set, Number *val);
-bool removeElement(Set *set, Number *val);
-Set *getUnion(Set *set1, Set *set2);
-Set *getIntersection(Set *set1, Set *set2);
-bool isSubset(Set *subset, Set *superset);
-bool isSuperset(Set *superset, Set *subset);
-Set *getSymmetricDifference(Set *set1, Set *set2);
-Set *subtractSets(Set *set1, Set *set2);
-void appendToSet(Set *set, Number *element);
-bool binarySearch(Set *set, Number *val, size_t *result);
+bool isElement(const Set *set, const Number *val);
+void insertElement(Set *set, const Number *val);
+bool removeElement(Set *set, const Number *val);
+Set *getUnion(const Set *set1, const Set *set2);
+Set *getIntersection(const Set *set1, const Set *set2);
+bool isSubset(const Set *subset, const Set *superset);
+bool isSuperset(const Set *superset, const Set *subset);
+Set *getSymmetricDifference(const Set *set1, const Set *set2);
+Set *subtractSets(const Set *set1, const Set *set2);
+void appendToSet(Set *set, const Number *element);
+bool binarySearch(const Set *set, const Number *val, size_t *result);
 void reallocSet(Set *set);
 void freeSet(Set *set);

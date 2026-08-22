@@ -5,6 +5,7 @@
 #include "lexer.h"
 #include "utils/function_utils.h"
 #include "utils/num_utils.h"
+#include "utils/set_utils.h"
 #include "utils/string_view_arr.h"
 
 #define DEF_FUNC_ARGS 4
@@ -52,6 +53,8 @@ typedef enum {
     NODE_VAR,  // subset of assignment
     NODE_FUNCCALL,
     NODE_FUNCDEF,
+    NODE_SET,
+    NODE_SET_LITERAL,
 } NodeKind;
 
 typedef struct Node Node;
@@ -97,6 +100,15 @@ struct Node {
             StringViewArr *params;
             Node *val;
         } funcDef;
+
+        struct {
+            Node **elements;
+            int count;
+        } set;
+
+        struct {
+            Set *value;
+        } setLiteral;
     };
 };
 

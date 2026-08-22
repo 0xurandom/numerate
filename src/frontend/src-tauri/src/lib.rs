@@ -13,7 +13,7 @@ extern "C" {
     fn calc_free_result(result: *mut c_char);
 }
 
-struct CalcState(Mutex<*mut Calc>);
+pub struct CalcState(Mutex<*mut Calc>);
 unsafe impl Send for CalcState {}
 unsafe impl Sync for CalcState {}
 
@@ -32,7 +32,7 @@ fn evaluate(state: tauri::State<CalcState>, input: String) -> String {
 }
 
 #[tauri::command]
-fn reset_calc(state: tauri::State<CalcState>) {
+fn reset_calculator(state: tauri::State<CalcState>) {
     let calc = *state.0.lock().unwrap();
     unsafe { reset_calc(calc); }
 }
@@ -48,7 +48,7 @@ pub fn run() {
         .manage(calc_state)
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![evaluate, reset_calculator])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

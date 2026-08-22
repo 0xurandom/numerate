@@ -1,4 +1,4 @@
-#include "set_utils.h"
+#include "./set_utils.h"
 
 #include <mpc.h>
 #include <stdbool.h>
@@ -14,7 +14,28 @@
 Set *newSet() {
     Set *set = malloc(sizeof(Set));
 
-    set->elements = malloc(DEFAULT_SET_CAP * sizeof(mpfr_t));
+    set->elements = malloc(DEFAULT_SET_CAP * sizeof(Number));
+    if (set->elements == NULL) {
+        fprintf(stderr, "Error: Could not allocate memory to set\n");
+        exit(1);
+    }
+
+    set->capacity = DEFAULT_SET_CAP;
+    for (size_t i = 0; i < set->capacity; i++) {
+        numInit(&set->elements[i], NUM_REAL);
+    }
+
+    set->count = 0;
+
+    return set;
+}
+
+Set *allocateSet(unsigned long mem) {
+    Set *set = malloc(sizeof(Set));
+
+    set->capacity = mem;
+    set->elements = malloc(mem * sizeof(Number));
+
     if (set->elements == NULL) {
         fprintf(stderr, "Error: Could not allocate memory to set\n");
         exit(1);
@@ -25,30 +46,16 @@ Set *newSet() {
     }
 
     set->count = 0;
-    set->capacity = DEFAULT_SET_CAP;
 
     return set;
 }
 
-Set *allocateSet(unsigned long mem) {
-    Set *set = malloc(sizeof(Set));
-
-    set->elements = malloc(mem * sizeof(mpfr_t));
-
-    if (set->elements == NULL) {
-        fprintf(stderr, "Error: Could not allocate memory to set\n");
-        exit(1);
-    }
-
-    set->count = 0;
-    set->capacity = mem;
-
-    return set;
+bool isElement(const Set *set, const Number *val) {
+    size_t index;
+    return binarySearch(set, val, &index);
 }
 
-bool isElement(Set *set, Number *val) { return binarySearch(set, val, NULL); }
-
-void insertElement(Set *set, Number *val) {
+void insertElement(Set *set, const Number *val) {
     size_t index;
 
     if (binarySearch(set, val, &index)) return;
@@ -57,21 +64,20 @@ void insertElement(Set *set, Number *val) {
         reallocSet(set);
     }
 
-    for (size_t i = 0; i < index; i++) {
-        numSet(&set->elements[set->capacity - i + 1],
-               &set->elements[set->capacity - i]);
+    for (size_t i = set->count; i > index; i--) {
+        numSet(&set->elements[i], &set->elements[i - 1]);
     }
+
     numSet(&set->elements[index], val);
+    set->count++;
 }
 
 // returns true if element was successfully removed,
 // false if element was not in the set
-bool removeElement(Set *set, Number *val) {
+bool removeElement(Set *set, const Number *val) {
     size_t index;
 
-    bool valExists = binarySearch(set, val, &index);
-
-    if (valExists == false) return false;
+    if (binarySearch(set, val, &index) == false) return false;
 
     for (size_t i = index; i < set->count - 1; i++) {
         numSet(&set->elements[i], &set->elements[i + 1]);
@@ -82,10 +88,8 @@ bool removeElement(Set *set, Number *val) {
     return true;
 }
 
-Set *getUnion(Set *set1, Set *set2) {
-    size_t maxCap = set1->count > set2->count ? set1->count : set2->count;
-
-    Set *result = allocateSet(maxCap);
+Set *getUnion(const Set *set1, const Set *set2) {
+    Set *result = allocateSet(set1->count + set2->count);
 
     size_t i = 0;
     size_t j = 0;
@@ -107,10 +111,20 @@ Set *getUnion(Set *set1, Set *set2) {
         }
     }
 
+    while (i < set1->count) {
+        appendToSet(result, &set1->elements[i]);
+        i++;
+    }
+
+    while (j < set2->count) {
+        appendToSet(result, &set2->elements[j]);
+        j++;
+    }
+
     return result;
 }
 
-Set *getIntersection(Set *set1, Set *set2) {
+Set *getIntersection(const Set *set1, const Set *set2) {
     size_t maxCap = (set1->count > set2->count) ? set1->count : set2->count;
 
     Set *result = allocateSet(maxCap);
@@ -137,7 +151,8 @@ Set *getIntersection(Set *set1, Set *set2) {
     return result;
 }
 
-bool isSubset(Set *subset, Set *superset) {
+bool isSubset(const Set *subset, const Set *superset) {
+    if (subset->count == 0) return true;
     if (subset->count > superset->count) return false;
 
     size_t i = 0;
@@ -157,14 +172,14 @@ bool isSubset(Set *subset, Set *superset) {
         }
     }
 
-    return (i == subset->count - 1);
+    return (i == subset->count);
 }
 
-bool isSuperset(Set *superset, Set *subset) {
+bool isSuperset(const Set *superset, const Set *subset) {
     return isSubset(subset, superset);
 }
 
-Set *getSymmetricDifference(Set *set1, Set *set2) {
+Set *getSymmetricDifference(const Set *set1, const Set *set2) {
     size_t maxCap = (set1->count > set2->count) ? set1->count : set2->count;
 
     Set *result = allocateSet(maxCap);
@@ -201,9 +216,8 @@ Set *getSymmetricDifference(Set *set1, Set *set2) {
     return result;
 }
 
-Set *subtractSets(Set *set1, Set *set2) {
-    size_t maxCap = (set1->count > set2->count) ? set1->count : set2->count;
-
+Set *subtractSets(const Set *set1, const Set *set2) {
+    size_t maxCap = set1->count;
     Set *result = allocateSet(maxCap);
 
     size_t i = 0;
@@ -224,20 +238,28 @@ Set *subtractSets(Set *set1, Set *set2) {
         }
     }
 
+    while (i < set1->count) {
+        appendToSet(result, &set1->elements[i]);
+        i++;
+    }
+
     return result;
 }
 
 // only use if it is known that the
 // element will be added to the end
-void appendToSet(Set *set, Number *element) {
-    // TODO: check capacity
+void appendToSet(Set *set, const Number *element) {
+    if (set->count + 1 > set->capacity) {
+        reallocSet(set);
+    }
+
     numSet(&set->elements[set->count], element);
     set->count++;
 }
 
 // returns true is val is found
 // and sets result to index where it is/should be
-bool binarySearch(Set *set, Number *val, size_t *result) {
+bool binarySearch(const Set *set, const Number *val, size_t *result) {
     size_t low = 0;
     size_t high = set->count - 1;
 
@@ -261,7 +283,7 @@ bool binarySearch(Set *set, Number *val, size_t *result) {
 }
 
 void reallocSet(Set *set) {
-    set->elements = realloc(set->elements, 2 * set->capacity);
+    set->elements = realloc(set->elements, 2 * set->capacity * sizeof(Number));
 
     if (set->elements == NULL) {
         fprintf(stderr, "Could not reallocate set\n");

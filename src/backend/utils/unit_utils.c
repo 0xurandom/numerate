@@ -120,6 +120,7 @@ static const size_t unitTableCount = sizeof(table) / sizeof(table[0]);
 static const UnitAlias aliasTable[] = {
 
     SI_PREFIXES_DUAL(0, "m", "meter", "metre"),
+
     SI_PREFIXES(13, "g", "gram"),
     ALIAS(26, "L"),
     SI_PREFIXES_DUAL(26, "l", "liter", "litre"),

@@ -36,7 +36,7 @@ void checkAllocation(void *ptr) {
 
 double parseDec(Lexer *lexer) {
     int i;
-    double value;
+    double value = 0.0;
     for (i = lexer->cursor; isdigit(lexer->string[i]); i++) {
         value *= 10;
         value += (lexer->string[i] - '0');

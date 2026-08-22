@@ -13,6 +13,7 @@
 #include "utils/num_ops.h"
 #include "utils/num_utils.h"
 #include "utils/parser_utils.h"
+#include "utils/set_utils.h"
 #include "utils/string_view_arr.h"
 #include "utils/string_view_utils.h"
 #include "utils/unit_utils.h"
@@ -129,9 +130,49 @@ Node *parse(Parser *parser, Precedence precedence) {
             if (parser->cur.kind == TOK_RPAREN) {
                 nextToken(parser);
             } else {
-                fprintf(stderr, "Expected ')', got: %s\n",
-                        lookupTokenKind(parser->cur.kind));
-                return NULL;
+                Number *result = numNew(NUM_BOOL);
+                result->kind = NUM_ERROR;
+                result->error =
+                    *formatStringView("Expected ')', got: %s\n",
+                                      lookupTokenKind(parser->cur.kind));
+                left = newLiteralNode(result);
+                break;
+            }
+
+            case TOK_LBRACE: {
+                int cap = DEF_FUNC_ARGS;
+                int count = 0;
+
+                Node **elements = malloc(cap * sizeof(Node *));
+
+                if (parser->cur.kind != TOK_RBRACE) {
+                    elements[count] = parser(parser, PREC_ASSIGNMENT);
+                    count++;
+
+                    while (parser->cur.kind == TOK_COMMA) {
+                        nextToken(parser);
+                        if (count >= cap) {
+                            elements =
+                                realloc(elements, 2 * cap * sizeof(Node *));
+                            cap *= 2;
+                        }
+                        elements[count] = parser(PREC_ASSIGNMENT);
+                        count++;
+                    }
+                }
+
+                if (parser->cur.kind != TOK_RBRACE) {
+                    free(elements);
+                    const char error[] = "Expected '}'";
+                    Number *result = numNew(NUM_ERROR);
+                    numSetError(result, error, strlen(error));
+                    left = newLiteralNode(result);
+                    break;
+                }
+                nextToken(parser);
+
+                left = newSetNode(elements, count);
+                break;
             }
 
             break;
@@ -377,7 +418,7 @@ Node *simplifyTree(Parser *parser, Node *node) {
 
             Number *num = &node->unary.operand->literal.value;
 
-            Number *result;
+            Number *result = NULL;
 
             switch (node->unary.op.kind) {
                 case TOK_BANG: {
@@ -690,6 +731,41 @@ Node *simplifyTree(Parser *parser, Node *node) {
             freeNode(node);
 
             return newNode;
+        }
+
+        case NODE_SET: {
+            Set *set = newSet();
+
+            for (int i = 0; i < node->set.count; i++) {
+                node->set.elements[i] = simplifyTree(parser, node->set.elements[i]);
+
+                if (node->set.elements[i]->kind != NODE_LITERAL) {
+                    freeSet(set);
+
+                    for (int j = 0; j <= i; j++) {
+                        freeNode(node->set.elements[j]);
+                    }
+                    free(node->set.elements);
+                    free(node);
+
+                    Number *result = numNew(NUM_ERROR);
+                    const char error[] = "Set elements do not simplify to a literal value";
+                    numSetError(result, error, strlen(error));
+
+                    return newLiteralNode(result);
+                }
+
+                insertElement(set, &node->set.elements[i]->literal.value);
+            }
+
+            for (int i = 0; i < node->set.count; i++) {
+                freeNode(node->set.elements[i]);
+            }
+            free(node->set.elements);
+            free(node);
+
+            return ;
+            
         }
 
         default: {

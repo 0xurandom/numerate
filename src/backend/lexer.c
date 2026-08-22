@@ -207,6 +207,18 @@ Token tokenise(Lexer *lexer) {
             break;
         }
 
+        case '{': {
+            token.kind = TOK_LBRACE;
+            lexer->cursor++;
+            break;
+        }
+
+        case '}': {
+            token.kind = TOK_RBRACE;
+            lexer->cursor++;
+            break;
+        }
+
         case ' ': {
             lexer->cursor++;
             return tokenise(lexer);

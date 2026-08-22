@@ -36,6 +36,8 @@ typedef enum {
 
     TOK_LPAREN,
     TOK_RPAREN,
+    TOK_LBRACE,
+    TOK_RBRACE,
 
     TOK_SIN,
     TOK_COS,

@@ -47,7 +47,7 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
     let cancelled: boolean = false;
     (async () => {
       try {
-        await invoke("reset_calc");
+        await invoke("reset_calculator");
       } catch (err) {
         console.error("Failed to reset calculator state:", err);
       }
@@ -88,8 +88,8 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
           className="h-full overflow-auto transition-[width]  duration-250 ease-out"
            style={{width: WIDTH[page].output}}
         >
-           
-          <OutputTextView />
+
+          <OutputTextView results={results} />
         </div>
       </div>
     </div>
