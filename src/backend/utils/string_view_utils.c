@@ -12,7 +12,8 @@
 // TODO: set max string length to int max
 
 void initStringView(StringView *view) {
-    view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
+    view->capacity = DEFAULT_STRING_CAPACITY + 1;
+    view->arr = malloc(view->capacity * sizeof(char));
 
     if (view->arr == NULL) {
         fprintf(stderr, "Error: Could not allocate string view\n");
@@ -20,19 +21,18 @@ void initStringView(StringView *view) {
     }
 
     view->length = 0;
-    view->capacity = DEFAULT_STRING_CAPACITY;
 }
 
 void initStringViewWithString(StringView *view, const char *string,
                               size_t stringLength) {
     if (stringLength > DEFAULT_STRING_CAPACITY) {
-        view->arr = malloc(stringLength * sizeof(char));
-        view->capacity = stringLength;
+        view->capacity = stringLength + 1;
+        view->arr = malloc(view->capacity * sizeof(char));
         view->length = stringLength;
 
     } else {
-        view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
-        view->capacity = DEFAULT_STRING_CAPACITY;
+        view->capacity = DEFAULT_STRING_CAPACITY + 1;
+        view->arr = malloc(view->capacity * sizeof(char));
         view->length = stringLength;
     }
 
@@ -46,17 +46,23 @@ void initStringViewWithString(StringView *view, const char *string,
     return;
 }
 
+void initEmptyStringView(StringView *view) {
+    view->arr = NULL;
+    view->length = 0;
+    view->capacity = 0;
+}
+
 // copies length number of bytes from string
 // and allocates a new string view
 StringView *newStringView(const char *string, size_t length) {
     StringView *view = malloc(sizeof(StringView));
 
     if (length > DEFAULT_STRING_CAPACITY) {
-        view->arr = malloc(length * sizeof(char));
-        view->capacity = length;
+        view->capacity = length + 1;
+        view->arr = malloc(view->capacity * sizeof(char));
     } else {
-        view->arr = malloc(DEFAULT_STRING_CAPACITY * sizeof(char));
-        view->capacity = DEFAULT_STRING_CAPACITY;
+        view->capacity = DEFAULT_STRING_CAPACITY + 1;
+        view->arr = malloc(view->capacity * sizeof(char));
     }
     memcpy(view->arr, string, length);
 
@@ -107,15 +113,20 @@ void setStringView(StringView *view, const char *string, size_t length) {
 
 void copyStringView(StringView *dest, const StringView *src) {
     if (dest == src) return;
+    free(dest->arr);
 
-    if (dest->arr != NULL) free(dest->arr);
-
+    dest->arr = NULL;
     dest->capacity = src->capacity;
     dest->length = src->length;
 
-    dest->arr = malloc(dest->capacity * sizeof(char));
-    if (dest->arr != NULL && src->arr != NULL) {
-        memcpy(dest->arr, src->arr, dest->capacity);
+    if (src->capacity > 0) {
+        dest->arr = malloc(src->capacity * sizeof(char));
+
+        if (dest->arr == NULL) {
+            fprintf(stderr, "Error: Could not allocate string view\n");
+            exit(1);
+        }
+        memcpy(dest->arr, src->arr, src->length);
     }
 
     return;
@@ -125,6 +136,7 @@ void appendToStringView(StringView *view, char c) {
     if (view->length + 1 > view->capacity) reallocStringView(view);
 
     view->arr[view->length] = c;
+    view->length++;
 }
 
 void printStringView(const StringView *view) {
@@ -157,6 +169,8 @@ void reallocStringView(StringView *view) {
 }
 
 void freeStringView(StringView *view) {
+    (void)view;
+    return;
     free(view->arr);
     view->arr = NULL;
     view->capacity = 0;

@@ -98,7 +98,7 @@ Node *newFuncCallNode(Token name, Node **args, int argCount) {
     node->funcCall.funcName = name;
     node->funcCall.argCount = argCount;
 
-    node->funcCall.args = malloc((argCount) * sizeof(Node *));
+    node->funcCall.args = malloc((argCount + 1) * sizeof(Node *));
 
     for (int i = 0; i < argCount; i++) {
         node->funcCall.args[i] = args[i];
@@ -161,15 +161,32 @@ Number *evaluateString(Lexer *lexer, Parser *parser, char *str,
         return error;
     }
 
-    Number *result_val = numNew(result->literal.value.kind);
-    numSet(result_val, &result->literal.value);
+    Number *resultVal = NULL;
+
+    switch (result->kind) {
+        case NODE_LITERAL:
+        case NODE_BOOLEAN:
+            resultVal = numNew(result->literal.value.kind);
+            numSet(resultVal, &result->literal.value);
+
+            if (outUnit != NULL && result->literal.unit != NULL)
+                *outUnit = result->literal.unit;
+            break;
+
+        default: {
+            resultVal = numNew(NUM_ERROR);
+            const char errorStr[] = "Expression did not evaluate to a value";
+            numSetError(resultVal, errorStr, strlen(errorStr));
+            break;
+        }
+    }
 
     if (outUnit != NULL && result->literal.unit != NULL)
         *outUnit = result->literal.unit;
 
     freeNode(result);
 
-    return result_val;
+    return resultVal;
 }
 
 Node *newLiteralNodeWithVal(double val) {
@@ -203,6 +220,7 @@ Node *copyNode(Node *node) {
         case NODE_LITERAL: {
             numInit(&newNode->literal.value, node->literal.value.kind);
             numSet(&newNode->literal.value, &node->literal.value);
+            newNode->literal.unit = node->literal.unit;
             break;
         }
 

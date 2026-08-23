@@ -61,11 +61,14 @@ void numInit(Number *num, NumberKind kind) {
 void numSet(Number *dest, const Number *src) {
     if (dest->kind != src->kind) {
         // TODO: set dest to error
-        fprintf(stderr,
-                "Error: numSet received dest(kind: %d) and src(kind: %d)) of "
-                "different kinds\n",
-                dest->kind, src->kind);
-        exit(1);
+        numClear(dest);
+        dest->kind = src->kind;
+        numInit(dest, src->kind);
+        // fprintf(stderr,
+        // "Error: numSet received dest(kind: %d) and src(kind: %d)) of "
+        // "different kinds\n",
+        // dest->kind, src->kind);
+        // exit(1);
     }
 
     switch (src->kind) {

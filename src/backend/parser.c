@@ -162,7 +162,7 @@ Node *parse(Parser *parser, Precedence precedence) {
                 }
 
                 if (parser->cur.kind != TOK_RBRACE) {
-                    free(elements);
+                    // free(elements);
                     const char error[] = "Expected '}'";
                     Number *result = numNew(NUM_ERROR);
                     numSetError(result, error, strlen(error));
@@ -242,14 +242,14 @@ Node *parse(Parser *parser, Precedence precedence) {
 
                         StringViewArr *params =
                             newStringViewArr(left->funcCall.argCount);
+                        bool validParams = true;
 
                         for (int i = 0; i < left->funcCall.argCount; i++) {
                             Node *argNode = left->funcCall.args[i];
 
                             if (argNode->kind != NODE_VAR) {
-                                // TODO: errror better
-                                fprintf(stderr, "error\n");
-                                exit(1);
+                                validParams = false;
+                                break;
                             }
 
                             StringView *sv = malloc(sizeof(StringView));
@@ -257,9 +257,19 @@ Node *parse(Parser *parser, Precedence precedence) {
                             addStringToStringViewArr(params, sv);
                         }
 
-                        Node *funcDef = newFuncDefNode(name, params, rightVal);
-                        freeNode(left);
-                        left = funcDef;
+                        if (!validParams) {
+                            const char error[] =
+                                "Function parameters must be valid";
+                            Number *result = numNew(NUM_ERROR);
+                            numSetError(result, error, strlen(error));
+                            left = newLiteralNode(result);
+                        } else {
+                            Node *funcDef =
+                                newFuncDefNode(name, params, rightVal);
+                            freeNode(left);
+                            left = funcDef;
+                        }
+
                     } else {
                         freeNode(rightVal);
                         const char error[] =
@@ -302,7 +312,7 @@ Node *parse(Parser *parser, Precedence precedence) {
                     }
 
                     if (parser->cur.kind != TOK_RPAREN) {
-                        free(args);
+                        // free(args);
 
                         Number *result = numNew(NUM_ERROR);
                         result->error = *formatStringView("Expected ')'");
@@ -312,7 +322,7 @@ Node *parse(Parser *parser, Precedence precedence) {
                     nextToken(parser);
                     left = newFuncCallNode(funcName, args, argCount);
 
-                    free(args);
+                    // free(args);
 
                     break;
                 }
@@ -377,6 +387,7 @@ Node *simplifyTree(Parser *parser, Node *node) {
                 numSetError(result, error, strlen(error));
             }
             Node *newNode = newLiteralNode(result);
+            // free(node);
             return newNode;
         }
 
@@ -386,12 +397,11 @@ Node *simplifyTree(Parser *parser, Node *node) {
 
             if (node->assignment.value->kind != NODE_LITERAL) {
                 freeNode(node);
-                Number *num = numNew(NUM_BOOL);
-                numClear(num);
-                num->error = *formatStringView(
+                StringView *view = formatStringView(
                     "Error: Could not simplify the value of var: %s\n",
                     getCstring(&node->assignment.name.ident));
-
+                Number *num = numNew(NUM_ERROR);
+                numSetError(num, view->arr, view->length);
                 Node *newNode = newLiteralNode(num);
                 return newNode;
             }
@@ -729,9 +739,15 @@ Node *simplifyTree(Parser *parser, Node *node) {
             Func *func =
                 newFuncWithArr(&node->funcDef.name.ident, node->funcDef.val,
                                node->funcDef.params);
-            addToFuncArr(parser->env->funcArr, func);
+            node->funcDef.val = NULL;
+            node->funcDef.params = NULL;
+
             free(node);
-            return NULL;
+
+            addToFuncArr(parser->env->funcArr, func);
+            Number *result = numNew(NUM_BOOL);
+            result->boolean = 1;
+            return newLiteralNode(result);
         }
 
         case NODE_FUNCCALL: {

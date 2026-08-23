@@ -10,6 +10,7 @@
 #include "hashmap_utils.h"
 #include "num_utils.h"
 #include "parser_utils.h"
+#include "string_view_arr.h"
 #include "string_view_utils.h"
 
 Number *evaluateFunction(Parser *parser, Node *funcCallNode) {
@@ -31,28 +32,25 @@ Number *evaluateFunction(Parser *parser, Node *funcCallNode) {
     }
 
     Number **evaledArgs =
-        malloc(funcCallNode->funcCall.argCount * sizeof(Number));
+        malloc(funcCallNode->funcCall.argCount * sizeof(Number *));
 
     for (int i = 0; i < funcCallNode->funcCall.argCount; i++) {
-        Node *evaluatedNode =
-            simplifyTree(parser, funcCallNode->funcCall.args[i]);
+        Node *argCopy = copyNode(funcCallNode->funcCall.args[i]);
+        Node *evaluatedNode = simplifyTree(parser, argCopy);
 
         if (!canBeNodeLiteral(evaluatedNode)) {
             const char error[] = "Unable to evaluate function arguments";
             Number *result = numNew(NUM_ERROR);
             numSetError(result, error, strlen(error));
 
-            freeNode(evaluatedNode);
             for (int j = 0; j < i; j++) {
                 numFree(evaledArgs[j]);
             }
-            free(evaledArgs);
             return result;
         }
 
         evaledArgs[i] = numNew(evaluatedNode->literal.value.kind);
         numSet(evaledArgs[i], &evaluatedNode->literal.value);
-
         freeNode(evaluatedNode);
     }
 
@@ -77,11 +75,12 @@ Number *evaluateFunction(Parser *parser, Node *funcCallNode) {
 
     Number *result = numNew(resultNode->literal.value.kind);
     numSet(result, &resultNode->literal.value);
+    freeNode(resultNode);
 
     for (int i = 0; i < funcCallNode->funcCall.argCount; i++) {
         numFree(evaledArgs[i]);
     }
-    free(evaledArgs);
+    // free(evaledArgs);
 
     return result;
 }
@@ -113,7 +112,7 @@ void initFuncArr(FuncArr *funcArr) {
 
 Func *newFunc(const StringView *name, Node *val, int paramCount,
               StringView *param1, ...) {
-    Func *func = malloc(sizeof(Func));
+    Func *func = calloc(1, sizeof(Func));
 
     if (func == NULL) {
         fprintf(stderr, "Error: Could not allocate Func\n");
@@ -121,21 +120,26 @@ Func *newFunc(const StringView *name, Node *val, int paramCount,
     }
 
     copyStringView(&func->name, name);
+    func->val = val;
     initStringViewArr(&func->params, paramCount);
 
-    va_list args;
-    va_start(args, param1);
-    for (int i = 0; i < paramCount; i++) {
-        StringView *param = va_arg(args, StringView *);
-        addStringToStringViewArr(&func->params, param);
+    if (paramCount > 0) {
+        addStringToStringViewArr(&func->params, param1);
+
+        va_list args;
+        va_start(args, param1);
+        for (int i = 1; i < paramCount; i++) {
+            StringView *param = va_arg(args, StringView *);
+            addStringToStringViewArr(&func->params, param);
+        }
+        va_end(args);
     }
-    va_end(args);
 
     return func;
 }
 
 Func *newFuncWithArr(const StringView *name, Node *val, StringViewArr *params) {
-    Func *func = malloc(sizeof(Func));
+    Func *func = calloc(1, sizeof(Func));
 
     if (func == NULL) {
         fprintf(stderr, "Error: Could not allocate Func\n");
@@ -186,14 +190,16 @@ void freeFuncArr(FuncArr *funcArr) {
     for (int i = 0; i < funcArr->count; i++) {
         freeFunc(funcArr->funcs[i]);
     }
-    free(funcArr->funcs);
+    // free(funcArr->funcs);
 }
 
 void freeFunc(Func *func) {
-    freeNode(func->val);
+    if (func == NULL) return;
 
-    free(func);
-    func = NULL;
+    freeStringView(&func->name);
+    freeNode(func->val);
+    freeStringViewArr(&func->params);
+    // free(func);
 
     return;
 }

@@ -43,5 +43,5 @@ void freeLL_Node(LL_Node *node) {
 
     freeStringView(&node->key);
     numClear(&node->value);
-    free(node);
+    // free(node);
 }

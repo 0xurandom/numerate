@@ -66,37 +66,36 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
       }
 
     }
-  })
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
 
     const timer = setTimeout(() => {
       const evaluateText = async () => {
-        const lines = value.split('\n');
-        const newOutput: string[] = [];
+        try {
+          const result: string = await invoke("evaluate", {
+            input: value,
+          });
 
-        for (const line of lines) {
-          if (!line.trim()) {
-            newOutput.push("");
-            continue;
+          if (isCurrent) {
+            setResults(result.split("\n"));
           }
+        } catch (error) {
+          console.error(error);
 
-          try {
-            const result: string = await invoke("evaluate", { input: line });
-            newOutput.push(result);
-          } catch {
-            newOutput.push("Error");
+          if (isCurrent) {
+            setResults(["error"]);
           }
         }
-        if (isCurrent) { setResults(newOutput); }
       };
       evaluateText();
-    }, 200);
+    }, 300);
 
 
     return () => {
       isCurrent = false;
+      clearTimeout(timer);
     };
   }, [value]);
 

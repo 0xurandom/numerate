@@ -1,87 +1,78 @@
 use std::io::{BufRead, BufReader, Write};
-use std::process::{ChildStdin, ChildStdout, Command, Stdio};
-use std::sync::Mutex;
+use std::process::{Command, Stdio};
 
-pub struct CalcProcess {
-    stdin: ChildStdin,
-    stdout: BufReader<ChildStdout>,
-}
+fn evaluate_process(input: &str) -> Result<String, String> {
+    let mut child = Command::new("../../backend/main.out")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Failed to run calculator: {e}"))?;
 
-impl CalcProcess {
-    fn spawn_new() -> Self {
-        let mut child = Command::new("../../backend/main.out")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Failed to run c binary");
+    let stdin = child
+        .stdin
+        .as_mut()
+        .ok_or("Failed to open calculator stdin")?;
 
-        let stdin = child.stdin.take().unwrap();
-        let stdout = BufReader::new(child.stdout.take().unwrap());
+    stdin
+        .write_all(input.as_bytes())
+        .map_err(|e| format!("write failed: {e}"))?;
 
-        Self {stdin, stdout}
+    if !input.ends_with('\n') {
+        stdin
+            .write_all(b"\n")
+            .map_err(|e| format!("newline write failed: {e}"))?;
     }
 
-    fn evaluate(&mut self, input: &str) -> Result<String, String> {
+    stdin
+        .flush()
+        .map_err(|e| format!("flush failed: {e}"))?;
 
-        let mut results = Vec::new();
 
-        for line in input.lines() {
-            if line.trim().is_empty() {
-                results.push(String::new());
-                continue;
-            }
+    drop(child.stdin.take());
 
-        self.stdin.write_all(line.as_bytes()).map_err(|e| format!("write failed: {e}"))?;
-        self.stdin.write_all(b"\n").map_err(|e| format!("newline write failed: {e}"))?;
-        self.stdin.flush().map_err(|e| format!("flush failed: {e}"))?;
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or("failed to open calc stdout")?;
 
-        let mut output = String::new();
-        let bytes = self.stdout
-            .read_line(&mut output)
-            .map_err(|e| format!("read failed: {e}"))?;
 
-        if bytes == 0 {
-            return Err("calculator process exited".to_string());
-        }
+    let mut reader = BufReader::new(stdout);
+    let mut results = Vec::new();
+    let mut output = String::new();
 
-        println!("INPUT: {:?}", line);
-        println!("OUTPUT: {:?}", output);
-
-        results.push(output.trim().to_string());
-        }
-        Ok(results.join("\n"))
+    while reader
+        .read_line(&mut output)
+        .map_err(|e| format!("read failed: {e}"))?
+        > 0
+    {
+        results.push(output.trim_end().to_string());
+        output.clear();
     }
-}
 
-pub struct CalcState(Mutex<CalcProcess>);
-unsafe impl Send for CalcState {}
-unsafe impl Sync for CalcState {}
+    let status = child
+        .wait()
+        .map_err(|e| format!("Failed waiting for calculator: {e}"))?;
 
+    if !status.success() {
+        return Err(format!("Calculator exited with {status}"));
+    }
 
-#[tauri::command]
-fn evaluate(state: tauri::State<CalcState>, input: String) -> Result<String, String> {
-    let mut calc = state.0.lock().map_err(|e| e.to_string())?;
-    calc.evaluate(&input)
+    Ok(results.join("\n"))
 }
 
 
 #[tauri::command]
-fn reset_calculator(state: tauri::State<CalcState>) -> Result<(), String>{
-    let mut calc = state.0.lock().map_err(|e| e.to_string())?;
-    let _ = calc.evaluate("RESET_CALC");
-    Ok(())
+fn evaluate(input: String) -> Result<String, String> {
+    evaluate_process(&input)
 }
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-
-    let calc_state = CalcState(Mutex::new(CalcProcess::spawn_new()));
-
     tauri::Builder::default()
-        .manage(calc_state)
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![evaluate, reset_calculator])
+        .invoke_handler(tauri::generate_handler![evaluate])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
