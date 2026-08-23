@@ -135,7 +135,7 @@ Node *newSetLiteralNode(Set *set) {
 
 Number *evaluateString(Lexer *lexer, Parser *parser, char *str,
                        const Unit **outUnit) {
-    printf("\n\nevaluating: %s\n", str);
+    // printf("\n\nevaluating: %s\n", str);
     lexer->string = str;
     lexer->cursor = 0;
     lexer->length = strlen(str);

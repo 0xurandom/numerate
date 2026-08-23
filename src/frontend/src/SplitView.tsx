@@ -23,6 +23,8 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
 
   const [results, setResults] = useState<string[]>([]);
 
+
+
   const containerRef = useRef<HTMLDivElement>(null);
   const inputScrollRef = useRef<HTMLDivElement>(null);
   const outputScrollRef = useRef<HTMLDivElement>(null);
@@ -43,32 +45,31 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
   };
 
   useEffect(() => {
-    const lines = value.split("\n");
-    let cancelled: boolean = false;
-    (async () => {
-      try {
-        await invoke("reset_calculator");
-      } catch (err) {
-        console.error("Failed to reset calculator state:", err);
-      }
-
-      const output: string[] = [];
+    let isCurrent = true;
+    const evaluateText = async () => {
+      const lines = value.split('\n');
+      const newOutput: string[] = [];
 
       for (const line of lines) {
-        if (line.trim() === "") { output.push(""); continue; }
+        if (!line.trim()) {
+          newOutput.push("");
+          continue;
+        }
 
         try {
-          const result = await invoke<string>("evaluate", { input: line });
-          output.push(result);
+          const result: string = await invoke("evaluate", { input: line });
+          newOutput.push(result);
         } catch {
-          output.push("Error");
+          newOutput.push("Error");
         }
       }
+        if (isCurrent) { setResults(newOutput); }
+    };
+    evaluateText();
 
-      if (!cancelled) setResults(output);
-    })();
-
-    return () => { cancelled = true };
+    return () => {
+      isCurrent = false;
+    };
   }, [value]);
 
   return (

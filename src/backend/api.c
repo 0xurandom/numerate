@@ -37,13 +37,6 @@ char *eval_calc(Calc *calc, const char *input) {
         evaluateString(&calc->lexer, &calc->parser, inputCopy, &unit);
     char *buffer = malloc(256 * sizeof(char));
 
-    if (result == NULL) {
-        snprintf(buffer, 256, "Error: unknown evaluation failure");
-    } else {
-        numToStringApi(buffer, sizeof(buffer), result, &unit);
-        numFree(result);
-    }
-
     free(inputCopy);
 
     return buffer;

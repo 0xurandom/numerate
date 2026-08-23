@@ -851,8 +851,8 @@ Precedence getPrecedence(TokenKind kind) {
             return PREC_CALL;
 
         default:
-            fprintf(stderr, "Warning: using PREC_NONE for token kind: %s\n",
-                    lookupTokenKind(kind));
+            // fprintf(stderr, "Warning: using PREC_NONE for token kind: %s\n",
+            // lookupTokenKind(kind));
             return PREC_NONE;
     }
 }

@@ -69,7 +69,7 @@ Token tokenise(Lexer *lexer) {
             parseNum(lexer, &token);
             if (token.kind == TOK_NUMBER) {
                 token.unit = lexUnitSuffix(lexer);
-                numPrint(&token.num);
+                // numPrint(&token.num);
             }
 
             break;

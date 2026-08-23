@@ -1,48 +1,68 @@
-use std::ffi::{CStr, CString};
-use std::os::raw::c_char;
+use std::io::{BufRead, BufReader, Write};
+use std::process::{ChildStdin, ChildStdout, Command, Stdio};
 use std::sync::Mutex;
 
-#[repr(C)]
-struct Calc {_private: [u8; 0]}
-
-
-extern "C" {
-    fn init_calc() -> *mut Calc;
-    fn eval_calc(calc: *mut Calc, input: *const c_char) -> *mut c_char;
-    fn reset_calc(calc: *mut Calc);
-    fn calc_free_result(result: *mut c_char);
+pub struct CalcProcess {
+    stdin: ChildStdin,
+    stdout: BufReader<ChildStdout>,
 }
 
-pub struct CalcState(Mutex<*mut Calc>);
+impl CalcProcess {
+    fn spawn_new() -> Self {
+        let mut child = Command::new("../../backend/main.out")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("Failed to run c binary");
+
+        let stdin = child.stdin.take().unwrap();
+        let stdout = BufReader::new(child.stdout.take().unwrap());
+
+        Self {stdin, stdout}
+    }
+
+    fn evaluate(&mut self, input: &str) -> String {
+
+        if input.trim().is_empty() {
+            return String::new();
+        }
+
+
+        let mut stripped_input = input.replace('\n', " ").replace('\r', "");
+        stripped_input.push('\n');
+
+        self.stdin.write_all(stripped_input.as_bytes()).unwrap();
+        self.stdin.flush().unwrap();
+
+        let mut output = String::new();
+        self.stdout.read_line(&mut output).unwrap();
+
+        output.trim().to_string()
+    }
+}
+
+pub struct CalcState(Mutex<CalcProcess>);
 unsafe impl Send for CalcState {}
 unsafe impl Sync for CalcState {}
 
 
 #[tauri::command]
 fn evaluate(state: tauri::State<CalcState>, input: String) -> String {
-    let calc = *state.0.lock().unwrap();
-    let c_input = CString::new(input).unwrap_or_default();
-
-    unsafe {
-        let result_ptr = eval_calc(calc, c_input.as_ptr());
-        let result = CStr::from_ptr(result_ptr).to_string_lossy().into_owned();
-        calc_free_result(result_ptr);
-        result
-    }
+    let mut calc = state.0.lock().unwrap();
+    calc.evaluate(&input)
 }
+
 
 #[tauri::command]
 fn reset_calculator(state: tauri::State<CalcState>) {
-    let calc = *state.0.lock().unwrap();
-    unsafe { reset_calc(calc); }
+    let mut calc = state.0.lock().unwrap();
+    calc.evaluate("RESET_CALC");
 }
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
 
-    let calc = unsafe {init_calc()};
-    let calc_state = CalcState(Mutex::new(calc));
+    let calc_state = CalcState(Mutex::new(CalcProcess::spawn_new()));
 
     tauri::Builder::default()
         .manage(calc_state)
