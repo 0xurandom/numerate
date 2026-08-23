@@ -1,5 +1,6 @@
 #include "api.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,29 +13,37 @@
 Calc *init_calc() {
     Calc *calc = malloc(sizeof(Calc));
 
-    HashMap varStore;
-    initVarStore(&varStore);
+    HashMap *varStore = malloc(sizeof(HashMap));
+    initVarStore(varStore);
 
-    FuncArr funcArr;
-    initFuncArr(&funcArr);
+    FuncArr *funcArr = malloc(sizeof(FuncArr));
+    initFuncArr(funcArr);
 
-    Env env = {.varStore = &varStore, .funcArr = &funcArr, .parent = NULL};
-    calc->parser = (Parser){.lexer = &calc->lexer, .env = &env};
+    Env *env = malloc(sizeof(Env));
+    env->varStore = varStore;
+    env->funcArr = funcArr;
+    env->parent = NULL;
+
+    calc->parser = (Parser){.lexer = &calc->lexer, .env = env};
 
     return calc;
 }
 
 char *eval_calc(Calc *calc, const char *input) {
     char *inputCopy = strdup(input);
-
     const Unit *unit = NULL;
+
     Number *result =
         evaluateString(&calc->lexer, &calc->parser, inputCopy, &unit);
-
     char *buffer = malloc(256 * sizeof(char));
-    numToStringApi(buffer, sizeof(buffer), result, &unit);
 
-    numFree(result);
+    if (result == NULL) {
+        snprintf(buffer, 256, "Error: unknown evaluation failure");
+    } else {
+        numToStringApi(buffer, sizeof(buffer), result, &unit);
+        numFree(result);
+    }
+
     free(inputCopy);
 
     return buffer;
@@ -44,13 +53,20 @@ void calc_free_result(char *result) { free(result); }
 
 void calcDestroy(Calc *calc) {
     freeHashmap(calc->parser.env->varStore);
+    free(calc->parser.env->varStore);
+
     freeFuncArr(calc->parser.env->funcArr);
+    free(calc->parser.env->funcArr);
+
+    free(calc->parser.env);
     free(calc);
 }
 
 void reset_calc(Calc *calc) {
     freeHashmap(calc->parser.env->varStore);
-    HashMap varStore;
-    initVarStore(&varStore);
-    calc->parser.env->varStore = &varStore;
+    free(calc->parser.env->varStore);
+
+    HashMap *varStore = malloc(sizeof(HashMap));
+    initVarStore(varStore);
+    calc->parser.env->varStore = varStore;
 }

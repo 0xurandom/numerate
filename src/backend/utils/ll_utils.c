@@ -35,10 +35,13 @@ void setNextLL_Node(LL_Node *node, LL_Node *next_node) {
 }
 
 void freeLL_Node(LL_Node *node) {
-    freeStringView(&node->key);
-    numFree(&node->value);
+    if (node == NULL) return;
 
     if (node->next != NULL) {
         freeLL_Node(node->next);
     }
+
+    freeStringView(&node->key);
+    numClear(&node->value);
+    free(node);
 }

@@ -299,8 +299,8 @@ void freeSet(Set *set) {
     }
 
     free(set->elements);
-    free(set);
 
     set->count = 0;
     set->capacity = 0;
+    free(set);
 }

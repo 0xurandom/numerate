@@ -32,13 +32,13 @@ fn main() {
     build.compile("backend_api");
 
     println!("cargo::rustc-link-lib=gmp");
-    println!("cargo:rustc-link-lib=m");
-    println!("cargo:rustc-link-lib=mpfr");
-    println!("cargo:rustc-link-lib=mpc");
+    println!("cargo::rustc-link-lib=m");
+    println!("cargo::rustc-link-lib=mpfr");
+    println!("cargo::rustc-link-lib=mpc");
 
 
 
-    println!("cargo:rerun-if_changed=../../backend");
+    println!("cargo:rerun-if-changed=../../backend");
 
     tauri_build::build()
 }

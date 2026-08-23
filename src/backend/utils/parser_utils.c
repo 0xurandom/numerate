@@ -139,20 +139,24 @@ Number *evaluateString(Lexer *lexer, Parser *parser, char *str,
     lexer->string = str;
     lexer->cursor = 0;
     lexer->length = strlen(str);
-
     parser->cur = tokenise(lexer);
 
     Node *tree = parse(parser, PREC_ASSIGNMENT);
 
     if (tree == NULL) {
         Number *error = numNew(NUM_ERROR);
-        error->error = *formatStringView("Could not parse syntax tree");
+        const char errorStr[] = "Could not parse syntax tree";
+        numSetError(error, errorStr, strlen(errorStr));
         return error;
     }
 
     Node *result = simplifyTree(parser, tree);
-
-    if (result == NULL) return NULL;
+    if (result == NULL) {
+        Number *error = numNew(NUM_ERROR);
+        const char errorStr[] = "Could not simplify expression";
+        numSetError(error, errorStr, strlen(errorStr));
+        return error;
+    }
 
     Number *result_val = numNew(result->literal.value.kind);
     numSet(result_val, &result->literal.value);
@@ -234,8 +238,8 @@ Node *copyNode(Node *node) {
         default: {
             node->kind = NODE_LITERAL;
             numInit(&newNode->literal.value, NUM_ERROR);
-            newNode->literal.value.error =
-                *formatStringView("Could not copy Node of unknwon type");
+            const char errorStr[] = "Could not copy node of unknwon kind";
+            numSetError(&newNode->literal.value, errorStr, strlen(errorStr));
             break;
         }
     }

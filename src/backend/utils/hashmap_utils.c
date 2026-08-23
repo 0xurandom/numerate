@@ -75,33 +75,32 @@ void deleteVar(HashMap *hashMap, const StringView *stringView) {
 
     while (curNode != NULL) {
         if (compareViews(&curNode->key, stringView)) {
-            prevNode->next = curNode->next;
-            freeLL_Node(curNode);
+            if (prevNode == NULL)
+                hashMap->arr[bucketIndex] = curNode->next;
+            else
+                prevNode->next = curNode->next;
 
+            freeLL_Node(curNode);
+            hashMap->count--;
             return;
-        } else {
-            prevNode = curNode;
-            curNode = curNode->next;
         }
+        prevNode = curNode;
+        curNode = curNode->next;
     }
 
-    hashMap->count--;
     return;
 }
 
 void freeHashmap(HashMap *hashMap) {
-    LL_Node *curNode = NULL;
-    LL_Node *nextNode = NULL;
-
     for (size_t i = 0; i < hashMap->capacity; i++) {
-        curNode = hashMap->arr[i];
-        nextNode = curNode->next;
+        LL_Node *curNode = hashMap->arr[i];
 
         while (curNode != NULL) {
-            nextNode = curNode->next;
+            LL_Node *nextNode = curNode->next;
             freeLL_Node(curNode);
             curNode = nextNode;
         }
+        hashMap->arr[i] = NULL;
     }
 
     free(hashMap->arr);

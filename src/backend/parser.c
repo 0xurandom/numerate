@@ -136,8 +136,8 @@ Node *parse(Parser *parser, Precedence precedence) {
                     *formatStringView("Expected ')', got: %s\n",
                                       lookupTokenKind(parser->cur.kind));
                 left = newLiteralNode(result);
-                break;
             }
+            break;
 
             case TOK_LBRACE: {
                 int cap = DEF_FUNC_ARGS;
@@ -146,7 +146,7 @@ Node *parse(Parser *parser, Precedence precedence) {
                 Node **elements = malloc(cap * sizeof(Node *));
 
                 if (parser->cur.kind != TOK_RBRACE) {
-                    elements[count] = parser(parser, PREC_ASSIGNMENT);
+                    elements[count] = parse(parser, PREC_ASSIGNMENT);
                     count++;
 
                     while (parser->cur.kind == TOK_COMMA) {
@@ -156,7 +156,7 @@ Node *parse(Parser *parser, Precedence precedence) {
                                 realloc(elements, 2 * cap * sizeof(Node *));
                             cap *= 2;
                         }
-                        elements[count] = parser(PREC_ASSIGNMENT);
+                        elements[count] = parse(parser, PREC_ASSIGNMENT);
                         count++;
                     }
                 }
@@ -513,8 +513,10 @@ Node *simplifyTree(Parser *parser, Node *node) {
                 }
 
                 default: {
-                    fprintf(stderr, "Error: Unexpected prefix operator: %s\n",
-                            lookupTokenKind(node->unary.op.kind));
+                    const char errorStr[] = "Unexpected prefix operator";
+                    result = numNew(NUM_ERROR);
+                    numSetError(result, errorStr, strlen(errorStr));
+                    break;
                 }
             }
             Node *newNode = newLiteralNode(result);
@@ -526,10 +528,13 @@ Node *simplifyTree(Parser *parser, Node *node) {
         case NODE_UNARY: {
             node->unary.operand = simplifyTree(parser, node->unary.operand);
 
-            // TODO: handle error gracefully
             if (node->unary.operand->kind != NODE_LITERAL) {
-                fprintf(stderr, "Error: Could not simplify unary operand\n");
-                exit(1);
+                const char errorStr[] = "Could not simplify unary operand";
+                Number *result = numNew(NUM_ERROR);
+                numSetError(result, errorStr, strlen(errorStr));
+                Node *newNode = newLiteralNode(result);
+                freeNode(node);
+                return newNode;
             }
 
             Number *num = &node->unary.operand->literal.value;
@@ -541,8 +546,10 @@ Node *simplifyTree(Parser *parser, Node *node) {
                 }
 
                 default: {
-                    fprintf(stderr, "Error: Unexpected unary operator: %s\n",
-                            lookupTokenKind(node->unary.op.kind));
+                    const char errorStr[] = "Unexpected unary operator";
+                    result = numNew(NUM_ERROR);
+                    numSetError(result, errorStr, strlen(errorStr));
+                    break;
                 }
             }
 
@@ -561,31 +568,31 @@ Node *simplifyTree(Parser *parser, Node *node) {
                 // can handle literals and bools
                 if (!(canBeNodeLiteral(node->binary.left) ||
                       canBeNodeLiteral(node->binary.right))) {
-                    fprintf(stderr,
-                            "Error: Invalid nodes for arith op: %s\tleft: "
-                            "%s\tright: %s",
-                            lookupTokenKind(node->binary.op.kind),
-                            lookupNodeKind(node->binary.left->kind),
-                            lookupNodeKind(node->binary.right->kind));
-                    exit(1);
+                    const char errorStr[] = "Invalid nodes for arith op";
+                    Number *result = numNew(NUM_ERROR);
+                    numSetError(result, errorStr, strlen(errorStr));
+                    Node *newNode = newLiteralNode(result);
+                    freeNode(node);
+                    return newNode;
                 }
             } else if (isComparisonOp(node->binary.op.kind)) {
                 if (node->binary.left->kind != NODE_LITERAL ||
                     node->binary.left->kind != NODE_LITERAL) {
-                    fprintf(stderr,
-                            "Error: Invalid nodes for comparison op: %s\tleft: "
-                            "%s\tright: %s",
-                            lookupTokenKind(node->binary.op.kind),
-                            lookupNodeKind(node->binary.left->kind),
-                            lookupNodeKind(node->binary.right->kind));
-                    exit(1);
+                    const char errorStr[] = "Invalid nodes for comparison op";
+                    Number *result = numNew(NUM_ERROR);
+                    numSetError(result, errorStr, strlen(errorStr));
+                    Node *newNode = newLiteralNode(result);
+                    freeNode(node);
+                    return newNode;
                 }
             } else {
-                fprintf(stderr,
-                        "Error: Binary operator is neither arith nor "
-                        "comparison: %s",
-                        lookupTokenKind(node->binary.op.kind));
-                exit(1);
+                const char errorStr[] =
+                    "Binary operator is neither arith nor comparison";
+                Number *result = numNew(NUM_ERROR);
+                numSetError(result, errorStr, strlen(errorStr));
+                Node *newNode = newLiteralNode(result);
+                freeNode(node);
+                return newNode;
             }
 
             Number *left = &node->binary.left->literal.value;
@@ -706,9 +713,11 @@ Node *simplifyTree(Parser *parser, Node *node) {
                 }
 
                 default: {
-                    fprintf(stderr, "Unable to simplify token: %s\n",
-                            lookupTokenKind(node->binary.op.kind));
-                    exit(1);
+                    const char errorStr[] = "Unable to simplify token";
+                    Number *result = numNew(NUM_ERROR);
+                    numSetError(result, errorStr, strlen(errorStr));
+                    newNode = newLiteralNode(result);
+                    break;
                 }
             }
 
@@ -737,7 +746,8 @@ Node *simplifyTree(Parser *parser, Node *node) {
             Set *set = newSet();
 
             for (int i = 0; i < node->set.count; i++) {
-                node->set.elements[i] = simplifyTree(parser, node->set.elements[i]);
+                node->set.elements[i] =
+                    simplifyTree(parser, node->set.elements[i]);
 
                 if (node->set.elements[i]->kind != NODE_LITERAL) {
                     freeSet(set);
@@ -749,7 +759,8 @@ Node *simplifyTree(Parser *parser, Node *node) {
                     free(node);
 
                     Number *result = numNew(NUM_ERROR);
-                    const char error[] = "Set elements do not simplify to a literal value";
+                    const char error[] =
+                        "Set elements do not simplify to a literal value";
                     numSetError(result, error, strlen(error));
 
                     return newLiteralNode(result);
@@ -764,8 +775,7 @@ Node *simplifyTree(Parser *parser, Node *node) {
             free(node->set.elements);
             free(node);
 
-            return ;
-            
+            return newSetLiteralNode(set);
         }
 
         default: {

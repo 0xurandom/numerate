@@ -52,7 +52,7 @@ void evaluateInput(Lexer *lexer, Parser *parser, StringView stringView) {
     printf("Result: ");
     numPrint(result);
 
-    if (resultUnit != NULL)
+    if (result->kind != NUM_ERROR && resultUnit != NULL)
         printf(" %s\n", resultUnit->name);
     else
         printf("\n");

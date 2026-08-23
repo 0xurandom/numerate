@@ -96,21 +96,27 @@ StringView *formatStringView(const char *string, ...) {
 // change the string of an existing string view
 void setStringView(StringView *view, const char *string, size_t length) {
     if (length > view->capacity) {
-        view->arr = realloc(view->arr, length * sizeof(char));
-        view->capacity = length;
+        view->arr = realloc(view->arr, (length + 1) * sizeof(char));
+        view->capacity = length + 1;
     }
 
     memcpy(view->arr, string, length);
-
+    view->arr[length] = '\0';
     view->length = length;
 }
 
 void copyStringView(StringView *dest, const StringView *src) {
+    if (dest == src) return;
+
+    if (dest->arr != NULL) free(dest->arr);
+
     dest->capacity = src->capacity;
     dest->length = src->length;
 
     dest->arr = malloc(dest->capacity * sizeof(char));
-    memcpy(dest->arr, src->arr, dest->capacity);
+    if (dest->arr != NULL && src->arr != NULL) {
+        memcpy(dest->arr, src->arr, dest->capacity);
+    }
 
     return;
 }

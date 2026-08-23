@@ -15,6 +15,7 @@ Node *newBinaryNode(Token op, Node *left, Node *right);
 Node *newFuncCallNode(Token name, Node **args, int argCount);
 Node *newFuncDefNode(Token name, StringViewArr *params, Node *val);
 Node *newSetNode(Node **elements, int count);
+Node *newSetLiteralNode(Set *set);
 Number *evaluateString(Lexer *lexer, Parser *parser, char *str,
                        const Unit **outUnit);
 Node *newLiteralNodeWithVal(double val);

@@ -687,7 +687,12 @@ void numPrint(const Number *num) {
 
 void numToStringApi(char *out, size_t outSize, const Number *num,
                     const Unit **unit) {
-    char valStr[128] = {0};
+    if (num == NULL) {
+        if (out != NULL && outSize > 0) snprintf(out, outSize, "Error");
+        return;
+    }
+
+    char valStr[200] = {0};
     switch (num->kind) {
         case NUM_COMPLEX: {
             char realStr[64] = {0};
@@ -724,10 +729,10 @@ void numToStringApi(char *out, size_t outSize, const Number *num,
         }
 
         case NUM_ERROR: {
-            int len = (int)num->error.length;
-            if (len >= sizeof(valStr)) len = (int)sizeof(valStr) - 1;
+            size_t len = num->error.length;
+            if (len >= sizeof(valStr)) len = sizeof(valStr) - 1;
 
-            snprintf(valStr, sizeof(valStr), "Error: %.*s", len,
+            snprintf(valStr, sizeof(valStr), "Error: %.*s", (int)len,
                      num->error.arr);
             break;
         }
