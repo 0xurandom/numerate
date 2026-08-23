@@ -5,18 +5,23 @@ import { useTheme } from "@infogata/shadcn-vite-theme-provider";
 interface InputTextViewProps {
   value: string;
   onChange: (value: string) => void;
+  fontSize: number;
 }
 
-export function InputTextView({value, onChange}: InputTextViewProps) {
+export function InputTextView({value, onChange, fontSize}: InputTextViewProps) {
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark" || (theme == "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   return (
     <CodeMirror
       theme={isDarkTheme ? shadcnDark : shadcnLight}
       value={ value }
-      onChange = { onChange }
+      onChange={onChange}
+      style={{
+        fontFamily: "'Jetbrains Mono', monospace",
+        fontSize: `${fontSize}px`
+      }}
       height="100%"
-      className="text-sm h-full"
+      className="h-full"
       basicSetup={{
       lineNumbers: false,
       highlightActiveLine: false,
@@ -29,9 +34,10 @@ export function InputTextView({value, onChange}: InputTextViewProps) {
 
 interface OutputTextViewProps {
   results: string[];
+  fontSize: number;
 }
 
-export function OutputTextView({ results }: OutputTextViewProps) {
+export function OutputTextView({ results, fontSize }: OutputTextViewProps) {
   const { theme } = useTheme();
   const isDarkTheme = theme === "dark" || (theme == "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
@@ -41,8 +47,13 @@ export function OutputTextView({ results }: OutputTextViewProps) {
     <CodeMirror
       value={ outputString }
       theme={isDarkTheme ? shadcnDark : shadcnLight}
+      style={{
+        fontFamily: "'Jetbrains Mono', monospace",
+        fontSize: `${fontSize}px`
+      }}
       height="100%"
-      className="text-sm h-full"
+      className="h-full"
+      editable={false}
       basicSetup={{
       lineNumbers: false,
       highlightActiveLine: false,

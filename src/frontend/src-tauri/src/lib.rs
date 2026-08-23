@@ -21,23 +21,35 @@ impl CalcProcess {
         Self {stdin, stdout}
     }
 
-    fn evaluate(&mut self, input: &str) -> String {
+    fn evaluate(&mut self, input: &str) -> Result<String, String> {
 
-        if input.trim().is_empty() {
-            return String::new();
-        }
+        let mut results = Vec::new();
 
+        for line in input.lines() {
+            if line.trim().is_empty() {
+                results.push(String::new());
+                continue;
+            }
 
-        let mut stripped_input = input.replace('\n', " ").replace('\r', "");
-        stripped_input.push('\n');
-
-        self.stdin.write_all(stripped_input.as_bytes()).unwrap();
-        self.stdin.flush().unwrap();
+        self.stdin.write_all(line.as_bytes()).map_err(|e| format!("write failed: {e}"))?;
+        self.stdin.write_all(b"\n").map_err(|e| format!("newline write failed: {e}"))?;
+        self.stdin.flush().map_err(|e| format!("flush failed: {e}"))?;
 
         let mut output = String::new();
-        self.stdout.read_line(&mut output).unwrap();
+        let bytes = self.stdout
+            .read_line(&mut output)
+            .map_err(|e| format!("read failed: {e}"))?;
 
-        output.trim().to_string()
+        if bytes == 0 {
+            return Err("calculator process exited".to_string());
+        }
+
+        println!("INPUT: {:?}", line);
+        println!("OUTPUT: {:?}", output);
+
+        results.push(output.trim().to_string());
+        }
+        Ok(results.join("\n"))
     }
 }
 
@@ -47,16 +59,17 @@ unsafe impl Sync for CalcState {}
 
 
 #[tauri::command]
-fn evaluate(state: tauri::State<CalcState>, input: String) -> String {
-    let mut calc = state.0.lock().unwrap();
+fn evaluate(state: tauri::State<CalcState>, input: String) -> Result<String, String> {
+    let mut calc = state.0.lock().map_err(|e| e.to_string())?;
     calc.evaluate(&input)
 }
 
 
 #[tauri::command]
-fn reset_calculator(state: tauri::State<CalcState>) {
-    let mut calc = state.0.lock().unwrap();
-    calc.evaluate("RESET_CALC");
+fn reset_calculator(state: tauri::State<CalcState>) -> Result<(), String>{
+    let mut calc = state.0.lock().map_err(|e| e.to_string())?;
+    let _ = calc.evaluate("RESET_CALC");
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

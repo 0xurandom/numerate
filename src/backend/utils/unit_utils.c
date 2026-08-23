@@ -82,12 +82,12 @@ static const size_t unitTableCount = sizeof(table) / sizeof(table[0]);
         SI_TIER_2((startIndex + 5), "d" symbol, "deci" word),  \
         {symbol, sizeof(symbol) - 1, &table[startIndex + 6]},  \
         {word, sizeof(word) - 1, &table[startIndex + 6]},      \
-        SI_TIER_2((startIndex), "da" symbol, "deca" word),     \
-        SI_TIER_2((startIndex), "h" symbol, "hecto" word),     \
-        SI_TIER_2((startIndex), "k" symbol, "kilo" word),      \
-        SI_TIER_2((startIndex), "M" symbol, "mega" word),      \
-        SI_TIER_2((startIndex), "G" symbol, "giga" word),      \
-        SI_TIER_2((startIndex), "T" symbol, "tera" word)
+        SI_TIER_2((startIndex + 7), "da" symbol, "deca" word), \
+        SI_TIER_2((startIndex + 8), "h" symbol, "hecto" word), \
+        SI_TIER_2((startIndex + 9), "k" symbol, "kilo" word),  \
+        SI_TIER_2((startIndex + 10), "M" symbol, "mega" word), \
+        SI_TIER_2((startIndex + 11), "G" symbol, "giga" word), \
+        SI_TIER_2((startIndex + 12), "T" symbol, "tera" word)
 
 #define SI_PREFIXES_DUAL(startIndex, symbol, word, word2)                    \
     SI_TIER_2_DUAL((startIndex + 0), "p" symbol, "pico" word, "pico" word2), \
@@ -134,7 +134,7 @@ static const size_t aliasTableCount =
 const Unit *unitLookup(const char *name, size_t len) {
     for (size_t i = 0; i < aliasTableCount; i++) {
         if (aliasTable[i].aliasLength == len &&
-            strncmp(aliasTable[i].alias, name, len)) {
+            strncmp(aliasTable[i].alias, name, len) == 0) {
             return aliasTable[i].unit;
         }
     }

@@ -23,7 +23,8 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
 
   const [results, setResults] = useState<string[]>([]);
 
-
+  const defaultFontSize: number = 14;
+  const [fontSize, setFontSize] = useState(defaultFontSize);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputScrollRef = useRef<HTMLDivElement>(null);
@@ -45,27 +46,54 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
   };
 
   useEffect(() => {
-    let isCurrent = true;
-    const evaluateText = async () => {
-      const lines = value.split('\n');
-      const newOutput: string[] = [];
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
 
-      for (const line of lines) {
-        if (!line.trim()) {
-          newOutput.push("");
-          continue;
-        }
-
-        try {
-          const result: string = await invoke("evaluate", { input: line });
-          newOutput.push(result);
-        } catch {
-          newOutput.push("Error");
-        }
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        setFontSize((size) => Math.min(size + 1, 32));
       }
+
+      if (event.key === "-") {
+        event.preventDefault();
+
+        setFontSize((size) => Math.max(size - 1, 0));
+      }
+
+      if (event.key === "0") {
+        event.preventDefault();
+        setFontSize(14);
+      }
+
+    }
+  })
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const timer = setTimeout(() => {
+      const evaluateText = async () => {
+        const lines = value.split('\n');
+        const newOutput: string[] = [];
+
+        for (const line of lines) {
+          if (!line.trim()) {
+            newOutput.push("");
+            continue;
+          }
+
+          try {
+            const result: string = await invoke("evaluate", { input: line });
+            newOutput.push(result);
+          } catch {
+            newOutput.push("Error");
+          }
+        }
         if (isCurrent) { setResults(newOutput); }
-    };
-    evaluateText();
+      };
+      evaluateText();
+    }, 200);
+
 
     return () => {
       isCurrent = false;
@@ -81,8 +109,9 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
           className="h-full overflow-auto transition-[width]  duration-250 ease-out"
           style={{ width: WIDTH[page].input }}
         >
-          <InputTextView value={value} onChange={onChange} />
+          <InputTextView value={value} onChange={onChange} fontSize={fontSize} />
         </div>
+        <div className="w-px h-full bg-gray-300 dark:bg-gray-700 shrink-0"/>
         <div
           ref={outputScrollRef}
           onScroll={handleOutputScroll}
@@ -90,7 +119,7 @@ export function SplitView({ value, onChange }: SplitCalcViewProps) {
            style={{width: WIDTH[page].output}}
         >
 
-          <OutputTextView results={results} />
+          <OutputTextView results={results} fontSize={fontSize} />
         </div>
       </div>
     </div>
