@@ -38,7 +38,7 @@ git clone https://github.com/0xurandom/numerate.git && cd numerate/
 
 Compile with make:
 ```sh
-cd src/backend/ && make;
+cd src/backend/ && make
 ```
 
 Run the binary
