@@ -3,6 +3,7 @@
 #include <gmp-x86_64.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "num_ops.h"
@@ -23,23 +24,83 @@
         {"G" symbol, UNIT_LENGTH, "1000000000", "1", "0"}, \
         {"T" symbol, UNIT_LENGTH, "1000000000000", "1", "0"}
 
-static const Unit table[] = {SI_TABLE("m", UNIT_LENGTH),  // 0 - 12
-                             SI_TABLE("g", UNIT_MASS),    // 13 - 25
-                             SI_TABLE("l", UNIT_VOLUME),  // 26-38
-                             SI_TABLE("s", UNIT_TIME),    // 39-52
+static const Unit table[] = {
+    SI_TABLE("m", UNIT_LENGTH),  // 0 - 12
+    SI_TABLE("g", UNIT_MASS),    // 13 - 25
+    SI_TABLE("l", UNIT_VOLUME),  // 26-38
+    SI_TABLE("s", UNIT_TIME),    // 39-52
 
-                             {"lb", UNIT_MASS, "45359237", "100000000", "0"},
-                             {"oz", UNIT_MASS, "45359237", "1600000000", "0"},
+    {"lb", UNIT_MASS, "45359237", "100000000", "0"},
+    {"oz", UNIT_MASS, "45359237", "1600000000", "0"},
+    {"st", UNIT_MASS, "635029318", "100000000", "0"},
+    {"ton", UNIT_MASS, "1000000", "1", "0"},
 
-                             {"in", UNIT_LENGTH, "127", "5000", "0"},
-                             {"ft", UNIT_LENGTH, "381", "1250", "0"},
-                             {"yd", UNIT_LENGTH, "1143", "1250", "0"},
-                             {"mi", UNIT_LENGTH, "201168", "125", "0"},
-                             {"nmi", UNIT_LENGTH, "1852", "1", "0"},
+    {"in", UNIT_LENGTH, "127", "5000", "0"},
+    {"ft", UNIT_LENGTH, "381", "1250", "0"},
+    {"yd", UNIT_LENGTH, "1143", "1250", "0"},
+    {"mi", UNIT_LENGTH, "201168", "125", "0"},
+    {"nmi", UNIT_LENGTH, "1852", "1", "0"},
 
-                             {"K", UNIT_TEMPERATURE, "1", "1", "0"},
-                             {"C", UNIT_TEMPERATURE, "1", "1", "27315/100"},
-                             {"F", UNIT_TEMPERATURE, "5", "9", "45967/100"}};
+    {"K", UNIT_TEMPERATURE, "1", "1", "0"},
+    {"C", UNIT_TEMPERATURE, "1", "1", "27315/100"},
+    {"F", UNIT_TEMPERATURE, "5", "9", "45967/100"},
+    {"R", UNIT_TEMPERATURE, "5", "9", "0"},
+
+    {"m2", UNIT_AREA, "1", "1", "0"},
+    {"km2", UNIT_AREA, "1000000", "1", "0"},
+    {"ft2", UNIT_AREA, "145161", "1562500", "0"},
+    {"in2", UNIT_AREA, "16129", "25000000", "0"},
+    {"acre", UNIT_AREA, "40468564224", "10000000", "0"},
+    {"ha", UNIT_AREA, "10000", "1", "0"},
+
+    {"min", UNIT_TIME, "60", "1", "0"},
+    {"hr", UNIT_TIME, "3600", "1", "0"},
+    {"day", UNIT_TIME, "86400", "1", "0"},
+    {"week", UNIT_TIME, "604800", "1", "0"},
+    {"year", UNIT_TIME, "31557600", "1", "0"},
+
+    {"mps", UNIT_SPEED, "1", "1", "0"},
+    {"kph", UNIT_SPEED, "5", "18", "0"},
+    {"mph", UNIT_SPEED, "1397", "3125", "0"},
+    {"fps", UNIT_SPEED, "381", "1250", "0"},
+    {"knot", UNIT_SPEED, "463", "900", "0"},
+
+    {"Pa", UNIT_PRESSURE, "1", "1", "0"},
+    {"kPa", UNIT_PRESSURE, "1000", "1", "0"},
+    {"MPa", UNIT_PRESSURE, "1000000", "1", "0"},
+    {"bar", UNIT_PRESSURE, "100000", "1", "0"},
+    {"atm", UNIT_PRESSURE, "101325", "1", "0"},
+    {"psi", UNIT_PRESSURE, "6894757293168", "1000000000", "0"},
+
+    {"J", UNIT_ENERGY, "1", "1", "0"},
+    {"kJ", UNIT_ENERGY, "1000", "1", "0"},
+    {"MJ", UNIT_ENERGY, "1000000", "1", "0"},
+    {"Wh", UNIT_ENERGY, "3600", "1", "0"},
+    {"kWh", UNIT_ENERGY, "3600000", "1", "0"},
+    {"cal", UNIT_ENERGY, "4184", "1000", "0"},
+    {"kcal", UNIT_ENERGY, "4184", "1", "0"},
+    {"eV", UNIT_ENERGY, "1602176634", "1000000000000000000000000000", "0"},
+
+    {"W", UNIT_POWER, "1", "1", "0"},
+    {"kW", UNIT_POWER, "1000", "1", "0"},
+    {"MW", UNIT_POWER, "1000000", "1", "0"},
+    {"hp", UNIT_POWER, "74569987158227022", "100000000000000", "0"},
+
+    {"Hz", UNIT_FREQUENCY, "1", "1", "0"},
+    {"kHz", UNIT_FREQUENCY, "1000", "1", "0"},
+    {"MHz", UNIT_FREQUENCY, "1000000", "1", "0"},
+    {"GHz", UNIT_FREQUENCY, "1000000000", "1", "0"},
+
+    {"rad", UNIT_ANGLE, "1", "1", "0"},
+    {"deg", UNIT_ANGLE, "3141592653589793", "180000000000000000", "0"},
+    {"grad", UNIT_ANGLE, "3141592653589793", "200000000000000000", "0"},
+    {"turn", UNIT_ANGLE, "6283185307179586", "1000000000000000", "0"},
+
+    SI_TABLE("bit", UNIT_DIGITAL),
+    {"nibble", UNIT_DIGITAL, "4", "1", "0"},
+    SI_TABLE("B", UNIT_DIGITAL),
+
+};
 
 static const size_t unitTableCount = sizeof(table) / sizeof(table[0]);
 
@@ -122,9 +183,81 @@ static const UnitAlias aliasTable[] = {
     SI_PREFIXES_DUAL(0, "m", "meter", "metre"),
 
     SI_PREFIXES(13, "g", "gram"),
-    ALIAS(26, "L"),
+
     SI_PREFIXES_DUAL(26, "l", "liter", "litre"),
+    ALIAS(26, "L"),
+
     SI_PREFIXES(39, "s", "second"),
+
+    ALIAS(52, "pound", "lb"),
+    ALIAS(53, "ounce"),
+    ALIAS(54, "stone"),
+    ALIAS(55, "ton"),
+
+    ALIAS(56, "inch"),
+    ALIAS(57, "foot"),
+    ALIAS(58, "yard"),
+    ALIAS(59, "mile"),
+    ALIAS(60, "nauticalmile"),
+
+    ALIAS(61, "kelvin"),
+    ALIAS(62, "celsius"),
+    ALIAS(63, "fahrenheit"),
+    ALIAS(64, "rankine"),
+
+    ALIAS(65, "squaremeter"),
+    ALIAS(66, "squarekilometer"),
+    ALIAS(67, "squarefoot"),
+    ALIAS(68, "squareinch"),
+    ALIAS(69, "acre"),
+    ALIAS(70, "hectare"),
+
+    ALIAS(71, "minute"),
+    ALIAS(72, "hour"),
+    ALIAS(73, "day"),
+    ALIAS(74, "week"),
+    ALIAS(75, "year"),
+
+    ALIAS(76, "meterpersecond"),
+    ALIAS(77, "kilometerperhour"),
+    ALIAS(78, "mileperhour"),
+    ALIAS(79, "footpersecond"),
+    ALIAS(80, "knot"),
+
+    ALIAS(81, "pascal"),
+    ALIAS(82, "kilopascal"),
+    ALIAS(83, "megapascal"),
+    ALIAS(84, "bar"),
+    ALIAS(85, "atmosphere"),
+    ALIAS(86, "poundsquareinch"),
+
+    ALIAS(87, "joule"),
+    ALIAS(88, "kilojoule"),
+    ALIAS(89, "megajoule"),
+    ALIAS(90, "watthour"),
+    ALIAS(91, "kilowatthour"),
+    ALIAS(92, "calorie"),
+    ALIAS(93, "kilocalorie"),
+    ALIAS(94, "electronvolt"),
+
+    ALIAS(95, "watt"),
+    ALIAS(96, "kilowatt"),
+    ALIAS(97, "megawatt"),
+    ALIAS(98, "horsepower"),
+
+    ALIAS(99, "hertz"),
+    ALIAS(100, "kilohertz"),
+    ALIAS(101, "megahertz"),
+    ALIAS(102, "gigahertz"),
+
+    ALIAS(103, "radian"),
+    ALIAS(104, "degree"),
+    ALIAS(105, "gradian"),
+    ALIAS(106, "turn"),
+
+    SI_PREFIXES(107, "bit", "bit"),
+    ALIAS(120, "nibble"),
+    SI_PREFIXES(121, "B", "byte"),
 
 };
 

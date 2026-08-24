@@ -25,6 +25,8 @@ Number *numNew(NumberKind kind) {
     return num;
 }
 
+void numInitInvalid(Number *num) { num->kind = NUM_INVALID; }
+
 void numInit(Number *num, NumberKind kind) {
     num->kind = kind;
 
@@ -60,47 +62,37 @@ void numInit(Number *num, NumberKind kind) {
 // to have the same NumberKind as src
 void numSet(Number *dest, const Number *src) {
     if (dest->kind != src->kind) {
-        // TODO: set dest to error
-        numClear(dest);
-        dest->kind = src->kind;
+        if (dest->kind != NUM_INVALID) {
+            numClear(dest);
+        }
+
         numInit(dest, src->kind);
-        // fprintf(stderr,
-        // "Error: numSet received dest(kind: %d) and src(kind: %d)) of "
-        // "different kinds\n",
-        // dest->kind, src->kind);
-        // exit(1);
     }
 
     switch (src->kind) {
-        case NUM_REAL: {
+        case NUM_REAL:
             mpfr_set(dest->real, src->real, MPFR_RNDN);
             break;
-        }
 
-        case NUM_COMPLEX: {
+        case NUM_COMPLEX:
             mpc_set(dest->complex, src->complex, MPFR_RNDN);
             break;
-        }
 
-        case NUM_RATIONAL: {
+        case NUM_RATIONAL:
             mpq_set(dest->rational, src->rational);
             break;
-        }
 
-        case NUM_ERROR: {
+        case NUM_BOOL:
+            dest->boolean = src->boolean;
+            break;
+
+        case NUM_ERROR:
             copyStringView(&dest->error, &src->error);
             break;
-        }
 
-        case NUM_BOOL: {
-            if (numSgnSi(src) == 0)
-                dest->boolean = 0;
-            else
-                dest->boolean = 1;
-        }
+        default:
+            break;
     }
-
-    return;
 }
 
 void numSetBool(Number *num, bool boolean) {
@@ -139,23 +131,16 @@ void numSetError(Number *num, const char *errorString, size_t errorLength) {
 
 // inits x and sets x = src with NumberKind kind
 Number *numConvertandSet(const Number *src, NumberKind kind) {
-    Number *num = numNew(kind);
-
     if (src->kind == kind) {
-        numSet(num, src);
-
-    } else {
-        Number *temp = numNew(src->kind);
-        numSet(temp, src);
-
-        temp = numConvert(temp, kind);
-
-        numSet(num, temp);
-
-        numFree(temp);
+        Number *result = numNew(kind);
+        numSet(result, src);
+        return result;
     }
 
-    return num;
+    Number *copy = numNew(src->kind);
+    numSet(copy, src);
+
+    return numConvert(copy, kind);
 }
 
 // frees input Number and returns a new Number
@@ -167,57 +152,28 @@ Number *numConvert(Number *num, NumberKind kind) {
 
     switch (kind) {
         case NUM_REAL: {
-            mpfr_t result;
-            mpfr_init2(result, PRECISION);
+            Number *resultNum = numNew(NUM_REAL);
 
             switch (num->kind) {
-                case NUM_REAL:
-                    return num;
-
-                case NUM_COMPLEX: {
-                    mpfr_t tempImag;
-                    mpfr_init2(tempImag, PRECISION);
-
-                    mpfr_set(tempImag, mpc_imagref(num->complex), MPFR_RNDN);
-
-                    if (mpfr_cmp_si(tempImag, 0) == 0) {
-                        fprintf(stderr,
-                                "Warning: Converting complex number with "
-                                "imaginary value to real number\n");
-                    }
-
-                    mpfr_set(result, mpc_realref(num->complex), MPFR_RNDN);
-
-                    mpfr_clear(tempImag);
+                case NUM_COMPLEX:
+                    mpfr_set(resultNum->real, mpc_realref(num->complex),
+                             MPFR_RNDN);
                     break;
-                }
 
-                case NUM_RATIONAL: {
-                    mpfr_set_q(result, num->rational, MPFR_RNDN);
-
+                case NUM_RATIONAL:
+                    mpfr_set_q(resultNum->real, num->rational, MPFR_RNDN);
                     break;
-                }
 
-                case NUM_BOOL: {
-                    if (numSgnSi(num) == 0)
-                        mpfr_set_si(result, 0, MPFR_RNDN);
-                    else
-                        mpfr_set_si(result, 1, MPFR_RNDN);
-
+                case NUM_BOOL:
+                    mpfr_set_si(resultNum->real, num->boolean ? 1 : 0,
+                                MPFR_RNDN);
                     break;
-                }
 
-                case NUM_ERROR: {
+                default:
                     break;
-                }
             }
 
             numFree(num);
-
-            Number *resultNum = numNew(NUM_REAL);
-            mpfr_set(resultNum->real, result, MPFR_RNDN);
-            mpfr_clear(result);
-
             return resultNum;
         }
 
@@ -264,57 +220,26 @@ Number *numConvert(Number *num, NumberKind kind) {
         }
 
         case NUM_RATIONAL: {
-            mpq_t result;
-            mpq_init(result);
-
-            switch (num->kind) {
-                case NUM_RATIONAL:
-                    break;
-
-                case NUM_REAL: {
-                    mpfr_get_q(result, num->real);
-
-                    break;
-                }
-
-                case NUM_COMPLEX: {
-                    mpfr_t tempImag;
-                    mpfr_init2(tempImag, PRECISION);
-
-                    mpfr_set(tempImag, mpc_imagref(num->complex), MPFR_RNDN);
-
-                    if (mpfr_cmp_si(tempImag, 0) == 0) {
-                        fprintf(stderr,
-                                "Warning: Converting complex number with "
-                                "imaginary value to rational number\n");
-                    }
-
-                    mpfr_get_q(result, mpc_realref(num->complex));
-
-                    mpfr_clear(tempImag);
-                    break;
-                }
-
-                case NUM_BOOL: {
-                    if (numSgnSi(num) == 0)
-                        mpq_set_si(result, 0, 1);
-                    else
-                        mpq_set_si(result, 1, 1);
-
-                    break;
-                }
-
-                case NUM_ERROR: {
-                    break;
-                }
-            }
-            numFree(num);
-
             Number *resultNum = numNew(NUM_RATIONAL);
 
-            mpq_set(resultNum->rational, result);
-            mpq_clear(result);
+            switch (num->kind) {
+                case NUM_REAL:
+                    mpfr_get_q(resultNum->rational, num->real);
+                    break;
 
+                case NUM_COMPLEX:
+                    mpfr_get_q(resultNum->rational, mpc_realref(num->complex));
+                    break;
+
+                case NUM_BOOL:
+                    mpq_set_si(resultNum->rational, num->boolean ? 1 : 0, 1);
+                    break;
+
+                default:
+                    break;
+            }
+
+            numFree(num);
             return resultNum;
         }
 
@@ -814,41 +739,29 @@ void numClear(Number *num) {
     if (num == NULL) return;
 
     switch (num->kind) {
-        case NUM_COMPLEX: {
-            mpc_clear(num->complex);
-            num->kind = -1;
-            break;
-        }
-        case NUM_REAL: {
+        case NUM_REAL:
             mpfr_clear(num->real);
-            num->kind = -1;
-
             break;
-        }
 
-        case NUM_RATIONAL: {
+        case NUM_COMPLEX:
+            mpc_clear(num->complex);
+            break;
+
+        case NUM_RATIONAL:
             mpq_clear(num->rational);
-            num->kind = -1;
-
             break;
-        }
 
-        case NUM_BOOL: {
-            break;
-        }
-
-        case NUM_ERROR: {
+        case NUM_ERROR:
             freeStringView(&num->error);
-            num->kind = -1;
-
             break;
-        }
 
-        default:
+        case NUM_BOOL:
+        case NUM_INVALID:
             break;
     }
-}
 
+    num->kind = NUM_INVALID;
+}
 void numFree(Number *num) {
     if (num == NULL) return;
 
@@ -889,8 +802,9 @@ void numFrees(Number *num, ...) {
 
     Number *nextArg;
 
-    while ((nextArg = va_arg(args, Number *)) != NULL) {
-        numFree(nextArg);
+    while (num != NULL) {
+        numFree(num);
+        num = va_arg(args, Number *);
     }
 
     va_end(args);

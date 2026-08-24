@@ -30,7 +30,9 @@ Node *parse(Parser *parser, Precedence precedence) {
 
     switch (parser->prev.kind) {
         case TOK_NUMBER: {
-            Number *num = &parser->prev.num;
+            Number num;
+            numInit(&num, parser->prev.num.kind);
+            numSet(&num, &parser->prev.num);
             const Unit *srcUnit = parser->prev.unit;
 
             if (srcUnit != NULL && parser->cur.kind == TOK_TO) {
@@ -41,6 +43,7 @@ Node *parse(Parser *parser, Precedence precedence) {
                     Number *result = numNew(NUM_ERROR);
                     numSetError(result, error, strlen(error));
                     left = newLiteralNode(result);
+                    numClear(&num);
                     break;
                 }
 
@@ -53,26 +56,27 @@ Node *parse(Parser *parser, Precedence precedence) {
                     Number *result = numNew(NUM_ERROR);
                     numSetError(result, error, strlen(error));
                     left = newLiteralNode(result);
+                    numClear(&num);
                     break;
                 }
 
                 if (srcUnit != NULL) {
                     Number *convertedNum =
-                        unitConvert(num, srcUnit, targetUnit);
+                        unitConvert(&num, srcUnit, targetUnit);
                     left = newLiteralNode(convertedNum);
                     numFree(convertedNum);
                 } else {
-                    left = newUnitLiteralNode(num, targetUnit);
+                    left = newUnitLiteralNode(&num, targetUnit);
                 }
                 nextToken(parser);
 
             } else {
-                left = newLiteralNode(&parser->prev.num);
+                left = newLiteralNode(&num);
             }
 
+            numClear(&num);
             break;
         }
-
         case TOK_VAR: {
             // TODO: change var node names from token
             // to ident

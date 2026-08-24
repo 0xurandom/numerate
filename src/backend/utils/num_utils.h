@@ -9,11 +9,11 @@
 
 typedef struct Unit Unit;
 
-// TODO: allow changing precision
 #define PRECISION 10
 
 // as rationals
 typedef enum {
+    NUM_INVALID = -1,
     NUM_REAL,
     NUM_COMPLEX,
     NUM_RATIONAL,

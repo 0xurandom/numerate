@@ -11,6 +11,7 @@ int main() {
     Calc *calc = init_calc();
     char buffer[2048];
 
+    printf("> ");
     while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
         buffer[strcspn(buffer, "\n")] = 0;
 
@@ -24,12 +25,14 @@ int main() {
         const Unit *resultUnit = NULL;
         Number *result =
             evaluateString(&calc->lexer, &calc->parser, buffer, &resultUnit);
+        printf("= ");
         numPrint(result);
 
         if (result->kind != NUM_ERROR && resultUnit != NULL)
             printf(" %s\n", resultUnit->name);
         else
             printf("\n");
+        printf("> ");
     }
 
     return 0;
