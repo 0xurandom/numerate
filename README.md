@@ -1,10 +1,10 @@
 # Numerate
 
-Numerate is a natural language calculator, for converting between units or using variable based calculations.
+Numerate is a natural language calculator for converting between units or using variable based calculations.
 
 ## About
 
-This project was originally supposed to be something like Soulver or wolfram alpha. However, due to time constrains, It currently has support for functions, unit conversions variables and some mathematical operations.
+This project was originally supposed to be something like Soulver or wolfram alpha. However, due to time constraints, It currently is a terminal application and has support for functions, unit conversions variables and some mathematical operations.
 
 ## Installing
 
@@ -13,7 +13,7 @@ Download the linux executable from  [releases](https://github.com/0xurandom/nume
 
 Make it executable and run:
 ```sh
-chmod +x ./PolyEmu-x86_64.AppImage && ./numerate-x86_64
+chmod +x ./numerate-x86_64 && ./numerate-x86_64
 ```
 
 ### Compile from source
@@ -71,4 +71,6 @@ Variables can be defined as:
 = 29
 ```
 
-Some predefiend variables are `pi`, `tau` and `phi`.
+Some predefined variables are `pi`, `tau` and `phi`.
+
+![screenshot](screenshots/ss1.png)
