@@ -1,7 +1,6 @@
 # Numerate
 
-Numerate is a natural language calculator for converting between units or using variable based calculations.
-
+Numerate is a natural language calculator for converting between units or using variable based calculations. It also supports complex and rational numbers.
 ## About
 
 This project was originally supposed to be something like Soulver or wolfram alpha. However, due to time constraints, It currently is a terminal application and has support for functions, unit conversions variables and some mathematical operations.
@@ -56,6 +55,8 @@ A function can be defined and called as:
 > f(2)
 = 4
 ```
+
+Some predefined functions are the trigonometric functions, sgn, sqrt, cbrt, ln, abs.
 
 Units can be converted as:
 ```
